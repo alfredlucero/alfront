@@ -1,0 +1,443 @@
+// Can use sassmeister to test, or download ruby, sudo gem install sass
+
+Sass Commands:
+sass -h // to get all settings/help
+
+sass-convert Example.scss Example.sass // converts .scss to .sass file, can do both ways
+
+sass Example.scss:Example.css // converts .scss to .css file, generates .map file for debugging
+
+sass --watch Example.scss:Example.css // updates css file for every change in .scss, control C to stop watching
+
+sass --watch Directory:CSS // generates new directory CSS to transfer all converted .scss to .css files there
+
+sass Example.scss:Example.css --style compact // can set the compression style, compact: all on one line, compressed: smallest file with no white space, expanded: standard nice format with indentation
+
+sass Example.scss:Example.css --style expanded --sourcemap=none // gets rid of .map file
+
+i.e. sample.scss // resembles more closely to css syntax
+$blue: blue;
+
+html{
+	background: $blue;
+}
+
+i.e. sample.sass // omits certain things like curly braces, semicolons, indentation matters
+$blue: blue
+
+html
+	background: $blue
+
+i.e. sample.css
+html {
+	background: blue;
+}
+
+
+Basic API:
+/* 
+	Variables for things like colors, math statements, etc. 
+*/
+// Declare them with $ like PHP
+// Numerical
+$width: 600px; $float: 1.5; $int: 20;
+
+// Strings
+$string: '../images/hello.jpg';
+$stringTwo: "../images/hello.jpg";
+$stringThree: no-repeat;
+$stringSelector: element;
+
+// Colors
+$colString: gray;
+$rgb: rgb(230,230,230); // converts to hex
+$rgba: rgba(230,230,230,.2); // stays as rgba
+
+// Can contain multiple values separated by commas
+$list: 1px 1px 3px black,
+			3px 3px 4px #ccc;
+
+div ##{$stringSelector} {
+	width: $width;
+	line-height: $int;
+	background: url($string) $stringThree $rgb;
+	box-shadow: $list;
+}
+
+-> translates to this
+div #element {
+	width: 600px;
+	line-height: 20;
+	background: url("../images/hello.jpg") no-repeat #e6e6e6;
+	box-shadow: 1px 1px 3px black, 3px 3px 4px #ccc;
+}
+
+/*
+	Selector inheritance
+	Property inheritance
+*/
+$el: button;
+
+// Inherited Selectors, like a family tree
+#parent {
+	background: green;
+
+	#child-One {
+		background: yellow;
+		font-size: 1em;
+	}
+
+	#child-Two {
+		font-weight: 200;
+	}
+
+	&.HasClass {
+		background: blue;
+		font-weight: bold;
+		font-style: italic;
+	}
+}
+
+-> translates to this
+#parent {
+	background: green;
+}
+
+#parent #child-One {
+	background: yellow;
+	font-size: 1em;
+}
+
+#parent #child-Two {
+	font-weight: 200;
+}
+
+#parent.HasClass {
+	background: blue;
+	font-weight: bold;
+	font-style: italic;
+}
+
+// Inherited Properties, @extend, %shared
+#parent %shared .child {
+	background: green;
+	font-size: 2em;
+}
+
+.content { 
+	@extend %shared; 
+	line-height: 2em;
+}
+
+.sign, video, img {
+	@extend %shared;
+}
+
+-> translates to this
+#parent .content .child,
+#parent .sign .child,
+#parent video .child,
+#parent img .child {
+	background: green;
+	font-size: 2em;
+}
+
+.content {
+	line-height: 2em;
+}
+
+/*
+	Mixins: functional approach, can pass arguments to mixins to change outcome of code, @include
+*/
+$color: blue;
+
+@mixin cssProperties($argOne) {
+	#main {
+		color: $argOne;
+		background: green;
+		line-height: 1.8;
+	}
+}
+
+//$shadow... means receives a list of data
+@mixin boxShadow($shadow...) {
+	-webkit-box-shadow: $shadow;
+	-moz-box-shadow: $shadow;
+	-o-box-shadow: $shadow;
+	box-shadow: $shadow;
+}
+
+#mixin keyframes{$name) {
+	@-webkit-keyframes #{$name} {
+		@content;
+	}
+	@-mox-keyframes #{$name} {
+		@content;
+	}
+	@-o-keyframes #{$name} {
+		@content;
+	}
+	#keyframes #{$name} {
+		@content;
+	}
+}
+
+// can do a similar mixin for transitions with all vendor prefixes
+
+// Takes the content and places it inside all the keyframes vendor prefixes
+@include keyframes(myAnim) {
+	0% { opacity: 0 }
+	100% { opacity: 1 }
+}
+
+body {
+	color: green;
+	width: 200px;
+
+	@include cssProperties($color);
+}
+
+-> translates to this
+body {
+	color: green;
+	width: 200px;
+}
+
+body #main {
+	color: blue;
+	background: green;
+	line-height: 1.8;
+}
+
+/*
+	Importing scss/sass files, @import, _filenames to inform sass that their partials not converted to .css directly but to only share mixins, variables, properties with other files that will be converted to .css
+*/
+
+@import 'import.css';
+@import '_MainMixins'; // don't need extension when .scss/.sass
+
+
+Advanced API:
+/*
+	List functions: can contain lists, separated by commas/spaces
+*/
+// Get length
+length($NestedList);
+// Get second list within root level
+nth($NestedList, 2); 
+// Replace targeted nth element in list
+set-nth($NestedList, 2, 1em 1em 8em black);
+// Returns separator for a list
+list-separator($NestedList);
+// Joining values together, not separated by commas by default
+join($List2, $NestedList, comma);
+// Adds to end of list
+append($List3, 'added', space);
+// Returns values position within a list, starts from 1
+index($List3, Arial);
+// Combines several lists into single multidimensional list
+zip(
+	...
+);
+
+/*
+	Maps: key value pairs
+*/
+$map1: (
+	'KeyName': 'Value',
+	'AnotherKey': 200px
+);
+
+.foo {
+	content: map-keys($map1);
+	content: map-values($map1);
+	content: map-has-key($map1, 'KeyName2');
+	content: map-get($map3, 'KeyName');
+	content: inspect(map-merge($map1, $map2));
+	content: inspect(map-remove($map2, 'key1'));
+}
+
+/*
+	Math functions and operators
+*/
+$a: 16px; 
+
+div {
+	width: 5 + 10 + $a - $a*2;
+}
+round()
+floor()
+ceil()
+percentage()
+abs()
+min()
+max()
+random()
+
+/*
+	if-directives: @if, @else-if, @else
+*/
+html {
+	@if $type == element {
+		content: "Yp true";
+	}
+	@else { content: "Nope false"; }
+}
+
+/*
+	Loops: @for, @each, @while
+*/
+$headers: h1, h2, h3, h4, h5, h6
+@for $i from 1 through 6 {
+	h#{$i} { font-size: 55px; }
+}
+
+@each $head in h1, h2, h3, h4, h5, h6 {
+	#($head) {
+		font-size: 55px;
+	}
+}
+
+@while $index <= 6 {
+	h#{$index} {
+		font-size: 55px;
+	}
+
+	$index: $index + 1;
+}
+
+/*
+	Function Directives: @function
+*/
+@function list-match($list, $list2) {
+	$len: length($list);
+	$len2: length($list2);
+
+	@if $len == $len2 { @return "Yup" }
+	@else { @return "Nope" }
+}
+
+/*
+	Using Koala: GUI application for Less, Sass, Compass, and CoffeeScript compilation
+*/
+// Can watch (auto compile) or compile manually, 
+// Autoprefix setting: looks at any CSS property that needs prefixing and prefixes for you such as transition
+// Source Map: maps the source code from scss into developer console, telling browser where the .scss file is, must enable JavaScript source maps in dev tools setting, can look at sources and edit original file there before transpiling
+
+$gray: #aaa;
+
+@mixin txtStyle($size, $weight, $lh) {
+	padding: 0;
+	margin: 0;
+	font-size: $size;
+	font-weight: $weight;
+	line-height: $lh;
+}
+
+h1 {
+	color: $gray;
+	@include txtStyle(25px, 200, 140%);
+}
+
+// Sample grid HTML
+<div id="grid" class="cell-10">
+	<div></div>
+	....
+</div>
+
+// Sample grid .scss
+#grid > div {
+	height: 25px;
+	background: #ccc;
+	border: 1px solid #aaa;
+	box-sizing: border-box;
+	float: left;
+}
+
+$max: 16;
+
+@for $i from 1 through $max {
+	$equ: 100% / $i;
+
+	#grid.cell-#{ $i } > div {
+		width: $equ;
+	}
+}
+
+// Sample grid .css
+#grid.cell-1 > div {
+	width: 100%;
+}
+...
+#grid.cell-16 > div {
+	width: 6.25%;
+}
+
+// Sample grid media queries
+<div id="grid" class="cell-16 cell-850-12 cell-450-6 cell-380-3">
+
+$map: ( 850:12, 450:6, 380:3 );
+
+@each $key, $val in $map {
+	@media all and (max-width: $key + px) {
+		
+		@for $i from 1 through $val {
+			$equ: 100% / $i;
+			#grid.cell-#{$key}-#{$i} > div {
+				width: $equ;
+			}
+		}
+	}
+}
+
+// Sample button
+.button {
+	display: inline-block;
+	text-decoration: none;
+	font-family: "helvetica";
+	font-size: 14px;
+	font-weight: 200;
+	background: #ccc;
+	color: #222;
+	padding: 10px 15px;
+	border-radius: 3px;
+	transition: all .2s;
+}
+
+.button:hover {
+	background: #bbb;
+}
+
+$colormap: (
+	green: ( background: #86c351,
+					 hover: #78b04a
+				),
+	blue: ( background: #00b3e0,
+	        hover: #0097be
+	),
+	red: ( background: #ff5817,
+	       hover: #da4912
+	)
+);
+
+@each $color, $map in $colormap {
+	@each $prop, $val in $map {
+		@if ($prop == 'background') {
+			background: $val;
+			color: #fff;
+		} @else {
+			.button.#{$color}:hover {
+				background: $val;
+			}
+		}
+	}
+	.button.#{$color} {
+		color: #fff;
+	}
+
+	.button.#{$color}:hover {
+		color: #fff;
+	}
+}
+
+<a href="#" class="button blue">Button</a>
