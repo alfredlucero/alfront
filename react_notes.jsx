@@ -69,6 +69,7 @@ app.listen(3000, function() {
 	i.e. Creating React Components
 	Use JSX to render in browser
 	Pass input data through props/attributes on the components
+	Every component needs a render function
 */
 var Greeter = React.createClass({
 	// Expects to return JSX to render in browser
@@ -107,7 +108,10 @@ var Greeter = React.createClass({
 
 ReactDom.render(React.createElement(Greeter, null), document.getElementById('app'));
 
-/* Using props to pass in data */
+/* 
+	Using props to pass in data, props cannot be updated
+	i.e. <Greeter name="Alfred"/>
+*/
 var Greeter = React.createClass({
 	// Defaults if data not provided
 	getDefaultProps: function() {
@@ -134,5 +138,154 @@ ReactDOM.render(
 	<Greeter name="Alfred"/>,
 	document.getElementById('app')
 );
+
+
+/*
+	User events & callbacks
+	
+	Can provide callbacks for submit, click, etc.
+	Props get passed into component as you initialize it, not updated
+	State is internally maintained and updated by the component
+*/
+var Greeter = React.createClass({
+	getDefaultProps: function() {
+		name: 'React',
+		message: 'This is the default message'
+	},
+
+	getInitialState: function() {
+		return {
+			name: this.props.name;
+		};
+	},
+
+	// On submit event for the form, set the name properly and alert it
+	onButtonClick: function() {
+		// Prevents page from submitting and doing page refresh
+		e.preventDefault();
+
+		var nameRef = this.refs.name;
+		var name = nameRef.value;
+
+		// Empty out the input text 
+		nameRef.value = '';
+
+		if (typeof name === 'string' && name.length > 0) {
+			// Can only set the state using setState({ ... })
+			this.setState({
+				name: name
+			});
+		}
+	},
+
+	render: function() {
+		var name = this.state.name;
+		var message = this.props.message;
+
+		return (
+			<div>
+				<h1>Hello {name}!</h1>
+				<p>{message + '!!'}</p>
+
+				<form onSubmit={this.onButtonClick}>
+					<input type="text" ref="name" />
+					<button>Set Name</button>
+				</form>
+			</div>
+		);
+	}
+});
+
+ReactDOM.render(
+	<Greeter name="Regine"/>,
+	document.getElementById('app')
+);
+
+/*	
+	Nested Components
+
+	Container/class components contain state and render children
+	Functional components just render to the browser and take in props
+	Can pass functions through props to children 
+*/
+// Just takes in props and renders the message, still presentational only
+var GreeterMessage = React.createClass({
+	render: function() {
+		var name = this.props.name;
+		var message = this.props.message;
+
+		return (
+			<div>
+				<h1>Hello {name}!</h1>
+				<p>Message: {message}</p>
+			</div>
+		);
+	}
+});
+
+
+// Takes in handleNewName function as props, still presentational only
+var GreeterForm = React.createClass({
+	onFormSubmit: function(e) {
+		e.preventDefault();
+
+		var name = this.refs.name.value;
+
+		if (name.length > 0) {
+			this.refs.name.value = '';
+			// Pass the name to the function passed through the props from parent component
+			this.props.onNewName(name);
+		}
+	},
+	render: function() {
+		<form onSubmit={this.onFormSubmit}>
+			<input type="text" ref="name" />
+			<button>Set Name</button>
+		</form>
+	}
+});
+
+// Maintains name state and sets it on valid form submission
+var Greeter = React.createClass({
+	getDefaultProps: function() {
+		name: 'Regine',
+		message: 'Hello darkness my old friend'
+	},
+
+	getInitialState: function() {
+		return {
+			name: this.props.name;
+		};
+	},
+
+	// On new name retrieved from child component form, set the name in state
+	// State takes in an object with as many properties to watch
+	handleNewName: function() {
+		this.setState({
+			name: name
+		});
+	},
+
+	render: function() {
+		var name = this.state.name;
+		var message = this.props.message;
+
+		return (
+			<div>
+				<GreeterMessage name={name} message={message}/>
+				<GreeterForm onNewName={this.handleNewName}/>
+			</div>
+		);
+	}
+});
+
+ReactDOM.render(
+	<Greeter name="Regine"/>,
+	document.getElementById('app')
+);
+
+
+
+
 
 
