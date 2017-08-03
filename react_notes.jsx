@@ -284,6 +284,27 @@ ReactDOM.render(
 	document.getElementById('app')
 );
 
+/*
+	Setup:
+
+	React:
+	- npm install --save react@X.X.X react-dom@X.X.X
+	
+	Webpack: bundler, code splitting, optimizing builds
+	- bundle third party dependencies like react, react-dom, babel, application code
+	- break components into separate files, npm install -g webpack@X.X.X
+	- i.e. webpack ./public/app.js ./
+	Babel: Transpiler for JSX/ES6 features to browser compatible ES5
+	- npm install --save-dev webpack@X.X.X babel-core@X.X.X babel-loader@X.X.X babel-preset-es2015@X.X.X
+	- babel-preset-react@X.X.X (development dependencies only required locally)
+	
+*/
+
+// Gotta include bundle.js in index.html made from Webpack
+// <script src="bundle.js"></script>
+
+//
+
 
 
 
