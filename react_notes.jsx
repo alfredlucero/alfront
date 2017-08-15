@@ -19,6 +19,16 @@
    as currently an update results in the entire subtree being re-rendered immediately
  * Fiber is a virtual stack frame and reimplementation of the stack specialized for React components to 
    potentially be used for concurrency or error boundaries
+ * Tips and tricks for scaling React applications: directory structure by feature
+ * for containers (stateful) and components (stateless) with actions, constants, reducers
+ * - Can colocate the styles of component in their folder (CSS modules), call require/import and assign JSX tag a className
+ * i.e. var styles = require('./styles.css'); <div className={styles.button}></div>
+ * - To handle inherited styles such as line-height, can use reset style sheet such as Reset CSS, Normalize.css, sanitize.css
+ * or we can have a reset for every component such as PostCSS Auto Reset (sets inherited properties to default values)
+ * - Handle data-fetching with Redux Thunk but tough to test in actions or one can use redux-saga,
+ * which utilizes Esnext generator functions to make async code look sync (like a separate thread)
+ * don't need to mock anything or rely on network and just call gen.next() to move to next point
+ * and we colocate the test files in the same folder too
  */
 
 
@@ -297,16 +307,803 @@ ReactDOM.render(
 	Babel: Transpiler for JSX/ES6 features to browser compatible ES5
 	- npm install --save-dev webpack@X.X.X babel-core@X.X.X babel-loader@X.X.X babel-preset-es2015@X.X.X
 	- babel-preset-react@X.X.X (development dependencies only required locally)
-	
+	- webpack -w: listens for changes and automatically rebundles on changes
 */
 
 // Gotta include bundle.js in index.html made from Webpack
 // <script src="bundle.js"></script>
+// Need to specify a config file to specify plugins like babel
+// Sample webpack.config.js and just run webpack
+module.exports = {
+	// Entry point
+	entry: './public/app.js',
+	output: {
+		path: __dirname // Path to the current folder,
+		filename: './public/bundle.js'
+	},
+	resolve: {
+		root: __dirname,
+		// So you can just do require('Greeter')
+		alias: {
+			Greeter: 'public/components/Greeter.jsx'
+		},
+		extensions: ['', '.js', '.jsx']
+	},
+	module: {
+		loaders: [
+			{
+				// Babel parses through react and run through es2015
+				loader: 'babel-loader',
+				query: {
+					presets: ['react', 'es2015']
+				},
+				test: /\.jsx?$/, // Check for jsx files
+				exclude: /(node_modules|bower_components)/ // Babel ignores this
+			}
+		]
+	}
+};
 
-//
+// Sample setup of components
+// Import it elsewhere like import GreeterMessage = require('./components/GreeterMessage');
+var React = require('react');
+
+var GreeterMessage = React.createClass({
+	render: function() {
+		return (
+			<h1>Greetings!</h1>
+		);
+	}
+});
+
+module.exports = GreeterMessage;
 
 
+/*
+	React-router: to handle routing from page to page in SPA
+*/
+// Sample Main component
+var React = require('react');
+var Nav = require('Nav');
+
+var Main = React.createClass({
+	render: function() {
+		return (
+			<div>
+				<Nav/>
+				<h2>Main Component</h2>
+				{this.props.children}
+			</div>
+		);
+	}
+});
+
+module.exports = Main;
+
+// Sample Nav
+// Can add custom styles and classes to it, camelcase properties
+// Differentiate which link is active and styling
+// IndexLink so that other links aren't labeled as active too
+var React = require('react');
+var { Link, IndexLink } = require('react-router');
+
+var Nav = React.createClass({
+	render: function() {
+		return (
+			<div>
+				<h2>Nav Component</h2>
+				<IndexLink to="/" activeClassName="active" activeStyle={{ fontWeight: 'bold' }}>Get Weather</IndexLink>
+				<Link to="/about" activeClassName="active">About</Link>
+			</div>
+		);
+	}
+});
+
+module.exports = Nav;
 
 
+var React = require('react');
+var ReactDOM = require('react-dom');
+var { Route, Router, IndexRoute, hashHistory } = require('react-router');
+var Main = require('Main');
+var About = require('About');
 
+// Handle main and navigation, always rendered
+// /about loads this
+// Weather displayed as child to Main, shown when / only
+ReactDOM.render(
+	<Router history={hashHistory}>
+		<Route path="/" component={Main}> 
+			<Route path="about" component={About}/>
+			<IndexRoute component={Weather}/> 
+		</Route>
+	</Router>,
+	document.getElementById('app')
+);
+
+// Sample Form Submit
+var React = require('react');
+
+// Going to be instantiated like <WeatherForm onSearch={this.handleSearch}/>
+var WeatherForm = React.createClass({
+	onFormSubmit: function(e) {
+		// Prevents entire page from reloading on submit
+		e.preventDefault();
+
+		var location = this.refs.location.value;
+
+		if (location.length > 0) {
+			this.refs.location.value = '';
+			this.props.onSearch(location);
+		}
+	},
+	render: function() {
+		return (
+			<div>
+				<form onSubmit={this.onFormSubmit}>
+					<input type="text" ref="location"/>
+					<button>Get Weather</button>
+				</form>
+			</div>
+		);
+	}
+});
+
+module.exports = WeatherForm;
+
+var Weather = React.createClass({
+	getInitialState: function() {
+		return {
+			location: 'Miami',
+			temp: 88,
+			isLoading: false
+		};
+	},
+	handleSearch: function(location) {
+		var that = this;
+
+		this.setState({ isLoading: true });
+
+		openWeatherMap.getTemp(location).then(function(temp) {
+			// Going to need to pass new location and temp into weather message
+			that.setState({
+				location: location,
+				temp: temp,
+				isLoading: false
+			});
+		}, function(errorMessage) {
+			that.setState({ isLoading: false });
+			alert(errorMessage);
+		})
+	},
+	render: function() {
+		var { isLoading, temp, location } = this.state;
+
+		// Can add conditions by moving it to nested function for rendering logic
+		// such as for loading state as request is sent out
+		function renderMessage() {
+			if (isLoading) {
+				return <h3>Fetching weather...</h3>;
+			} else if (temp && location) {
+				return <WeatherMessage temp={temp} location={location}/>;
+			}
+		}
+
+		return (
+			<div>
+				<h3>Weather Component</h3>
+				<WeatherForm onSearch={this.handleSearch}/>
+				{renderMessage()}
+			</div>
+		);
+	}
+});
+
+var React = require('react');
+
+var WeatherMessage = React.createClass({
+	render: function() {
+		var { temp, location } = this.props;
+		return (
+			<h3>It's {temp} in {location}</h3>
+		);
+	}
+});
+
+module.exports = WeatherMessage;
+
+// Sample Axios request
+var axios = require('axios');
+
+const OPEN_WEATHER_MAP_URL = 'sample api key URI';
+
+module.exports = {
+	getTemp: function(location) {
+		var encodedLocation = encodeURIComponent(location);
+		var requestUrl = `${OPEN_WEATHER_MAP_URL}&q=${encodedLocation}`;
+
+		axios.get(requestUrl).then(function(res) {
+			if (res.data.cod && res.data.message) {
+				throw new Error(res.data.message);
+			} else {
+				return res.data.main.temp;
+			}
+		}, function(res) {
+			throw new Error(res.data.message);
+		});
+	}
+};
+
+/*
+	Get Chrome extension for React Developer Tools, Redux Developer tools
+	- Can see props and state going on, component hierarchy
+	- $r accesses the component you're focusing to see props/refs/state
+	- can source map by setting "devtool" property in webpack.config.js
+	that is set to "inline-source-map" or "eval-source-map"
+	- can type debugger; in your js and source map to see original code
+*/
+
+/*
+	Functional Stateless Components
+	- only define render method and no state
+*/
+var React = require('react');
+
+var About = (props) => {
+	return (
+		<h3>About Component</h3>
+	);
+};
+
+module.exports = About;
+
+// Can easily refactor stateless components like this
+var React = require('react');
+
+var WeatherMessage = ({ temp, location }) => {
+	return (
+		<h3>It's {temp} degrees in {location}.</h3>
+	);
+};
+
+module.exports = WeatherMessage;
+
+/*
+	Handle data-fetching with redux-saga (generators, testable) rather than redux-thunk (tough to test)
+	put() dispatches an action from saga
+ 	take() pauses our sage until an action happens
+ 	select() gets a part of the redux state like mapStateToProps
+ 	call() calls function passed as first arg with remaining arguments
+	- components now decoupled
+*/
+import { call, take, put } from 'redux-saga/effects';
+function* fetchData() {
+	yield take(FETCH_DATA); // wait until FETCH_DATA action happens
+	var data = yield call(fetch, 'sample.com/endpoint'); // fetch from server
+	put(dataLoaded(data)); // dispatch dataLoaded action with returned data
+}
+
+var sagaGenerator = fetchData();
+// No need to mock out anything or rely on network
+// .next() moves on to the next yield point
+describe('fetchData saga', function() {
+	it('should wait for the FETCH_DATA action', function() {
+		expect(sagaGenerator.next()).to.equal(take(FETCH_DATA));
+	});
+
+	it('should fetch the data from the server', function() {
+		expect(sagaGenerator.next()).to.equal(call(fetch, 'sample.com/endpoint'));
+	});
+
+	it('should dispatch the dataLoaded action when the data has loaded', function() {
+		expect(sagaGenerator.next()).to.equal(put(dataLoaded()));
+	});
+});
+
+// Sample Clock and Timer decoupled with redux-saga
+// Clock.jsx
+import { startButtonClicked } from '../Clock/actions';
+
+class Clock extends React.Component {
+	render: function() {
+		return <button onClick={this.props.dispatch(startButtonClicked())}/>;
+	}
+}
+
+// Timer.jsx
+import { stopButtonClicked } from '../Timer/actions';
+
+class Timer extends React.Component {
+	render: function() {
+		<button onClick={this.props.dispatch(stopButtonClicked(currentTime))}/>
+	}
+}
+
+// sagas.js
+import { call, take, put, select } from 'redux-saga/effects';
+
+import { showTime } from '../Clock/actions';
+import { START_BUTTON_CLICKED } from '../Clocks/constants';
+import { startTimer } from '../Timer/actions';
+import { STOP_BUTTON_CLICKED } from '../Timer/constants';
+
+function* clockAndTimer() {
+	// Wait for startButtonClicked actions of the Clock to be dispatched
+	yield take(START_BUTTON_CLICKED);
+
+	// When that happens, start the timer
+	put(startTimer());
+
+	// Then, wait for the stopButtonClick action of the Timer to be dispatched
+	yield(STOP_BUTTON_CLICKED);
+
+	// Get the current time of the timer from the global state
+	var currentTime = select(function(state) {
+		return state.timer.currentTime; 
+	});
+
+	// And show the time on the clock
+	put(showTime(currentTime));
+}
+
+// Sample ErrorModal with Foundation
+// css! loader and then put css on html with style!
+// in app.jsx: require('style!css!foundation...') and require('style!css!sass!applicationStyles')
+var React = require('react');
+
+var ErrorModal = React.createClass({
+	getDefaultProps: function() {
+		return {
+			title: 'Error'
+		};
+	},
+	propTypes: {
+		title: React.PropTypes.string,
+		message: React.PropTypes.string.isRequired
+	},
+	componentDidMount: function() {
+		var modal = new Foundation.Reveal($('#error-modal'));
+		modal.open();
+	},
+	render: function() {
+		var { title, message } = this.props;
+
+		return (
+			<div id="error-modal" className="reveal tiny text-center" data-reveal="">
+				<h4>{title}</h4>
+				<p>{message}</p>
+				<p>
+					<button className="button hollow" data-close="">
+					Okay
+					</button>
+				</p>
+			</div>
+		);
+	}
+});
+
+// Sample Navigation with Foundation
+// Can import multiple files for styles for the components
+// root app.scss to load in the other files that do the work
+// base folder to have files such as _variables.scss
+// and components folder to have files such as _navigation.scss - partials to be imported
+// i.e. @import "base/variables" and @import "components/navigation"
+var React = require('react');
+var { Link, IndexLink } = require('react-router');
+
+var Navigation = () => {
+	return (
+		<div className="top-bar">
+			<div className="top-bar-left">
+				<ul className="menu">
+					<li className="menu-text">
+						React Timer App
+					</li>
+					<li>
+						<IndexLink to="/" activeClassName="active-link">Timer</IndexLink>
+					</li>
+					<li>
+						<Link to="/" activeClassName="active-link">Countdown</Link>
+					</li>
+				</ul>
+			</div>
+			<div className="top-bar-right">
+				<ul className="menu">
+					<li className="menu-text">
+						Created by <a href="#" target="_blank">Alfred Lucero</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	);
+};
+
+module.exports = Navigation;
+
+/*
+	Testing with webpack and React
+	- Karma test runner - npm install karma karma-mocha karma-chrome-launcher karma-sourcemap-loader karma-webpack
+	- Mocha testing framework like the describe/it
+	- expect assertion library like toBe, toBeA
+*/
+// karma.conf.js
+// run karma start
+var webpackConfig = require('./webpack.config.js');
+
+module.exports = function(config) {
+	config.set({
+		browsers: ['Chrome'],
+		singleRun: true,
+		frameworks: ['mocha'],
+		files: ['app/tests/**/*.test.jsx'],
+		preprocessors: {
+			'app/tests/**/*.txt.jsx': ['webpack', 'sourcemap']
+		},
+		reporters: ['mocha'],
+		client: {
+			mocha: {
+				timeout: '5000'
+			}
+		},
+		webpack: webpackConfig,
+		webpackServer: {
+			noInfo: true
+		}
+	});
+};
+
+// app.test.jsx
+var expect = require('expect');
+
+describe('App', () => {
+	it('should properly run tests', () => {
+		expect(1).toBe(1);
+	});
+});
+
+// Sample Clock.test.jsx
+var React = require('react');
+var ReactDOM = require('react-dom');
+var expect = require('expect');
+var $ = require('jQuery');
+var TestUtils = require('react-addons-test-utils');
+
+var Clock = require('Clock');
+
+describe('Clock', () => {
+	it('should exist', () => {
+		expect(Clock).toExist();
+	});
+
+	describe('render', () => {
+		it('should render clock to output', () => {
+			var clock = TestUtils.renderIntoDocument(<Clock totalSeconds={62}/>);
+			var $el = $(ReactDOM.findDOMNode(clock));
+			var actualText = $el.find('.clock-text').text();
+
+			expect(actualText).toBe('01:02');
+		});
+	});
+
+	describe('formatSeconds', () => {
+		it('should format seconds', () => {
+			var clock = TestUtils.renderIntoDocument(<Clock/>);
+			var seconds = 615;
+			var expected = '10:15';
+			var actual = clock.formatSeconds(seconds);
+
+			expect(actual).toBe(expected);
+		});
+
+		it('should format seconds when min/sec are less than 10', () => {
+			var clock = TestUtils.renderIntoDocument(<Clock/>);
+			var seconds = 61;
+			var expected = '01:01';
+			var actual = clock.formatSeconds(seconds);
+
+			expect(actual).toBe(expected);
+		});
+	});
+});
+
+// Sample Clock.jsx
+var React = require('react');
+
+var Clock = React.createClass({
+	getDefaultProps: function() {
+		totalSeconds: 0
+	},
+	propTypes: {
+		totalSeconds: React.PropTypes.number
+	},
+	formatSeconds: function(totalSeconds) {
+		var seconds = totalSeconds % 60;
+		var minutes = Math.floor(totalSeconds / 60);
+
+		if (seconds < 10) {
+			seconds = '0' + seconds;
+		}
+
+		if (minutes < 10) {
+			minutes = '0' + minutes;
+		}
+
+		return minutes + ':' + seconds;
+	},
+	render: function() {
+		var { totalSeconds } = this.props;
+
+		return (
+			<div className="clock">
+				<span className="clock-text">
+					{this.formatSeconds(totalSeconds)}
+				</span>
+			</div>
+		);
+	}
+});
+
+module.exports = Clock;
+
+// Sample Countdown.jsx
+var React = require('react');
+var Clock = require('Clock');
+var CountdownForm = require('CountdownForm');
+var Controls = require('Controls');
+
+var Countdown = React.createClass({
+	getInitialState: function() {
+		return { 
+			count: 0,
+			countdownStatus: 'stopped'
+		};
+	},
+	// Called everytime state/props updated
+	componentDidUpdate: function(prevProps, prevState) {
+		if (this.state.countdownStatus !== prevState.countdownStatus) {
+			switch (this.state.countdownStatus) {
+				case 'started':
+					this.startTimer();
+					break;
+				case 'stopped':
+					this.setState({ count: 0 });
+				case 'paused':
+					clearInterval(this.timer);
+					this.timer = undefined;
+					break;
+			}
+		}
+	},
+	componentWillUnmount: function() {
+		clearInterval(this.timer);
+		this.timer = undefined;
+	},
+	startTimer: function() {
+		this.timer = setInterval(() => {
+			var newCount = this.state.count - 1;
+			this.setState({
+				count: newCount >= 0 ? newCount : 0
+			});
+
+			if (newCount === 0) {
+				this.setState({ countdownStatus: 'stopped' });
+			}
+		}, 1000)
+	},
+	handleSetCountdown: function(seconds) {
+		this.setState({
+			count: seconds,
+			countdownStatus: 'started'
+		});
+	},
+	handleStatusChange: function(newStatus) {
+		this.setState({ countdownStatus: newStatus });
+	},
+	render: function() {
+		var { count, countdownStatus } = this.state;
+		var renderControlArea = () => {
+			if (countdownStatus !== 'stopped') {
+				return <Controls countdownStatus={countdownStatus} onStatusChange={this.handleStatusChange}/>;
+			} else {
+				return <CountdownForm onSetCountdown={this.handleSetCountdown}/>;
+			}
+		};
+
+		return (
+			<div>
+				<Clock totalSeconds={count}/>
+				{renderControlArea()}
+			</div>
+		);
+	}
+});
+
+// Sample Countdown.test.jsx
+var React = require('react');
+var ReactDOM = require('react-dom');
+var expect = require('expect');
+var $ = require('jQuery');
+var TestUtils = require('react-addons-test-utils');
+
+var Countdown = require('Countdown');
+
+describe('Countdown', () => {
+	it('should exist', () => {
+		expect(Countdown).toExist();
+	});
+
+
+	describe('handleSetCountdown', () => {
+		it('should set state to started and countdown', (done) => {
+			var countdown = TestUtils.renderIntoDocument(<Countdown/>);
+			countdown.handleSetCountdown(10);
+
+			expect(countdown.state.count).toBe(10);
+			expect(countdown.state.countdownStatus).toBe('started');
+
+			setTimeout(() => {
+				expect(countdown.state.count).toBe(9);
+				done();
+			}, 1001)
+		});
+
+		it('should never set count less than zero', (done) => {
+			var countdown = TestUtils.renderIntoDocument(<Countdown/>);
+			countdown.handleSetCountdown(1);
+
+			setTimeout(() => {
+				expect(countdown.state.count).toBe(0);
+				done();
+			}, 2001)
+		});
+	});
+});
+
+
+// Sample CountdownForm.jsx
+var React = require('react');
+
+var CountDownForm = React.createClass({
+	onSubmit: function(e) {
+		e.preventDefault();
+		var strSeconds = this.refs.seconds.value;
+
+		if (strSeconds.match(/^[0-9]*$/)) {
+			this.refs.seconds.value = '';
+			this.props.onSetCountdown(parseInt(strSeconds, 10));
+		},
+		render: function() {
+			return (
+				<div>
+					<form ref="form" onSubmit={this.onSubmit} className="countdown-form">
+						<input type="text" ref="seconds" placeholder="Enter time in seconds"/>
+						<button className="button expanded">Start</button>
+					</form>
+				</div>
+			);
+		}
+	}
+});
+
+module.exports = CountdownForm;
+
+// Sample CountdownForm.test.jsx using spies
+// Spies created by expect library and can assert what function was called and if it was called
+// i.e. expect(spy).toHaveBeenCalled([message]), expect(spy).toNotHaveBeenCalled([message])
+// i.e. expect(spy).toHaveBeenCalledWith('foo', 'bar');
+var expect = require('expect');
+var React = require('react');
+var ReactDOM = require('react-dom');
+var TestUtils = require('react-addons-test-utils');
+var $ = require('jQuery');
+
+var CountdownForm = require('CountdownForm');
+
+describe('CountdownForm', () => {
+	it('should exist', () => {
+		expect(CountdownForm).toExist();
+	});
+
+	it('should call onSetCountdown if valid seconds entered', () => {
+		var spy = expect.createSpy();
+		var countdownForm = TestUtils.renderIntoDocument(<CountdownForm onSetCountdown={spy}/>);
+		var $el = $(ReactDOM.findDOMNode(countdownForm));
+
+		countdownForm.refs.seconds.value = '109';
+		TestUtils.Simulate.submit($el.find('form')[0]);
+
+		expect(spy).toHaveBeenCalledWith(109);
+	});
+
+	it('should not call onSetCountdown if invalid seconds entered', () => {
+		var spy = expect.createSpy();
+		var countdownForm = TestUtils.renderIntoDocument(<CountdownForm onSetCountdown={spy}/>);
+		var $el = $(ReactDOM.findDOMNode(countdownForm));
+
+		countdownForm.refs.seconds.value = 'invalid seconds';
+		TestUtils.Simulate.submit($el.find('form')[0]);
+
+		expect(spy).toNotHaveBeenCalled();
+	});
+});
+
+// Sample Controls.jsx
+var React = require('react');
+
+var Controls = React.createClass({
+	propTypes: {
+		countdownStatus: React.PropTypes.string.isRequired,
+		onStatusChange: React.PropTypes.func.isRequired
+	},
+	// Currying pattern: using a function to generate a different function that onClick calls passed by the parent via props
+	onStatusChange: function(newStatus) {
+		return () => {
+			this.props.onStatusChange(newStatus);
+		}
+	},
+	render: function() {
+		var { countdownStatus } = this.props;
+		var renderStartStopButton = () => {
+			if (countdownStatus === 'started') {
+				return <button className="button secondary" onClick={this.onStatusChange('paused')}>Pause</button>
+			} else if (countdownStatus === 'paused') {
+				return <button className="button primary" onClick={this.onStatusChange('started')}>Start</button>;
+			}
+		};
+
+		return (
+			<div className="controls">
+				{renderStartStopButton()}
+				<button className="button alert hollow" onClick={this.onStatusChange('stopped')}>Clear</button>
+			</div>
+		);
+	}
+});
+
+module.exports = Control;
+
+// Sample Controls.test.jsx
+var expect = require('expect');
+var React = require('react');
+var ReactDOM = require('react-dom');
+var TestUtils = require('react-addons-test-utils');
+var $ = require('jQuery');
+
+var Controls = require('Controls');
+
+describe('Controls', () => {
+	it('should exist', () => {
+		expect(Controls).toExist();
+	});
+
+	describe('render', () => {
+		it('should render pause when started', () => {
+			var controls = TestUtils.renderIntoDocument(<Controls countdownStatus="started"/>);
+			var $el = $(ReactDOM.findDOMNode(controls));
+			var $pauseButton = $el.find('button:contains(Pause)');
+
+			expect($pauseButton.length).toBe(1);
+		});
+
+		it('should render start when paused', () => {
+			var controls = TestUtils.renderIntoDocument(<Controls countdownStatus="paused"/>);
+			var $el = $(ReactDOM.findDOMNode(controls));
+			var $startButton = $el.find('button:contains(Start)');
+
+			expect($startButton.length).toBe(1);
+		});
+	});
+});
+
+
+/*
+	Component Lifecycle
+	- componentWillUpdate(nextProps, nextState): takes the next props and next state
+	- componentDidUpdate(prevProps, prevState): whenever state/props change
+	- componentWillUnmount: happens before removing component from DOM
+	- componentWillMount: called just before component shown on the screen, no access to refs/DOM
+	- componentDidMount: after rendering to DOM, access to all refs
+	- componentWillReceiveProps(newProps): 
+	- componentWillMount, componentDidMount, componentWillUnmount
+*/
 

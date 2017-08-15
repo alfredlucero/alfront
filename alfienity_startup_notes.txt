@@ -1,0 +1,20 @@
+Steps to building our full stack web app:
+1. Ideate (Sticky notes brainstorm)
+2. Wireframe UX/UI
+3. Choose data structure and type of database (Google Doc the models)
+- SQL: tables with predefined schema 
+- NoSQL: key-value, document-based, dynamic schema for unstructured data
+i.e. Firebase can hold user image uploads in cloud storage, WebSocket integration for real-time updating,
+user authentication, OAuth integration
+4. Set up repo and agile workflow (i.e. Trello or Waffle.io)
+- Create backlog of user stories, develop each story in separate branch, code review, standups, etc.
+5. Choose and download a boilerplate
+6. Write back-end API routes (or Firebase listeners), Express routes
+7. Build a "Proof of Concept" i.e. Victory.JS React library built on D3 for timelines
+8. Code out the features
+9. Choose and code the design scheme such as Material-UI for components
+10. Find and squash bugs or just do test-driven development
+11. Deploy the live app such as through Firebase Hosting, Heroku, DigitalOcean
+- Buy domain name
+
+Culdevate: Cultivate better developers

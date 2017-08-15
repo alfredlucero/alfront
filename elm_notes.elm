@@ -76,4 +76,34 @@ checkIfUserCanEditPost requiredPermissionLevel currentUserGroup =
         _ ->
             False
 
+-- Sample Button Incrementer
+import Html exposing (beginnerProgram, div, button, text)
+import Html.Attributes exposing (type_)
+import Html.Events exposing (onClick)
+
+
+main =
+  beginnerProgram { model = 0, view = view, update = update }
+
+view model =
+  div []
+    [ button [ onClick Decrement ] [ text "-" ]
+    , div [] [ text (toString model) ]
+    , button [ onClick Increment ] [ text "+" ]
+    , button [ onClick Double ] [ text "Double!" ]
+    ]
+
+type Msg = Increment | Decrement | Double
+
+update msg model =
+  case msg of
+    Increment ->
+      model + 1
+
+    Decrement ->
+      model - 1
+      
+    Double ->
+      model * 2
+
 

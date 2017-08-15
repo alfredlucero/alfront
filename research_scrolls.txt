@@ -1,0 +1,22 @@
+React Articles I Found Useful:
+
+- Scaling React Applications
+https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/
+
+Backbone Articles I Found Useful:
+
+- Backbone.js Tips and Patterns
+https://www.smashingmagazine.com/2013/08/backbone-js-tips-patterns/
+
+CSS Articles I Found Useful:
+
+- A Complete Guide to Flexbox
+https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+
+- A Complete Guide to CSS Grid
+https://css-tricks.com/snippets/css/complete-guide-grid/
+
+Building Articles I Found Useful:
+
+- How we built our first full stack javascript web app in three weeks
+https://medium.com/ladies-storm-hackathons/how-we-built-our-first-full-stack-javascript-web-app-in-three-weeks-8a4668dbd67c
