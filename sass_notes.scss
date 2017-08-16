@@ -441,3 +441,9 @@ $colormap: (
 }
 
 <a href="#" class="button blue">Button</a>
+
+// Sample App Structure
+// app.scss -> @import "base/variables"
+// -> @import components/navigation (_navigation.scss)
+// -> @import components/clock (_clock.scss), etc.
+// can import and include foundation settings to modify all component styles

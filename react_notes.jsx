@@ -956,6 +956,30 @@ describe('Countdown', () => {
 				done();
 			}, 2001)
 		});
+
+		it('should pause countdown on paused status', (done) => {
+			var countdown = TestUtils.renderIntoDocument(<Countdown/>);
+			countdown.handleSetCountdown(3);
+			countdown.handleStatusChange('paused');
+
+			setTimeout(() => {
+				expect(countdown.state.count).toBe(3);
+				expect(countdown.state.countdownStatus).toBe('paused');
+				// Need to call done because asynchronous timeout
+				done();
+			}, 1001);
+		});
+
+		it('should reset on stopped status', (done) => {
+			var countdown = TestUtils.renderIntoDocument(<Countdown/>);
+			countdown.handleSetCountdown(2);
+			countdown.handleStatusChange('stopped');
+
+			setTimeout(() => {
+				expect(countdown.state.count).toBe(0);
+				expect(countdown.state.countdownStatus).toBe('stopped');
+			}, 1001);
+		});
 	});
 });
 
@@ -1106,4 +1130,85 @@ describe('Controls', () => {
 	- componentWillReceiveProps(newProps): 
 	- componentWillMount, componentDidMount, componentWillUnmount
 */
+
+// Sample TodoList
+var React = require('react');
+var Todo = require('Todo');
+
+// Takes in list of todos object with id for key and other properties to pass
+// down as props to todo
+var TodoList = React.createClass({
+	render: function() {
+		var { todos } = this.props;
+		var renderTodos = () => {
+			return todos.map((todo) => {
+				// Spread property lets us spread each object property on todo
+				// down as a prop to the Todo component
+				return (
+					<Todo key={todo.id} {...todo} />
+				);
+			});
+		};
+
+		return (
+			<div>
+				{renderTodos()}
+			</div>
+		);
+	}
+});
+
+module.exports = TodoList;
+
+// Sample Todo, takes in props with text to render
+var React = require('react');
+
+var Todo = React.createClass({
+	render: function() {
+		var { text } = this.props;
+
+		return (
+			<div>
+				{text}
+			</div>
+		);
+	}
+});
+
+module.exports = Todo;
+
+// Sample TodoList.test.jsx
+var React = require('react');
+var ReactDOM = require('react-dom');
+var TestUtils = require('react-addons-test-utils');
+var expect = require('expect');
+var $ = require('jquery');
+
+var TodoList = require('TodoList');
+var Todo = require('Todo');
+
+describe('TodoList', () => {
+	it('should exist', () => {
+		expect(TodoList).toExist();
+	});
+
+	it('should render on Todo component for each todo item', () => {
+		var todos = [
+			{
+				id: 1,
+				text: 'Hello'
+			},
+			{
+				id: 2,
+				text: 'Darkness'
+			}
+		];
+
+		var todoList = TestUtils.renderIntoDocument(<TodoList todos={todos}/>);
+		// This finds all instances of components with type equal to componentClass
+		var todosComponents = TestUtils.scryRenderedComponentsWithType(todoList, Todo);
+
+		expect(todosComponents.length).toBe(todos.length);
+	});
+});
 
