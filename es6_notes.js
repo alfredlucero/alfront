@@ -797,3 +797,28 @@ promise
 // Need to call method on it .json to get 
 
 
+/*
+	Service workers: Method that enables applications to take advantage of persistent background processing including hooks
+	to enable bootstrapping of web apps while offline
+	Offline Strategy with Service Workers
+	- Register a service worker
+	- Install a service worker
+	- Versioning setup for a service worker
+	- Cache population setup for a service worker
+	- Activate a service worker
+	- Managing cache for a service worker
+	- Intercepting requests with a service worker
+
+	- fetch fired every time browser is going to request a file
+	- for HTML requests, try network first. If it fails, try to fetch cache.
+		If all fails, show the offline page
+	- for file requests, try to fetch files from cache first. If it fails make a network request.
+		If it fails, use fallback.
+	- Service workers require a secure connection (HTTPS) and based on ES6 Promises
+	- Cache API is completely separate from HTTP cache. Response is a stream; to cache it, you need to copy it first.
+	- Service worker can have multiple caches and can be registered many times; the browser will figure it out.
+	- If a service worker is broken, browsers will skip the code and fall back to the network.
+	- Service workers use only asynchronous APIs e.g. they can't work with localStorage (synchronous)
+*/
+
+

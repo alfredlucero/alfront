@@ -1178,6 +1178,8 @@ var Todo = React.createClass({
 module.exports = Todo;
 
 // Sample TodoList.test.jsx
+// Can npm install node-uuid to take advantage of universally unique ids
+// like uuid() for the id property of the todos
 var React = require('react');
 var ReactDOM = require('react-dom');
 var TestUtils = require('react-addons-test-utils');
@@ -1211,4 +1213,57 @@ describe('TodoList', () => {
 		expect(todosComponents.length).toBe(todos.length);
 	});
 });
+
+// Sample TodoApp.test.jsx
+var React = require('react');
+var ReactDOM = require('react-dom');
+var TestUtils = require('react-addons-test-utils');
+var expect = require('expect');
+var $ = require('jquery');
+
+var TodoApp = require('TodoApp');
+
+describe('TodoApp', () => {
+	it('should exist', () => {
+		expect(TodoApp).toExist();
+	});
+
+	it('should add todo to the todos state on handleAddTodo', () => {
+		var todoText = 'test text';
+		var todoApp = TestUtils.renderIntoDocument(<TodoApp/>);
+
+		todoApp.setState({ todos: [] });
+		todoApp.handleAddTodo(todoText);
+
+		expect(todoApp.state.todos[0].text).toBe(todoText);
+	});
+});
+
+// Saving to localStorage and using componentDidUpdate to 
+// retrieve your localStorage state and set state to keep
+// state after refreshing the browser
+var $ = require('jquery');
+
+module.exports = {
+	setTodos: function() {
+		if ($.isArray(todos)) {
+			localStorage.setItem('todos', JSON.stringify(todos));
+		}
+	},
+	getTodos: function() {
+		var stringTodos = localStorage.getItem('todos');
+		var todos = [];
+
+		try {
+			todos = JSON.parse(stringTodos);
+		} catch (e) {
+
+		}
+
+		return $.isArray(todos) ? todos : [];
+	}
+};
+
+// Can use moment.js for time formatting given unix timestamp
+// i.e. moment.unix(timestamp).format('MMM Do YYYY @ h:mm a');
 

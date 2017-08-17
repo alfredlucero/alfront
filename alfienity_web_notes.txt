@@ -1,0 +1,22 @@
+Preload:
+<link rel="preload"> is a declarative fetch directive
+- tells a browser to start fetching a certain resource because we know the browser is going to need that
+resource soon for the next navigation
+- prefetch's main use case is speeding up the next navigation rather than the current one
+- as attribute to set the right resource priority, browser make sure it is subject to right 
+Content-Security-Policy directives, appropriate Accept headers based on resource type,
+does not block the window's onload event
+- load late-discovered resources early such as web fonts and need crossorigin attribute
+i.e. <link rel="preload" href="late_discovered_thing.js" as="script">
+
+HTTP/2:
+- helps with head of line blocking, uncompressed headers, server push
+- server push allows you to send site assets to the user before they've even asked for them
+- typically send request and get back first index.html and then retrieve other CSS/JS assets
+but server push lets you preemptively push website assets to client without user asking for them
+- potentially decrease rendering time of page to avoid inline CSS and JS in HTML, data URI scheme
+- usually involves using the Link HTTP header like
+i.e. Link: </css/styles.css>; rel=preload; as=style
+- check for pushed assets in Chrome dev tools, gray dot in Firefox, nghttp
+- may push too much stuff and may not be cached, need to configure HTTP/2 server correctly
+- may start with pushing site CSS and then other assets

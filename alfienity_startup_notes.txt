@@ -17,4 +17,55 @@ user authentication, OAuth integration
 11. Deploy the live app such as through Firebase Hosting, Heroku, DigitalOcean
 - Buy domain name
 
+Integrating Slack to give app status updates in the channel:
+- use node-slack, integrate webhook URL that you can post to
+- can be used to register new signups or log activity for breakdowns, notifications,
+errors in adding a new user in error callbacks
+- integrate with Stripe and notify about change in payments/financials
+- sending sample notifications from front end like $http.post('/endpoint', message);
+- take advantage of the different channels such as 
+#critical-server-errors: registration, login, database read/write errors (notify on phone/desktop)
+#non-critical-server-errors: 404 errors, catch-all server errors (bold no dings)
+#financials: payment transactions, failed transactions, upgrades, downgrades, expired cards (make it rain)
+#user-behavior: registering, onboarding, updating plan type, adding information, removing information,
+delete account (notify on phone or desktop)
+#application-stats: scheduled task results, housekeeping, transactional email stats, user count, growth metrics (bold no ding)
+i.e.
+// Dependency setup
+var Slack = require('node-slack');
+var hook_url = 'hook_url_goes_here';
+var slack = new Slack(hook_url);
+// Send a test Slack message
+slack.send({
+  text: ':rocket: Nice job, I am all set up',
+  channel: '#test',
+  username: 'MyApp Bot'
+});
+
+// Sample generic Node.js module to execute server-specific code
+var hook_url = my_hook_url;
+var Slack = require('node-slack');
+var slack = new Slack(hook_url);
+module.exports = {
+  sendMessage: function(message, channel, username) {
+    if (!message) {
+      console.log('Error: No message sent. You must define a message.');
+    } else {
+      // Set defaults if username or channel is not passed in
+      var channel = (typeof channel !== 'undefined') ? channel : '#general';
+      var username = (typeof username !== 'undefined') ? username: 'MyApp';
+
+      // Send the Slack message
+      slack.send({
+        text: message,
+        channel: channel,
+        username: username
+      });
+      return;
+    }
+  }
+};
+// var messenger = require('./utilities/messenger');
+// messenger.sendMessage(':rocket: Nice job, I am all set up', '#test');
+
 Culdevate: Cultivate better developers

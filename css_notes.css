@@ -333,6 +333,23 @@
 }
 
 
+/*
+  General Tricks and Hacks
+  - apply pseudo-elements on broken images
+  - contain: strict reduces painting costs
+  - fluid type with font-size: calc(1em + 1vw)
+  - nested links with <object>
+  - highlight row/column with pseudo-elements
+  - control table-layout with table-layout: fixed
+  - padded lines with the box-shadow trick
+  - consider critical progressive CSS (HTTP/2)
+  - use object-fit: cover to letterbox images;
+  - use native variables with CSS currentColor
+  - use Font Loading API to load web fonts
+  - service workers can boost performance a lot (offline, caching, etc)
+*/
+
+
 
 
 

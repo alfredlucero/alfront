@@ -1,14 +1,19 @@
-React Articles I Found Useful:
+React Resources I Found Useful:
 
 - Scaling React Applications
 https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/
 
-Backbone Articles I Found Useful:
+Redux Resources I Found Useful:
+
+- An Introduction to Redux
+https://www.smashingmagazine.com/2016/06/an-introduction-to-redux/
+
+Backbone Resources I Found Useful:
 
 - Backbone.js Tips and Patterns
 https://www.smashingmagazine.com/2013/08/backbone-js-tips-patterns/
 
-CSS Articles I Found Useful:
+CSS Resources I Found Useful:
 
 - A Complete Guide to Flexbox
 https://css-tricks.com/snippets/css/a-guide-to-flexbox/
@@ -16,7 +21,29 @@ https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 - A Complete Guide to CSS Grid
 https://css-tricks.com/snippets/css/complete-guide-grid/
 
-Building Articles I Found Useful:
+Building Resources I Found Useful:
 
 - How we built our first full stack javascript web app in three weeks
 https://medium.com/ladies-storm-hackathons/how-we-built-our-first-full-stack-javascript-web-app-in-three-weeks-8a4668dbd67c
+
+- Using Slack to Monitor Your App
+https://www.smashingmagazine.com/2017/04/using-slack-monitor-app/
+
+Computer Network Resources I Found Useful: 
+
+- HTTP/2 push is tougher than I thought
+https://jakearchibald.com/2017/h2-push-tougher-than-i-thought/
+
+- A Comprehensive Guide to HTTP/2 Server Push
+https://www.smashingmagazine.com/2017/04/guide-http2-server-push/
+
+General Frontend Web Resources I Found Useful:
+
+- Do's and Don'ts of Web Design
+https://uxplanet.org/dos-and-don-ts-of-web-design-8c9d6a5de7c6
+
+- Dirty Tricks From the Dark Corners of Front-end
+https://www.smashingmagazine.com/2016/03/dirty-tricks-dark-corners-front-end-slides-pdf/
+
+- Preload: What is it Good For?
+https://www.smashingmagazine.com/2016/02/preload-what-is-it-good-for/
