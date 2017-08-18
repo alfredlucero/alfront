@@ -29,8 +29,43 @@
  * which utilizes Esnext generator functions to make async code look sync (like a separate thread)
  * don't need to mock anything or rely on network and just call gen.next() to move to next point
  * and we colocate the test files in the same folder too
+ * - When you want to aggregate data form multiple children or to have two child components communicate with each other,
+ * move the state upwards so that it lives in the parent component. The parent can then pass the state back down to the children via props,
+ * so that the child components are always in sync with each other and with the parent
+ * - Often pass a function down from the parent to the children so that a change in the children calls the parent function,
+ * and the children receive the function through props and the parent function alters the state (controlled components)
+ * - on* names for the handler prop names and handle* for their implementations
+ * - usually do state/data change without mutation such as Object.assign({}, state, { newState: 'hello' }); or array.slice();
+ * - map over arrays of items to render and use a key so React could identify each component and render changes
+ * i.e. <li key={user.id}>{user.name}: {user.taskCount} tasks left</li>
  */
 
+// Sample Functional Component
+function Square(props) {
+ 	return (
+ 		<button className="square" onClick={props.onClick}>
+ 			{props.value}
+ 		</button>
+ 	);
+}
+
+// Sample Class Component
+class Square extends React.Component {
+	constructor() {
+		super();
+		this.state = {
+			value: null
+		};
+	}
+
+	render() {
+		return (
+			<button className="square" onClick={() => alert('click')}>
+				{this.props.value}
+			</button>
+		);
+	}
+}
 
 /*
 	i.e. Top-down reconciliation from Form -> Button -> 'button' type when calling

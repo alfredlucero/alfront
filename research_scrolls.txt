@@ -3,15 +3,33 @@ React Resources I Found Useful:
 - Scaling React Applications
 https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/
 
+- react-howto
+https://github.com/petehunt/react-howto
+
+- Tutorial: Intro to React
+https://facebook.github.io/react/tutorial/tutorial.html
+
 Redux Resources I Found Useful:
 
 - An Introduction to Redux
 https://www.smashingmagazine.com/2016/06/an-introduction-to-redux/
 
+- Getting Started with Redux
+https://egghead.io/courses/getting-started-with-redux
+
 Backbone Resources I Found Useful:
 
 - Backbone.js Tips and Patterns
 https://www.smashingmagazine.com/2013/08/backbone-js-tips-patterns/
+
+- Marionette Guides
+https://marionette.gitbooks.io/marionette-guides/content/en/index.html
+
+- Backbone.js Docs
+http://backbonejs.org/#
+
+- (Paid) Backbone Tutorial: Learn Backbonejs from Scratch
+https://www.udemy.com/backbonejs-tutorial/learn/v4/overview
 
 CSS Resources I Found Useful:
 
