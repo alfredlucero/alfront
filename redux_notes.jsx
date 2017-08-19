@@ -96,7 +96,7 @@ var Auth = React.createClass({
       <div>
         <input type="text" ref="username"/>
         <input type="button" value="Login" onClick={this.handleLogin} />
-        <h1>Current state is {this.props.state.status} + ' as ' + this.props.state.value}</h1>
+        <h1>Current state is {this.props.state.status + ' as ' + this.props.state.value}</h1>
       </div>
     );
   }
@@ -104,10 +104,161 @@ var Auth = React.createClass({
 
 const render = function() {
   ReactDOM.render(
-    <Auth state={store.getState()},
+    <Auth state={store.getState()}/>,
     document.getElementById('root')
   );
 };
 
 store.subscribe(render);
 render();
+
+/*
+  Problems Redux solves:
+  - Need to pass data down from parent to the components
+  - Need parent to have a lot of handler methods to pass to children
+  and communicate
+  How?
+  - We dispatch actions from our components that update our state and pass it to the components
+  that rely on the new state
+  - Makes it simpler and not maintain as many things, returns a new object for state, pure functions
+*/
+// redux-example.jsx
+var redux = require('redux');
+
+var stateDefault = {
+  name: 'Anonymous',
+  hobbies: []
+};
+var nextHobbyId = 1;
+
+// Given state and action, return new state
+// Starts with @INIT with defaults first then any succeeding actions dispatched
+var reducer = (state = stateDefault, action) => {
+  switch (action.type) {
+    case 'CHANGE_NAME':
+      return {
+        ...state,
+        name: action.name
+      };
+    case 'ADD_HOBBY':
+      return {
+        ...state,
+        hobbies: [
+          ...state.hobbies,
+          {
+            id: nextHobbyId++,
+            hobby: action.hobby
+          }
+        ]
+      };
+    case 'REMOVE_HOBBY':
+      return {
+        ...state,
+        hobbies: state.hobbies.filter(hobby => hobby.id !== action.id);
+      };
+    default:
+      return state;
+  }
+};
+
+// Creates single store of application state
+var store = redux.createStore(reducer, redux.compose(
+  // Lets you take advantage of Redux Dev Tools
+  window.devToolsExtension ? window.devToolsExtension() : f => f;
+));
+
+var currentState = store.getState();
+
+// Subscribe to changes
+var unsubscribe = store.subscribe(() => {
+  var state = store.getState();
+
+  document.getElementById('app').innerHTML = state.name;
+});
+
+// Dispatching an action
+var action = {
+  type: 'CHANGE_NAME',
+  name: 'Alfred Lucero'
+};
+
+store.dispatch(action);
+
+store.dispatch({
+  type: 'ADD_HOBBY',
+  hobby: 'Running'
+});
+
+store.dispatch({
+  type: 'REMOVE_HOBBY',
+  id: 1
+});
+
+unsubscribe();
+
+// Working with multiple reducers, using combineReducers
+// Using action generators to help with dispatching actions easier
+var nameReducer = (state = 'Anonymous', action) => {
+  // Not returning an object anymore but a property value that will
+  // go into name: nameReducer in combineReducers
+  switch (action.type) {
+    case 'CHANGE_NAME':
+      return action.name;
+    default: 
+      return state;
+  }
+};
+
+var changeName = (name) => {
+  return {
+    type: 'CHANGE_NAME',
+    name
+  };
+};
+
+// To call action: store.dispatch(changeName('Alfred'));
+
+// Way simpler now that state is only array, not object with properties
+// we do not care about for these actions
+// can go into hobbies reducer file
+var hobbiesReducer = (state = [], action) => {
+  switch (action.type) {
+    case 'ADD_HOBBY':
+      return [
+        ...state,
+        {
+          id: nextHobbyId++,
+          hobby: action.hobby
+        }
+      ];
+    case 'REMOVE_HOBBY':
+      return state.filter(hobby => hobby.id !== action.id);
+    default:
+      return state;
+  }
+};
+
+// Can go into hobbies actions file
+var addHobby = (hobby) => {
+  return {
+    type: 'ADD_HOBBY',
+    hobby
+  };
+};
+
+var removeHobby = (id) => {
+  return {
+    type: 'REMOVE_HOBBY',
+    id
+  };
+};
+
+// To call actions: store.dispatch(addHobby('running'));
+// store.dispatch(removeHobby(1));
+
+var reducer = redux.combineReducers({
+  // name state managed by nameReducer
+  name: nameReducer,
+  // hobbies array state managed by hobbiesReducer
+  hobbies: hobbiesReducer
+});
