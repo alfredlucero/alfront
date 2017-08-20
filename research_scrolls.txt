@@ -6,6 +6,9 @@ https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/
 - react-howto
 https://github.com/petehunt/react-howto
 
+- (Paid) The Complete React Web App Developer Course
+https://www.udemy.com/the-complete-react-web-app-developer-course/learn/v4/
+
 - Tutorial: Intro to React
 https://facebook.github.io/react/tutorial/tutorial.html
 
