@@ -1302,3 +1302,82 @@ module.exports = {
 // Can use moment.js for time formatting given unix timestamp
 // i.e. moment.unix(timestamp).format('MMM Do YYYY @ h:mm a');
 
+// ES6 Classes and React
+import React from 'react';
+
+class ComponentOne extends React.Component {
+	// New way to set initial state
+	constructor(props) {
+		super(props);
+		this.state = {
+			count: props.count
+		};
+
+		// Set the binding for this context here in constructor or in props
+		this.onClick = this.onClick.bind(this);
+	}
+
+	onClick() {
+		this.setState({
+			count: this.state.count + 1
+		});
+	}
+
+	render() {
+		return (
+			<div>
+				<h3>Component One Using React.Component</h3>
+				<h4>{this.state.count} woes!</h4>
+				<button className="button" onClick={this.onClick}>Count + 1</button>
+			</div>
+		);
+	}
+}
+
+ComponentOne.defaultProps = {
+	count: 121
+};
+
+ComponentOne.propTypes = {
+	count: React.PropTypes.number
+};
+
+export default ComponentOne;
+
+// Higher order functions: takes function as argument and returns function
+// Function that modifies the behavior of another function
+var add = (a, b) => a + b;
+
+var callAndLog = (func) => {
+	return function() {
+		var res = func.apply(undefined, arguments);
+		console.log('Result is ' + res);
+		return res;
+	};
+};
+
+var addAndLog = callAndLog(add);
+addAndLog(44, -3);
+
+// Higher order components: passing in component into another component
+// like connect({ ... })(Component)
+var isAdmin = false;
+var adminComponent = (Component) => {
+	return class Admin extends React.Component {
+		render() {
+			if (isAdmin) {
+				// Passes props from component argument
+				// can also do {super.render()} if extends Component
+				return (
+					<div>
+						<Component {...this.props}/>
+					</div>
+				);
+			} else {
+				return null;
+			}
+		}
+	}
+}
+
+export default adminComponent(ComponentOne);

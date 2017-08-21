@@ -674,4 +674,50 @@ describe('TodoSearch', () => {
   });
 });
 
+/*
+  Store is created with the createStore() factory which accepts three parameters:
+  1. Root reducer: master reducer combining all your reducers
+  2. Initial state: initial state of app determined by reducers
+  3. Middleware/enhancers: third party libraries which intercept each redux action
+  dispatched to the redux store and then does stuff such as redux-logger
+  i.e. Router middleware to keep routes in sync with redux store
+  redux saga to manage side-effects of dispatching actions asynchronously or
+  accessing browser data
+  - mapDispatchToProps(): provide outgoing action creators to the react component through this method
+  - mapStateToProps(): provide incoming state from Redux store to the react components through this method
+  and this can be filtered by selectors and will not provide irrelevant data
+  - sample flow of changeUsername action function:
+  1. changeUsername() sends text to the Redux store
+  2. store consults with corresponding reducer
+  3. that reducer computes a new state tree and the store will update its state with the newly typed data
+  4. an update has occurred in the state, therefore mapStateToProps() will be triggered and your react component
+  will get the new data
+  5. updated data will be set as the value to your component say <Input />
+*/
+
+/*
+  Reselect: library used for slicing redux state and providing only the relevant sub-tree to
+  a react component
+  - provides computational power, memoization, composability
+  - filters original array, caches results, and can combine multiple selectors
+*/
+
+/*
+  Redux Saga: helps with side-effect management when interacting with some back-end application for data
+  - typically before for every API call, we define three kinds of action creators
+  API_REQUEST: Upon dispatching this, your application should show a spinner to let the user know that something's happening
+  API_SUCCESS: Upon dispatching this, your application should show the data to the user
+  API_FAILURE: Upon dispatching this, your application should show an error message to the user
+  - What if there was a background process that handles multiple actions simultaneously, communicates
+  with redux store and react containers at the same time?
+  -> saga is like a separate thread in your application that's solely responsible for side effects
+  - redux middleware which means this thread can be started, paused, and cancelled from the main application with normal redux actions,
+  has access to full redux application state and it can dispatch redux actions as well
+  - basically ES6 generator functions with yield, used to make API calls and intercept actions dispatched to Redux store
+  (can be "paused" and "resumed" at any point in time)
+  - declarative API for managing asynchronous operations
+  - you can fork a saga to send it to the background so your code won't get blocked when sage is continuously running
+  - takeLatest is used for listening for a particular action
+*/
+
 
