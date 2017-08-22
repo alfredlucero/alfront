@@ -22,6 +22,9 @@ https://github.com/react-boilerplate/react-boilerplate/blob/master/docs/general/
 https://github.com/styled-components/styled-components
 https://www.styled-components.com/
 
+
+
+
 Redux Resources I Found Useful:
 
 - An Introduction to Redux
@@ -36,6 +39,9 @@ https://github.com/redux-saga/redux-saga
 - Reselect Repo
 https://github.com/reactjs/reselect
 
+
+
+
 Backbone Resources I Found Useful:
 
 - Backbone.js Tips and Patterns
@@ -49,6 +55,22 @@ http://backbonejs.org/#
 
 - (Paid) Backbone Tutorial: Learn Backbonejs from Scratch
 https://www.udemy.com/backbonejs-tutorial/learn/v4/overview
+
+
+
+Ruby Resources I Found Useful:
+
+- (Paid) The Complete Ruby on Rails Developer Course 
+https://www.udemy.com/the-complete-ruby-on-rails-developer-course/learn/v4/content
+
+- Ruby A Programmer's Best Friend
+https://www.ruby-lang.org/en/
+
+- Ruby Style Guide
+https://github.com/bbatsov/ruby-style-guide
+
+
+
 
 CSS Resources I Found Useful:
 
@@ -74,6 +96,10 @@ https://jakearchibald.com/2017/h2-push-tougher-than-i-thought/
 - A Comprehensive Guide to HTTP/2 Server Push
 https://www.smashingmagazine.com/2017/04/guide-http2-server-push/
 
+
+
+
+
 Testing/Build Resources I Found Useful:
 
 - ESLint
@@ -81,6 +107,15 @@ https://eslint.org/
 
 - Enzyme
 http://airbnb.io/enzyme/
+
+- Webpack - A Detailed Introduction
+https://www.smashingmagazine.com/2017/02/a-detailed-introduction-to-webpack/
+
+- (PAID) Webpack 2: The Complete Developer's Guide
+https://www.udemy.com/webpack-2-the-complete-developers-guide/learn/v4/
+
+
+
 
 General Frontend Web Resources I Found Useful:
 
@@ -92,6 +127,10 @@ https://www.smashingmagazine.com/2016/03/dirty-tricks-dark-corners-front-end-sli
 
 - Preload: What is it Good For?
 https://www.smashingmagazine.com/2016/02/preload-what-is-it-good-for/
+
+
+
+
 
 Backend Resources I Found Useful:
 
