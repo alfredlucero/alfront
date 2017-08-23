@@ -93,10 +93,94 @@ plugins: [
 ]
 
 // Webpack 2:
-// Why is do we use build tools? server side templating (backend server creates an HTML document and sends to user)
+// npm install --save-dev webpack
+// Why do we use build tools? server side templating (backend server creates an HTML document and sends to user)
 // and single page apps (server sends a bare-bones HTML doc to the user and JS runs on user machine to assemble a full webpage)
 // Why webpack? load and execution order with multiple js files, performance in bundling many Javascript files/modules into one bundle.js (less HTTP requests)
+// - Link up JS modules together
 // Module Systems:
 // 1. CommonJS (npm) -> module.exports, require
 // 2. AMD -> define, require
 // 3. ES2015 -> export, import
+
+// CommonJS 
+const sum = (a, b) => a + b;
+module.exports = sum;
+// In another file
+const sumModule = require('./sum');
+
+// ES2015 Modules
+export default sum;
+// In another file
+import sumModule from './sum';
+
+// webpack.config.js
+const path = require('path');
+
+const config = {
+  // Entry file for the application
+  // Starting point from which it starts to look at all requires
+  entry: './src/index.js',
+  // Where to save the bundle to and what to name it
+  output: {
+    // Need absolute file path
+    // __dirname refers to current working directory, places bundle.js to build folder
+    path: path.resolve(__dirname, 'build'),
+    filename: 'bundle.js'
+  }
+};
+
+module.exports = config;
+
+// Simplified representation of what happens to bundle.js
+// Puts an array of function dependencies and starts an entry point function
+var myModules = [
+  function() {
+    const sum = (a, b) => a + b;
+    return sum;
+  },
+  function() {
+    const sum = myModules[0]();
+    const total = sum(10, 10);
+    console.log(total);
+  }
+];
+
+var entryPointIndex = 1;
+myModules[entryPointIndex]();
+
+// Introduction to Loaders
+// - libraries that can run on our project files
+// - modules/rules in webpack config
+// Using babel to transpile ES2015 code to ES5
+// npm install --save-dev babel-loader babel-core babel-preset-env
+// - need babel-loader: teaches babel how to work with webpack
+// - babel-core: takes code in, parses it, and generates some output files
+// - babel-preset-env: ruleset for telling babel exactly what pieces of ES2015/16/17 to look for
+// and how to turn it into ES5 code
+
+// Setting up babel
+const config = {
+  entry: './src/index.js',
+  output: {
+    path: path.resolve(__dirname, 'build'),
+    filename: 'bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader',
+        // Regex to check file extensions like ending in .js
+        // Files that pass the test will be affected by the babel-loader
+        test: /\.js$/
+      }
+    ]
+  }
+};
+
+module.exports = config;
+
+// .babelrc to set the presets with babel-preset-env
+{
+  "presets": ["babel-preset-env"]
+}

@@ -3,7 +3,7 @@ React Resources I Found Useful:
 - Scaling React Applications
 https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/
 
-- react-howto
+- react-howto repo
 https://github.com/petehunt/react-howto
 
 - (Paid) The Complete React Web App Developer Course
@@ -18,9 +18,12 @@ https://github.com/react-boilerplate/
 - The Hitchhikers Guide to react-boilerplate
 https://github.com/react-boilerplate/react-boilerplate/blob/master/docs/general/introduction.md
 
-- Styled Components Repo and Website
+- Styled Components (CSS in Components) Repo and Website
 https://github.com/styled-components/styled-components
 https://www.styled-components.com/
+
+- Storybook (Development UI Components)
+https://github.com/storybooks/storybook
 
 
 
@@ -32,6 +35,9 @@ https://www.smashingmagazine.com/2016/06/an-introduction-to-redux/
 
 - Getting Started with Redux
 https://egghead.io/courses/getting-started-with-redux
+
+- react-redux-start-kit repo
+https://github.com/davezuko/react-redux-starter-kit
 
 - Redux Saga Repo
 https://github.com/redux-saga/redux-saga
@@ -80,6 +86,9 @@ https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 - A Complete Guide to CSS Grid
 https://css-tricks.com/snippets/css/complete-guide-grid/
 
+
+
+
 Building Resources I Found Useful:
 
 - How we built our first full stack javascript web app in three weeks
@@ -99,7 +108,6 @@ https://www.smashingmagazine.com/2017/04/guide-http2-server-push/
 
 
 
-
 Testing/Build Resources I Found Useful:
 
 - ESLint
@@ -114,6 +122,9 @@ https://www.smashingmagazine.com/2017/02/a-detailed-introduction-to-webpack/
 - (PAID) Webpack 2: The Complete Developer's Guide
 https://www.udemy.com/webpack-2-the-complete-developers-guide/learn/v4/
 
+- CommonJS: Why and How
+https://0fps.net/2013/01/22/commonjs-why-and-how/
+
 
 
 
@@ -122,12 +133,26 @@ General Frontend Web Resources I Found Useful:
 - Do's and Don'ts of Web Design
 https://uxplanet.org/dos-and-don-ts-of-web-design-8c9d6a5de7c6
 
+- Your First Progressive Web App
+https://developers.google.com/web/fundamentals/getting-started/codelabs/your-first-pwapp/
+
+- Service Workers: an Introduction
+https://developers.google.com/web/fundamentals/getting-started/primers/service-workers
+
+- Designers Guide to Web Performance Optimization
+https://jonyablonski.com/2016/designers-guide-to-web-performance-optimization/
+
 - Dirty Tricks From the Dark Corners of Front-end
 https://www.smashingmagazine.com/2016/03/dirty-tricks-dark-corners-front-end-slides-pdf/
 
 - Preload: What is it Good For?
 https://www.smashingmagazine.com/2016/02/preload-what-is-it-good-for/
 
+- Coolors: Color Scheme Generators
+https://coolors.co/
+
+- Codepen: Code Collaboration and Display
+https://codepen.io
 
 
 

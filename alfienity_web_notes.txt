@@ -20,3 +20,47 @@ i.e. Link: </css/styles.css>; rel=preload; as=style
 - check for pushed assets in Chrome dev tools, gray dot in Firefox, nghttp
 - may push too much stuff and may not be cached, need to configure HTTP/2 server correctly
 - may start with pushing site CSS and then other assets
+
+RAIL (Steve Kinney): model to break down user's experience into key actions and provides performance goals
+- Response: input latency, see something within 100 ms even if just loading indicator
+- Animation: such ass CSS animations/scrolling, UI changes should happen in 16ms windows or else slow animation
+down below 60 frames per second ("jank"), use CSS will-change to inform the browser of which elements and properties
+will change
+- Idle: run analytics, initialize components, fetching data, batch into 50ms tasks so user actions can slip in
+- Page Load: getting to first meaningful paint in under 1 second, prioritize critical rendering path, for SPAs time to
+interaction is important, and deferring subsequent non-essential loads to periods of idle time  or lazy-laoding them on
+demand (code splitting)
+- Perception reaction times: 0-100ms (instant), 100-300ms (slight delay), 300-1000ms (task focus, perceptible delay),
+1000+ms mental context switch, 10000+ms I'll come back later
+- Goal: deliver interactive content in < 1000ms to keep user engaged, progressive rendering
+- Interesting facts:
+-> Aberdeen Group found that a 1 second slow down resulted 11% fewer page views, 7% less conversion
+http://www.gomez.com/wp-content/downloads/Aberdeen_WebApps.pdf
+-> A two-second delay in web page load time increase bounce  rates by 103 percent
+https://www.akamai.com/us/en/about/news/press/2017-press/akamai-releases-spring-2017-state-of-online-retail-performance-report.jsp
+-> A 400 ms improvement in performance resulted in a 9% increase in traffic at Yahoo.
+https://www.slideshare.net/stoyan/dont-make-me-wait-or-building-highperformance-web-applications#btnNext
+-> Google found that a 2% slower page resulted in 2% fewer searches, which means 2% fewer ads shown
+http://assets.en.oreilly.com/1/event/29/Keynote%20Presentation%202.pdf
+-> 100ms improvement in performance results in 1% increase in overall revenue at Amazon
+http://radar.oreilly.com/2008/08/radar-theme-web-ops.html
+-> According to research, if you want user to feel like your site is faster than your competitors, you need to be 20%
+faster.
+
+Progressive Web Apps (PWA):
+- lets you load quickly even on flaky networks and sends relevant push notifications, icon on home screen, and loads as
+a top-level full-screen experience, becomes more powerful as user builds relationship with app over time
+- progressive in sense that it works for every user regardless of browser, responsive, connectivity independent
+meaning services workers to work offline or on low-quality networks
+- app-like, fresh, safely served via HTTPS, discoverable as an "application", re-engageable with push notifications,
+installable, linkable via URL
+- app's shell: minimal HTML, CSS, and JS required to power user interface of PWA; first load should be extremely quick
+and immediately cached locally using a service worker (loaded once over network and then saved to local device) 
+- service worker: script your browser runs in the background, separate from a web page
+-> can't access DOM directly, can communicate with pages it controls by responding to messages sent via the postMessage
+interface and those pages can manipulate the DOM if needed, programmable network proxy, terminated when not in use
+(if there is information you need to persist and reuse across restarts, service workers do have access to IndexedDBAPI)
+-> make extensive use of promises
+-> life cycle -> installing -> activated/error -> idle -> fetch/message or terminated
+- Should ask: What needs to be on screen immediately? What supporting resources needed for app shell?
+- i.e. have loader visible by default to see loader immediately as page loads
