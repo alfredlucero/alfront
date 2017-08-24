@@ -150,7 +150,7 @@ var entryPointIndex = 1;
 myModules[entryPointIndex]();
 
 // Introduction to Loaders
-// - libraries that can run on our project files
+// - libraries that can run on our project files, preprocessing
 // - modules/rules in webpack config
 // Using babel to transpile ES2015 code to ES5
 // npm install --save-dev babel-loader babel-core babel-preset-env
@@ -158,13 +158,18 @@ myModules[entryPointIndex]();
 // - babel-core: takes code in, parses it, and generates some output files
 // - babel-preset-env: ruleset for telling babel exactly what pieces of ES2015/16/17 to look for
 // and how to turn it into ES5 code
+// css-loader: knows how to deal with CSS imports; style-loader: takes CSS imports and adds them to HTML document
+// -> inject into style tag of HTML document
+// image-webpack-loader: resizes/compresses image; url-loader: if image small, includes image in bundle.js as raw data
+// or if big, includes the raw image in the output directory
 
 // Setting up babel
 const config = {
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'bundle.js'
+    filename: 'bundle.js',
+    publicPath: 'build/'
   },
   module: {
     rules: [
@@ -173,9 +178,36 @@ const config = {
         // Regex to check file extensions like ending in .js
         // Files that pass the test will be affected by the babel-loader
         test: /\.js$/
+      },
+      // { 
+      //   // Order matters - applied series of loaders from right to left
+      //   use: ['style-loader', 'css-loader'],
+      //   test: /\.css$/
+      // }
+      {
+        // Extracts css out and places into build/styles.css
+        loader: ExtractTextPlugin.extract({
+          loader: 'css-loader'
+        }),
+        test: /\.css$/
+      },
+      { 
+        // Compresses and handles how image is included
+        test: /\.(jpe?g|png|gif|svg)$/,
+        use: [
+          { 
+            // URL loader emits the URL of the file with 'output.publicPath' prepended to the URL
+            loader: 'url-loader',
+            options: { limit: 40000 }
+          },
+          'image-webpack-loader'
+        ]
       }
     ]
-  }
+  }, 
+  plugins: [
+    new ExtractTextPlugin('style.css')
+  ]
 };
 
 module.exports = config;
@@ -183,4 +215,54 @@ module.exports = config;
 // .babelrc to set the presets with babel-preset-env
 {
   "presets": ["babel-preset-env"]
+}
+
+// Introduction to Code Splitting
+// Lets you split up bundle.js output into several different files and can load up different code when you want
+// i.e. only load minimum amount of JS necessary to show a view and then when it goes to another route, load the rest
+// System.import for on demand code loading/splitting into different bundle.js
+const button = document.createElement('button');
+button.innerText = 'Click to see image';
+button.onclick(() => {
+  // Loads only one module of the image on click of button
+  System.import('./image_viewer').then(module => {
+    // Calls export default function from imported module
+    module.default();
+  });
+});
+
+document.body.appendChild(button);
+
+// Sample webpack.config.js for a React project:
+// Set up with babel, css/style-loaders
+// Can code split our code and the vendor code such as lodash/react/redux
+// and exploit vendor caching to not download vendor code everytime you visit since vendor changes infrequently
+var webpack = require('webpack');
+var path = require('path');
+
+module.exports = {
+  entry: './src/index.js',
+  output: {
+    path: path.join(__dirname, 'dist'),
+    filename: 'bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader',
+        test: /\.js$/,
+        // Exclude ES5 node modules
+        exclude: /node_modules/
+      },
+      {
+        use: ['style-loader', 'css-loader'],
+        test: /\.css$/
+      }
+    ]
+  }
+};
+
+// .babelrc
+{
+  "presets": ["babel-preset-env", "react"]
 }
