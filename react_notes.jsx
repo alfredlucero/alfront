@@ -1381,3 +1381,66 @@ var adminComponent = (Component) => {
 }
 
 export default adminComponent(ComponentOne);
+
+// Styled components
+// i.e. Button.jsx -> building small components to edit and only
+// need to pass down primary in props and not know the class implementation
+// and one file to change
+// - should split container and presentational components
+// - have single-use class names
+// - remove the mapping between styles and components and writing CSS in JS
+// - takes advantage of tagged template literals and call functions with backticks 
+// like styled.h1``
+function Button(props) {
+	const className = `btn${props.primary ? ' btn--primary' : ''}`;
+	return (
+		<button className={className}>{props.children}</button>
+	);
+}
+
+// <Button primary/>
+const Button = styled.button`
+	font-size: ${props => props.primary ? '2em' : '1em'};
+`;
+
+// Basic example of styled components
+// styled.h1 call returns a React component that has the styles applied that you pass to
+// the template literal
+const Title = styled.h1`
+	color: palevioletred;
+	font-size: 1.5em;
+	text-align: center;
+`;
+
+<Wrapper>
+	<Title>Hello World, this is my first styled component!</Title>
+</Wrapper>
+
+// Sample tagged template literal
+// It actually passes in the function rather than to-Stringify if passed in like (...)
+const favoriteFood = 'pizza'
+// -> ["I like ", "."] "pizza"
+logArgs`I like ${favoriteFood}`
+
+// For example, execFuncArgs gets passed the actual function and executes it
+// styled-components at render time passes the props into all interpolated functions to allow
+// users to change the styling based on the props
+// -> Executed!
+execFuncArgs`Hi, ${() => { console.log('Executed!') }`
+
+// There is full CSS support and it generates a class name and injects CSS into the DOM
+// styled.input()
+const Input = styled.input`
+	font-size: 1.25em;
+	border: none;
+	background: papayawhip;
+	/* ... more styles here ... */
+
+	&:hover {
+		box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+	}
+
+	@media (min-width: 650px) {
+		font-size: 1.5em;
+	}
+`;

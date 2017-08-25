@@ -22,6 +22,12 @@ https://github.com/react-boilerplate/react-boilerplate/blob/master/docs/general/
 https://github.com/styled-components/styled-components
 https://www.styled-components.com/
 
+- Styled Components: Enforcing Best Practices In Component-Based Systems
+https://www.smashingmagazine.com/2017/01/styled-components-enforcing-best-practices-component-based-systems/
+
+- The magic behind styled-components
+https://mxstbr.blog/2016/11/styled-components-magic-explained/
+
 - Storybook (Development UI Components)
 https://github.com/storybooks/storybook
 
@@ -85,6 +91,7 @@ https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 
 - A Complete Guide to CSS Grid
 https://css-tricks.com/snippets/css/complete-guide-grid/
+
 
 
 
