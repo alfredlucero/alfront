@@ -132,6 +132,9 @@ https://www.udemy.com/webpack-2-the-complete-developers-guide/learn/v4/
 - CommonJS: Why and How
 https://0fps.net/2013/01/22/commonjs-why-and-how/
 
+- (PAID) Docker Mastery: The Complete Toolset From a Docker Captain
+https://www.udemy.com/docker-mastery/learn/v4/overview
+
 
 
 
