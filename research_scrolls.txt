@@ -81,6 +81,8 @@ https://www.ruby-lang.org/en/
 - Ruby Style Guide
 https://github.com/bbatsov/ruby-style-guide
 
+- Getting Started with RSpec
+https://semaphoreci.com/community/tutorials/getting-started-with-rspec
 
 
 
@@ -135,6 +137,8 @@ https://0fps.net/2013/01/22/commonjs-why-and-how/
 - (PAID) Docker Mastery: The Complete Toolset From a Docker Captain
 https://www.udemy.com/docker-mastery/learn/v4/overview
 
+- (PAID) AWS Certified Developer Associate Course
+https://www.udemy.com/aws-certified-developer-associate
 
 
 

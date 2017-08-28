@@ -1,0 +1,24 @@
+AWS Certified Developer Associate Notes:
+
+10000 Feet Overview
+- Messaging, Security and Idenitty, Management Tools, Storage, Databases, Networking and Content Delivery, Compute,
+AWS Global Infrastructure
+- AWS Global Infrastructure - Involves regions and availability zones around the world
+-> Region - geographical area
+-> each region consists of 2 or more availability zones
+-> availability zone (AZ) = a data center
+-> Edge location: CDN (content delivery network) endpoints for CloudFront (allows you to cache large media objects in cloud),
+more edge locations than regions, points of presence for CloudFront
+- Networking and Content Delivery
+-> Virtual Private Cloud (VPC): virtual data centers in all the regions around the world where you will deploy your assets
+-> Route53: Amazon's DNS services (IP address to domain translation), domain registration, 53 is DNS port
+(route 66 first interstate highway across US)
+-> CloudFront: Amazon's CDN, edge locations that will cache your assets like large media files
+-> Direct Connect: Connecting up your office or physical data centers to AWS using dedicated telephone line for security or
+need a reliable internet connection to push a lot of data
+- Compute
+-> Elastic Computing 2 (EC2): virtual machines in the cloud, can log in through SSH, can install things with the OS
+-> EC2 Container Service (ECS): supports Docker containers and running applications on managed cluster of EC2 instances, 
+no need to scale and operate your own cluster
+-> Elastic Beanstalk: can upload your code application and will provision the underlying infrastructure for your app
+-> Lambda: serverless, upload your code and it will respond to events

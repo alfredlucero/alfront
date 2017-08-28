@@ -225,3 +225,89 @@ require_relative 'user'
 user = User.new 'alfred@example.com', 'alfred'
 pp user
 user.save
+
+# RSpec: testing tool for Ruby created for behavior-driven development with production apps
+# TDD: write smallest possible test case that matches what we need to program
+# - run the test and watch it fail, write some code to make it pass, run test suite, repeat
+# until all tests pass, refactor to be as simple and clear as possible while keeping tests green
+# BDD: write tests as specifications of system behavior
+# Sample Rspec Usage:
+describe Order do
+  describe "#submit" do
+    before do
+      @book = Book.new(:title => "RSpec Intro", :price => 20)
+      @customer = Customer.new
+      @order = Order.new(@customer, @book)
+
+      @order.submit
+    end
+
+    describe "customer" do
+      it "puts the ordered book in customer's order history" do 
+        expect(@customer.orders).to include(@order)
+        expect(@customer.order_books).to include(@book)
+      end
+    end
+
+    describe "order" do
+      it "is marked as complete" do
+        expect(@order).to be_complete
+      end
+
+      it "is not yet shipped" do
+        expect(@order).not_to be_shipped
+      end
+    end
+  end
+end
+
+# Setting up RSpec
+# Gemfile, run bundle install --path .bundle
+source "https://rubygems.org"
+gem "rspec"
+
+# Sample StringCalculator spec
+# lib/string_calculator.rb
+class StringCalculator
+  def self.add(input)
+    if input.empty?
+      0
+    else
+      numbers = input.split(",").map { |num| num.to_i }
+      numbers.inject(0) { |sum, number| sum + number }
+    end
+  end
+end
+
+# spec/string_calculator_spec.rb
+require "string_calculator"
+
+# Describe takes in an existing class or string to describe group of specs
+describe StringCalculator do
+  # class methods prefixed with a dot
+  describe ".add" do
+    # context block to describe the situation under which the add method is expected to return zero
+    context "given an empty string" do
+      # it block to describe a specific example test case
+      it "returns zero" do
+        expect(StringCalculator.add("")).to eql(0)
+      end
+    end
+
+    context "given '4'" do
+      it "returns 4" do
+        expect(StringCalculator.add("4")).to eql(4)
+      end
+    end
+
+    context "two numbers" do
+      context "given '2,4'" do
+        it "returns 6" do
+          expect(StringCalculator.add("2,4")).to eql(6)
+        end
+      end
+    end
+  end
+end
+
+# bundle exec rspec --format documentation
