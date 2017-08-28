@@ -1,14 +1,17 @@
-AWS Certified Developer Associate Notes:
+AWS Certified Developer Associate Notes (2016):
 
 10000 Feet Overview
 - Messaging, Security and Idenitty, Management Tools, Storage, Databases, Networking and Content Delivery, Compute,
 AWS Global Infrastructure
+
 - AWS Global Infrastructure - Involves regions and availability zones around the world
--> Region - geographical area
+-> Region - geographical area, an independent collection of AWS coputing resources in a defined geography, around 11 (2016)
 -> each region consists of 2 or more availability zones
--> availability zone (AZ) = a data center
+-> availability zone (AZ) = a data center, distinct locations from within an AWS region that are engineered to be isolated
+from failures
 -> Edge location: CDN (content delivery network) endpoints for CloudFront (allows you to cache large media objects in cloud),
 more edge locations than regions, points of presence for CloudFront
+
 - Networking and Content Delivery
 -> Virtual Private Cloud (VPC): virtual data centers in all the regions around the world where you will deploy your assets
 -> Route53: Amazon's DNS services (IP address to domain translation), domain registration, 53 is DNS port
@@ -16,9 +19,109 @@ more edge locations than regions, points of presence for CloudFront
 -> CloudFront: Amazon's CDN, edge locations that will cache your assets like large media files
 -> Direct Connect: Connecting up your office or physical data centers to AWS using dedicated telephone line for security or
 need a reliable internet connection to push a lot of data
+
 - Compute
 -> Elastic Computing 2 (EC2): virtual machines in the cloud, can log in through SSH, can install things with the OS
 -> EC2 Container Service (ECS): supports Docker containers and running applications on managed cluster of EC2 instances, 
 no need to scale and operate your own cluster
 -> Elastic Beanstalk: can upload your code application and will provision the underlying infrastructure for your app
 -> Lambda: serverless, upload your code and it will respond to events
+-> Lightsail: out of the box cloud to deploy say a wordpress or drupal site
+
+- Storage
+-> S3 (Simple Storage Service: virtual disk in the cloud where you can store objects such as files, word documents, 
+movies, etc.; not to install an
+app/game or database (needs block-based storage) i.e. Dropbox uses this
+-> Glacier: archive your files from S3 off, low cost, store files for compliance reasons, can't access them immediately
+(takes 3-4 hours)
+-> EFS (Elastic File Service): file-based storage you can share, can install applications and databases and share it with
+multiple applications
+-> Storage Gateway: connecing S3 to on premise headquarter, virtual machine image
+-> EBS: virtual disk attached to EC2 instance for block-based storage
+
+- Databases
+-> RDS (relational database service): includes Postgres, MySQL, Maria, Oracle, Aurora
+-> DynamoDB: noSQL database, scalable, high performance
+-> Redshift: warehousing service, transfer copy of production database into redshift and run queries on it
+-> Elasticache: caching data in cloud to take load off database and return data much quicker
+
+- Migration
+-> Snowball: import/export of disks, to move terabytes of data into the cloud
+-> DMS (Database Migration Services): migrate on premise database onto AWS cloud or into other regions/AWS services,
+uses replication and can convert databases, cheaper than Oracle services
+-> SMS (Server Migration Services): targets VMware virtual machines to migrate and replicate them onto AWS cloud,
+can do around 50 concurrently at the same time
+
+- Analytics
+-> Athena: run SQL queries on S3 buckets like if you want to look at the csv files/objects
+-> EMR (Elastic Map Reduce): big data processing
+-> Cloud Search: fully managed service for search capabilities in app/website
+-> Elastic Search: open source framework service for search capabilities in app/website
+-> Kinesis: streaming and analyzing real-time data in massive scale like for financial transactions, social media streams, etc
+-> Data Pipeline: lets you move data from one place to another like from S3 into DynamoDB
+-> Quick Sight: rich dashboards for data from applications like S3, DynamoDB, etc.
+
+- Security and Identity
+-> IAM (Identity Access Management): how you authenticate to AWS, assign user permissions/groups, etc.
+-> Inspector: agent installed on VM that inspects those VMs and does security reporting
+-> Certifcate Manager: free SSL certificates for domain names
+-> Directory Service: connecting up active directory to AWS
+-> WAF (Web Application Firewall): application level protection to your website, stop SQL injections/XSS
+-> Artifacts: documentation in AWS console, look at compliance docs/certification
+
+- Management Tools:
+-> Cloud Watch: monitors performance of your AWS environment like EC2 disk/RAM utilization
+-> Cloud Formation: turning your infrastructure into code, can provision production environments into templates and deploy at
+will with single command line
+-> Cloud Trail: auditing AWS resources and changes to environment
+-> Opsworks: automating deployments using chef
+-> Config: automatically monitors environment and gives warnings if breaks configurations, set alerts 
+-> Service Catalog: designed for larger enterprises with specific images/AWS services to authorize, build out what you 
+authorize in the organization
+-> Trusted Advisor: gives you tips on how to customize, security fixes, scans environment
+
+- Application Services
+-> Step Functions: visualizing what's going on inside applications and which microservices it is using
+-> SWF (Simple Work Flow): coordinating both automated and human-led tasks
+-> API Gateway: door to allow you to create and secure API that accesses backend data/services
+-> AppStream: streaming Desktop applications to your users
+-> Elastic Transcoder: changes video format to suit all different devices
+
+- Developer Tools
+-> CodeCommit: like Github, place to store your code in the cloud, open/closed
+-> CodeBuild: way of compiling your code in different environments, pay by the minute of code build
+-> CodeDeploy: way of deploying code to EC2 instances in automated and regulated way
+-> CodePipeline: keeps track of different versions of code
+
+- Mobile Services
+-> Mobile Hub: console for mobile apps
+-> Cognito: easy for users to sign in and sign up into apps
+-> Device Farm: improve quality of apps by testing on lots of different devices
+-> Mobile Analytics: collect and analyze app usage data
+-> Pinpoint: understand and engage with application users, like Google Analytics
+
+- Business Productivity
+-> WorkDocs: securely storing work documents
+-> WorkMail: exchange for AWS
+
+- Internet of Things
+-> iOT: keeping track of iOT devices
+
+- Desktop and App Streaming
+-> WorkSpaces: like VDI, having desktop in cloud
+-> AppStream 2.0: streaming desktop applications to users
+
+- Artificial Intelligence
+-> alexa: voice service in the cloud, communicate using the Echo, talking to Lambda, includes Lex inside (don't need Echo)
+-> Polly: helps with rendering voices and different languages
+-> Machine Learning: give dataset and tell the outcomes, predict future outcomes based on analysis of training set
+-> Rekognition: upload a picture and will give you tags about what is in it, facial recognition
+
+- Messaging
+-> SNS (Simple Notification Service): notify via email/text/publish to HTTP endpoints
+-> SQS (Simple Queue Service): decoupling your applications, queue system to post jobs to a queue, EC2 instance pulls
+SQS jobs and acts upon them
+-> SES (Simple Email Service): sending and receiving emails using AWS
+
+
+Identity Access Management (IAM)
