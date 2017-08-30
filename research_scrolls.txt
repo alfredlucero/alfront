@@ -48,6 +48,9 @@ https://github.com/davezuko/react-redux-starter-kit
 - Redux Saga Repo
 https://github.com/redux-saga/redux-saga
 
+- Redux Saga Beginner Tutorial
+https://redux-saga.js.org/docs/introduction/BeginnerTutorial.html
+
 - Reselect Repo
 https://github.com/reactjs/reselect
 

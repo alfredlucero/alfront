@@ -700,7 +700,76 @@ describe('TodoSearch', () => {
   a react component
   - provides computational power, memoization, composability
   - filters original array, caches results, and can combine multiple selectors
+  - memoized selectors to improve performance and not have to recompute whole state tree
 */
+// createSelector takes an array of input-selectors and a transform function as its arguments
+// if the values of input-selectors are the same as the previous call to the selector, it will
+// return the previously computed value instead of calling the transform function (memoized)
+import { createSelector } from 'reselect';
+
+// Input selectors, non-memoized and do not transform the data they select
+const shopItemsSelector = state => state.shop.items;
+const taxPercentSelector = state => state.shop.taxPercent;
+
+// Memoized selector that takes in input-selectors and transforms to calculate subtotal
+// can also be passed in as an input-selector
+const subtotalSelector = createSelector(
+  shopItemsSelector,
+  items => items.reduce((acc, item) => acc + item.value, 0)
+);
+
+const taxSelector = createSelector(
+  subtotalSelector,
+  taxPercentSelector,
+  (subtotal, taxPercent) => subtotal * (taxPercent / 100)
+);
+
+export const totalSelector = createSelector(
+  subtotalSelector,
+  taxSelector,
+  (subtotal, tax) => ({ total: subtotal + tax })
+);
+
+let exampleState = {
+  shop: {
+    taxPercent: 8,
+    items: [
+      { name: 'apple', value: 1.20 },
+      { name: 'orange', value: 0.95 }
+    ]
+  }
+};
+
+console.log(subtotalSelector(exampleState)); // 2.15
+console.log(taxSelector(exampleState)); // 0.172
+console.log(totalSelector(exampleState)); // { total: 2.322}
+
+// Connecting a selector to the Redux store
+import { connect } from 'react-redux';
+import { toggleTodo } from '../actions';
+import TodoList from '../components/TodoList';
+import { getVisibleTodos } from '../selectors';
+
+const mapStateToProps = (state) => {
+  return {
+    todos: getVisibleTodos(state)
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onTodoClick: (id) => {
+      dispatch(toggleTodo(id));
+    }
+  };
+};
+
+const VisibleTodoList = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TodoList);
+
+export default VisibleTodoList;
 
 /*
   Redux Saga: helps with side-effect management when interacting with some back-end application for data
@@ -719,5 +788,172 @@ describe('TodoSearch', () => {
   - you can fork a saga to send it to the background so your code won't get blocked when sage is continuously running
   - takeLatest is used for listening for a particular action
 */
+// Before when we would fetch user data on button click
+class UserComponent extends React.Component {
+  // ...
+  onSomeButtonClicked() {
+    const { userId, dispatch } = this.props;
+    // Dispatching plain Object action to the store
+    dispatch({ type: 'USER_FETCH_REQUESTED', payload: { userId }});
+  }
+  // ...
+}
 
+// Instead we'll create a saga that watches for the USER_FETCH_REQUESTED actions and triggers an API call to fetch the user data
+import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
+import Api from '...';
 
+// worker Saga: will be fired on USER_FETCH_REQUESTED actions
+function* fetchUser(action) {
+  try {
+    const user = yield call(Api.fetchUser, action.payload.userId);
+    yield({ type: "USER_FETCH_SUCCEEDED", user: user });
+  } catch(e) {
+    yield put({ type: "USER_FETCH_FAILED", message: e.message });
+  }
+}
+
+// Starts fetchUser on each dispatched USER_FETCH_REQUESTED action
+// Allows concurrent fetches of user
+function* mySaga() {
+  yield takeEvery("USER_FETCH_REQUESTED", fetchUser);
+}
+
+// Alternatively you may use takeLatest
+// This does not allow concurrent fetches of user. If USER_FETCH_REQUESTED gets dispatched while a fetch is already pending,
+// that pending fetch is cancelled and only the latest one will be run
+function* mySaga() {
+  yield takeLatest("USER_FETCH_REQUESTED", fetchUser);
+}
+
+export default mySaga;
+
+// To run our Saga, we'll have to connect it to the Redux Store using the redux-saga middleware
+import { createStore, applyMiddleware } from 'redux';
+import createSagaMiddleware from 'redux-saga';
+
+import reducer from './reducers';
+import mySaga from './sagas';
+
+// Create the saga middleware
+const sagaMiddleware = createSagaMiddleware();
+// Mount it onto the Store
+const store = createStore(
+  reducer,
+  applyMiddleware(sagaMiddleware)
+);
+
+// Then run the saga
+sagaMiddleware.run(mySaga);
+
+// Render the application
+// ...
+
+// Sample Increment/Decrement Counter Buttons render function
+function render() {
+  ReactDOM.render(
+    <Counter
+      value={store.getState()}
+      onIncremenet={() => action('INCREMENT')}
+      onDecrement={() => action('DECREMENT')}
+      onIncrementAsync={() => action('INCREMENT_ASYNC')} />,
+    document.getElementById('root')
+  );
+}
+
+import { delay } from 'redux-saga';
+import { put, takeEvery } from 'redux-saga/effects';
+
+// worker Saga to perform the async increment task
+// Sagas implemented as Generator functions that yield objects to the redux-saga middleware
+// it suspends the Saga until the Promise completes and resume code execution until next yield
+export function* incrementAsync() {
+  // Call will call the given function
+  yield call(delay, 1000);
+  // Example of an effect: simple JS objects which contain instructions to be fulfilled by middleware
+  // When a middleware retrieves an effect yielded by a saga, the saga is paused until the effect is fulfilled
+  // put means dispatch an action to the Store
+  yield put({ type: 'INCREMENT' });
+}
+
+// watcher Saga to spawn a new incrementAsync task on each INCREMENT_ASYNC
+export function* watchIncrementAsync() {
+  yield takeEvery('INCREMENT_ASYNC', incrementAsync);
+}
+
+// single entry point to start all Sagas at once
+// this yield an array with the results of calling our two sagas and the two resulting generators will be started
+// in parallel and we can then so sagaMiddleware.run(rootSaga)
+export default function* rootSaga() {
+  yield all([
+    helloSaga(),
+    watchIncrementAsync()
+  ]);
+}
+
+// for yield delay(1000) and yield put({type: 'INCREMENT'})
+// gen.next() => { done: false, value: <result of calling delay(1000) }
+// gen.next() => { done: false, value: <result of calling put({type: 'INCREMENT'}) }
+// gen.next() => { done: true, value: undefined }
+
+// Testing the incrementAsync saga
+import test from 'tape';
+
+import { put, call } from 'redux-saga/effects';
+import { delay } from 'redux-saga';
+import { incrementAsync } from './sagas';
+
+test('incrementAsync Saga test', (assert) => {
+  const gen = incrementAsync();
+
+  assert.deepEqual(
+    gen.next().value,
+    call(delay, 1000),
+    'incrementAsync Saga must call delay(1000)'
+  );
+
+  assert.deepEqual(
+    gen.next().value,
+    put({ type: 'INCREMENT' }),
+    'incrementsync must dispatch an INCREMENT action'
+  );
+
+  assert.deepEqual(
+    gen.next(),
+    { done: true, value: undefined },
+    'incrementAsync Saga must be done'
+  );
+
+  assert.end();
+});
+
+// Another example of fetching data and testing it
+import  { call, put } from 'redux-saga/effects';
+
+function* fetchProducts() {
+  const products = yield call(Api.fetch, '/products');
+  // Create and yield a dispatch Effect
+  yield put({ type: 'PRODUCTS_RECEIVED', products });
+}
+
+import { call, put } from 'redux-saga/effects';
+import Api from '...';
+
+const iterator = fetchProducts();
+
+// Expects a call instruction
+assert.deepEqual(
+  iterator.next().value,
+  call(Api.fetch, '/products'),
+  'fetchProducts should yield an Effect call(Api.fetch, "./products")'
+);
+
+// Create a fake response
+const products = {};
+
+assert.deepEqual(
+  // Can also do .throw to fake an error and go to that route of a try catch
+  iterator.next(products.value),
+  put({ type: 'PRODUCTS_RECEIVED', products }),
+  'fetchProducts should yield an Effect put({ type: "PRODUCTS_RECEIVED", products })'
+);

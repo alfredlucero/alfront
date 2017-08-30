@@ -40,6 +40,9 @@
  * i.e. <li key={user.id}>{user.name}: {user.taskCount} tasks left</li>
  */
 
+ // Sample Structure of a Feature like navigation bar
+ // Navbar - index.js (actual component), actions.js, constants.js, reducer.js, test -> actions.test.js, reducer.test.js
+
 // Sample Functional Component
 function Square(props) {
  	return (
@@ -1444,3 +1447,17 @@ const Input = styled.input`
 		font-size: 1.5em;
 	}
 `;
+
+const Button = styled.button`
+	border-radius: 3px;
+	padding: 0.25 em 1em;
+	margin: 0 1em;
+	background: transparent;
+	color: palevioletred;
+	border: 2px solid palevioletred;
+
+	${props => props.primary && css`
+		background: palevioletred;
+		color: white;
+	`}
+`

@@ -125,3 +125,51 @@ SQS jobs and acts upon them
 
 
 Identity Access Management (IAM)
+- allows you to manage users and their level of access to the AWS console, administrating a company's AWS account
+- centralized control and shared access to your AWS account, granular permissions, identity federation 
+(including Active Directory, Facebook, Linkedin, etc.)
+- multifactor authentication, provide temporary access for users/devices and services where necessary
+- password rotation policy, integrates with other services
+- supports PCI DSS Compliance
+- groups -> collection of users under one set of permissions; users -> end users; roles -> assign them to AWS resources;
+policies -> documents that defines one or more permissions
+- doesn't require region selection (global)
+- can change users sign-in link (setting account alias) -> https://randomlink-a.signin.aws.amazon.com/console
+
+- activating MFA on root account (email address you used to sign up to aws) -> create users and group them with permissions
+on the root account and only login in when necessary
+-> programmatic access/AWS Management Console access -> group policies such as sysadmin, admin, etc.
+-> access key ID and secret access key given out allows you to programmatically interact with AWS services
+-> settings roles to allow AWS services to talk to other services like EC2 to S3
+
+- Security Token Service (STS): grants users limited and temporary access to AWS resources
+-> comes from federation (typically Active Directory)
+-> federation with mobile apps (OpenID providers to log in)
+-> cross account access (one AWS account access resources in another)
+-> federation: combining or joining a list of users in one domain such as IAM with a list of users in another domain such
+as Active Directory, Facebook, etc.
+-> identity broker: service that allows you to take an identity from point A and join it/federate it to point B
+-> identity store - services like Active Directory, Facebook, Google, etc.
+-> identities - user of a service like Facebook, etc.
+-> STS would return an access key, secret access key, token and duration (token's lifetime) if validated by broker and IAM
+-> 1. Develop an Identity Broker to communicate with LDAP and AWS STS
+-> 2. Identity Broker always authenticates with LDAP first, then AWS STS 
+-> 3. Application then gets temporary access to AWS resources
+-> (roles) OR can get an IAM role to associate with user and then auth with STS and assumes IAM role to interact with S3
+
+- Active Directory Federation
+-> can authenticate with this using SAML (Security Assertion Markup Language), AssumeRoleWithSAML
+-> AWS sign-in endpoint for SAML is https://signin.aws.amazon.com/saml
+-> authenticate with active directory first then assigned to temporary security credential
+
+- Web Identity Federation with Mobile Applications
+-> can authenticate your application using Facebook, Google, Amazon account, etc.
+-> web identity federation playground to sign in -> given access token that expires and then obtain temporary security 
+credentials with AssumeRoleWithWebIdentity
+
+- consists of users, groups (group users and apply policies to them collectively), roles, policy documents (JSON),
+universal and does not apply to specific regions, "root account" is account created when first set up your AWS account
+that has complete Admin access, new users have no permissions when first created, new users assigned access key ID and
+secret access keys when first created (can't be used to log in to the console but can access AWS via APIs and CL),
+only get to view those once and if you lose them you have to regenerate them so must save in secure location,
+setup MFA on root account, password rotation policies
