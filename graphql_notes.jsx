@@ -443,3 +443,117 @@ const resolveFunctions = {
 // Lokka: basic queries, mutations, simple caching
 // Apollo Client: good balance between features and complexity, produced by same guys as MeteorJS
 // Relay: amazing performance for mobile, most complex
+// Apollo Client Setup: Apollo Provider (wraps our react app, injects data from store to react app, glue layer) 
+// -> Apollo Store (stores data on clientside) -> GraphQL server
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Router, Route, hashHistory, IndexRoute } from 'react-router';
+import ApolloClient from 'apollo-client';
+import { ApolloProvider } from 'react-apollo';
+
+import App from './components/App';
+import SongList from './components/SongList';
+import SongCreate from'./components/SongCreate';
+
+const client = new ApolloClient({});
+
+const Root = () => {
+	return (
+		<ApolloProvider client={client}>
+			<Router history={hashHistory}>
+				<Route path="/" component={App}>
+					<IndexRoute component={SongList} />
+					<Route path="song/new" component={SongCreate}/>
+				</Route>
+			</Router>
+		</ApolloProvider>
+	);
+};
+
+ReactDOM.render(
+	<Root/>,
+	document.querySelector('#root')
+);
+
+// SongList.js
+// GraphQL + React Strategy:
+// Identify the data required, write query in Graphiql (for practice) and in component file
+// Bond query + component, access data
+import React, { Component } from 'react';
+import gql from 'graphql-tag';
+import { graphql } from 'react-apollo';
+
+class SongList extends Component {
+	renderSongs() {
+		// this.props.data.songs.map will be undefined when query first issued and no results back yet and errors
+		return this.props.data.songs.map(song => {
+			return (
+				<li key={song.id}>
+					{song.title}
+				</li>
+			);
+		});
+	}
+
+	render() {
+		// So check for when the query is loading before mapping through results
+		if (this.props.data.loading) { return <div>Loading...</div>; }
+
+		return (
+			<ul>
+				{this.renderSongs()}
+			</ul>
+		);
+	}
+}
+
+// Retrieve all song titles
+const query = gql`
+	{
+		songs {
+			id
+			title
+		}
+	}
+`;
+
+// Executes query when component rendered to the screen
+// Component rendered -> query issued -> query complete -> rerender component
+// Results of query placed inside the props of the component
+// There is a data.loading: true and no songs property until query completed
+export default graphql(query)(SongList);
+
+// App.js
+import React from 'react';
+
+export default ({ children }) => {
+	return <div className="container">{children}</div>;
+}
+
+// SongCreate.js
+import React, { Component } from 'react';
+
+class SongCreate extends Component {
+	constructor(props) {
+		super(props);
+
+		this.state = { title: '' }
+	}
+
+	render() {
+		return (
+			<div>
+				<h3>Create a new song</h3>
+				<form>
+					<label>Song Title:</label>
+					<input 
+						onChange={event => this.setState({ title: event.target.value })}
+						value={this.state.title}
+					/>
+				</form>
+			</div>
+		);
+	}
+}
+
+export default SongCreate;
