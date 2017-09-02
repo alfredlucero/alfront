@@ -463,7 +463,7 @@ const Root = () => {
 			<Router history={hashHistory}>
 				<Route path="/" component={App}>
 					<IndexRoute component={SongList} />
-					<Route path="song/new" component={SongCreate}/>
+					<Route path="songs/new" component={SongCreate}/>
 				</Route>
 			</Router>
 		</ApolloProvider>
@@ -482,14 +482,27 @@ ReactDOM.render(
 import React, { Component } from 'react';
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
+import { Link } from 'react-router';
 
 class SongList extends Component {
+	onSongDelete(id) {
+		this.props.mutate({ variables: { id } })
+			// Refetching queries to rerender this current component with proper data
+			.then(() => this.props.data.refetch());
+	}
+
 	renderSongs() {
 		// this.props.data.songs.map will be undefined when query first issued and no results back yet and errors
-		return this.props.data.songs.map(song => {
+		return this.props.data.songs.map(({ id, title }) => {
 			return (
-				<li key={song.id}>
-					{song.title}
+				<li key={id} className="collection-item">
+					{title}
+					<i 
+						className="material-icons"
+						onClick={() => this.onSongDelete(id)}
+					>
+						Delete
+					</i>
 				</li>
 			);
 		});
@@ -500,9 +513,17 @@ class SongList extends Component {
 		if (this.props.data.loading) { return <div>Loading...</div>; }
 
 		return (
+			<div>
 			<ul>
 				{this.renderSongs()}
 			</ul>
+			<Link
+				to="/songs/new"
+				className="btn-floating btn-large red right"
+			>
+				<i className="material-icons">Add</i>
+			</Link>
+			</div>
 		);
 	}
 }
@@ -517,14 +538,25 @@ const query = gql`
 	}
 `;
 
+const mutation = gql`
+	mutation DeleteSong($id: ID) {
+		deleteSong(id: $id) {
+			id
+		}
+	}
+`;
+
 // Executes query when component rendered to the screen
 // Component rendered -> query issued -> query complete -> rerender component
 // Results of query placed inside the props of the component
 // There is a data.loading: true and no songs property until query completed
-export default graphql(query)(SongList);
+export default graphql(mutation)(
+	graphql(query)(SongList)
+);
 
 // App.js
 import React from 'react';
+import { hashHistory } from 'react-router';
 
 export default ({ children }) => {
 	return <div className="container">{children}</div>;
@@ -532,6 +564,10 @@ export default ({ children }) => {
 
 // SongCreate.js
 import React, { Component } from 'react';
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
+import query from './queries';
+
 
 class SongCreate extends Component {
 	constructor(props) {
@@ -540,11 +576,27 @@ class SongCreate extends Component {
 		this.state = { title: '' }
 	}
 
+	onSubmit(event) {
+		event.preventDefault();
+
+		// This will call our gql mutation with proper variable passed in
+		// need to clear cached queries too to refresh the SongList
+		this.props.mutate({
+			variables: {
+				title: this.state.title
+			},
+			// Need to refresh fetching of songs to make sure list is updated in UI
+			// This updates a different component not associated with this component
+			refetchQueries: [{ query }]
+		}).then(() => hashHistory.push('/'))
+			.catch(() => console.error('Failed to add song'));
+	}
+
 	render() {
 		return (
 			<div>
 				<h3>Create a new song</h3>
-				<form>
+				<form onSubmit={this.onSubmit.bind(this)}>
 					<label>Song Title:</label>
 					<input 
 						onChange={event => this.setState({ title: event.target.value })}
@@ -556,4 +608,22 @@ class SongCreate extends Component {
 	}
 }
 
-export default SongCreate;
+// Can add query parameters/variable to call addSong with proper title
+const mutation = gql`
+	mutation AddSong($title: String) {
+		addSong(title: $title) {
+			title
+		}
+	}
+`;
+
+export default graphql(mutation)(SongCreate);
+
+// export default gql`
+// 	query SongQuery($id: ID) {
+// 		song(id: $id) {
+// 			id
+// 			title
+// 		}
+// 	}
+// `;
