@@ -619,6 +619,7 @@ const mutation = gql`
 
 export default graphql(mutation)(SongCreate);
 
+// fetchSong
 // export default gql`
 // 	query SongQuery($id: ID) {
 // 		song(id: $id) {
@@ -627,3 +628,23 @@ export default graphql(mutation)(SongCreate);
 // 		}
 // 	}
 // `;
+
+// SongDetail.js: fetching like songs/:id
+// ...
+class SongDetail extends Component {
+	render() {
+		// URI params in props.params
+		console.log(this.props);
+		return (
+			<div>
+				<h3>Song Detail</h3>
+			</div>
+		);
+	}
+}
+
+// ReactRouter passes props with params of URI id -> graphql (props) -> SongDetail
+export default graphql(fetchSong, {
+	// props passed into fetchSong query to get the id query param and get specific song details
+	options: (props) => { return { variables: { id: props.params.id } } }
+})(SongDetail);

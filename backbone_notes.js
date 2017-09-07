@@ -1904,3 +1904,456 @@ var NoteCollection = Backbone.Collection.extend({
 
 var noteList = new NoteCollection();
 noteList.fetch();
+
+
+
+/* 
+	Backbone Documentation Notes 
+	- Models with key-value binding and custom events -> "change" events (manages internal table of data attributes,
+	- Collections with rich API of enumerable functions -> group of related models, proxy all of events that occur to
+	models within them
+	- Views with declarative event handling - manages the rendering and user interaction within its own DOM element
+	- RESTful JSON interface, API integration with url of your resource endpoint
+	- DB (sync) <-> Model <-data  emits change to render-> View <- input
+	- Router to update the browser URL whenever the user reaches a new "place" in your app they might want to bookmark or share
+	- Events - module that can be mixed in to any object, giving the object the ability to bind and trigger custom named events
+*/
+// API Integration
+// Collections automatically populate itself with data formatted as an array -> [{ "id": 1 }]
+// Model automatically populate itself with data formatted as an object -> { "id": 1 }
+// GET /books/ -> collection.fetch();
+// POST /books/ -> collection.create();
+// GET /books/1 -> model.fetch();
+// PUT /books/1 -> model.save();
+// DEL /books/1 -> model.destroy();
+var Books = Backbone.Collection.extend({
+	url: '/books'
+});
+
+// Can reconcile different API data formats by using a parse method like to get { ... "books": [...] } and use the books array
+var Books = Backbone.Collection.extend({
+	url: '/books',
+	parse: function(data) {
+		return data.books;
+	}
+});
+
+// Backbone.Events //
+// Can trigger your own events but here are the default ones provided by Events
+// "add": (model, collection, options) - when a model is added to a collection
+// "remove": (model, collection, options) - when a model is removed from a collection
+// "update": (collection, options) - single event triggered after any number of models added/removed from collection
+// "reset": (collection, options) - collection's entire contents have been reset
+// "sort": (collection, options) - collection has been re-sorted
+// "change": (model, options) - when model's attributes have changed
+// "change:[attribute]": (model, options) - specific attribute updated
+// "destroy": (model, collection, options) - when a model is destroyed
+// "request": (model or collection, xhr, options) - when model or collection has started a request to the server
+// "sync": (model or collection, response, options) - when a model or collection has been successfully synced with server
+// "error": (model or collection, response, options) - when a model's or collection's request to the server has failed
+// "invalid": (model, error, options) - when a model's validation fails on the client
+// "route:[name]": (route, paramts) - fired by the router when a specific route is matched
+// "route": (route, params) - fired by the router/history when any route has been matched
+// "all": triggered for any event, passing the event name as the first argument followed by all trigger arguments
+// generally when doing model.set or collection.add... one can prevent event from being triggered by doing
+// {silent: true} as an option
+var object = {};
+
+_.extend(object, Backbone.Events);
+
+object.on('alert', function(msg) {
+	alert('Triggered ' + msg);
+});
+
+object.trigger('alert', 'An alert event');
+
+// on -> object.on(event, callback, [context])
+// binds a callback function to an object that is invoked whenever the event is fired
+// bound to "all" will be triggered when any event occurs
+// may be a space-delimited list of several events
+proxy.on('all', function(eventName) {
+	object.trigger(eventName);
+});
+
+// event map syntax
+// can also supply a context value for this for callbacks by calling like this:
+// i.e. model.on('change', this.render, this)
+book.on({
+	'change:author': authorPane.update,
+	'change:title change:subtitle': titleView.update,
+	'destroy': bookView.remove
+});
+
+// off -> object.off([event], [callback], [context])
+// Removes a previously-bound callback function from an object
+// such as the onChange callback
+object.off("change", onChange);
+// Removes all callbacks on object
+object.off();
+
+// trigger -> object.trigger(event,[*args])
+// trigger callbacks with given event
+object.trigger('change');
+
+// once -> fires only once before being removed
+object.once('change', handleChangeOnce);
+
+// listenTo -> object.listenTo(other, event, callback)
+// tells an object to listen to a particular event on another object
+// allows another object to keep track of the events and can be removed all at once later on
+view.listenTo(model, 'change', view.render);
+
+// stopListening -> object.stopListening([other], [event], [callback])
+// tells an object to stop listening to events
+view.stopListening(); // removes all registered callbacks
+
+// listenToOnce -> fired only once before being removed from object
+
+
+// Backbone.Model //
+// conversions, validations, computed properties, access controll, extend Backbone.Model with
+// domain-specific methods, manage changes
+var Sidebar = Backbone.Model.extend({
+	promptColor: function() {
+		var cssColor = prompt("Please enter a CSS color:");
+		this.set({color: cssColor})
+	}
+});
+
+window.sidebar = new Sidebar;
+
+sidebar.on('change:color', function(model, color) {
+	$('#sidebar').css({background: color});
+});
+
+sidebar.set({color: 'white'});
+sidebar.promptColor();
+
+// extend -> Backbone.Model.extend(properties, [classProperties])
+// sets up prototype chain to have a Model class of your own
+var Note = Backbone.Model.extend({
+	// ...
+});
+
+// constructor / initialize -> new Model([attributes], [options])
+// pass in initial values of attributes which will be set on model
+// if define initialize function it will be invoked when the model is created
+// if pass {parse:true} is passed as an option, the attributes will first be converted by parse before being set on model
+new Book({
+	title: "Sample Book",
+	author: "Darkness"
+});
+
+// get -> model.get(attribute)
+note.get("title");
+
+// set -> model.set(attributes, [options])
+// "change" event triggered upon set
+book.set("title", "new title");
+
+// escape -> model.escape(attribute)
+// returns HTML-escaped version of a model's attribute to prevent XSS attacks
+var hacker = new Backbone.Model({
+	name: "<script>alert('xss)</script>"
+});
+
+alert(hacker.escape('name'));
+
+// has -> model.has(attribute)
+// returns true if attribute is set to a non-null or non-undefined value
+if (note.has("title")) console.log("has title attribute");
+
+// unset -> model.unset(attribute, [options])
+// deletes attribute from internal attributes hash, fires a "change" unless silent passed as an option
+
+// clear -> model.clear([options])
+// removes all attributes from the model, including the id attribute. fires a "change" unless silent is passed as an option
+
+// id -> model.id
+// arbitrary string, models can be retrieved by id from collections and id used to generate model URLs by default
+
+// idAttribute -> model.idAttribute
+// model's unique identifier stored under id attribute, can map from database id to model's id
+var Meal = Backbone.extend({
+	idAttribute: "_id"
+});
+
+var cake = new Meal({ _id: 1, name: "Cake" });
+alert("Cake id: " + cake.id);
+
+// cid -> model.cid
+// client id assigned to all models when first created, handy when model not saved on server and doesn't have eventual id
+
+// attributes -> model.attributes
+// internal hash containing model's state
+
+// changed -> model.changed
+// hash containing all attributes that have changed since its last set, copy can be acquired from changedAttributes
+
+// defaults -> model.defaults, model.defaults()
+// specify default attributes for model
+var Meal = Backbone.Model.extend({
+	defaults: {
+		"appetizer": "default appetizer"
+	}
+});
+
+// toJSON -> model.toJSON([options])
+// returns a shallow copy of the model's attributes for JSON stringification
+
+// sync -> model.sync(method, model, [options])
+// to persist state of a model to the server, can be overridden for custom behavior
+
+// fetch -> model.fetch([options])
+// merges the model's state with attributes fetched from the server by delegating to Backbone.sync
+// returns a jqXHR, useful if model never have been populated with data, triggers "change" if server's state differs
+// from current attributes, accepts success and error callbacks in options hash which are both passed
+// (model, response, options)
+
+// save -> model.save([attributes], [options])
+// save a mdoel to your database by delegating to Backbone.sync, returns jqXHR if validation successful and false otherwise
+// may pass individual keys and values instead of a hash, must pass validate method if exists
+// if model isNew, the save will be a "create" (HTTP POST); if already exists will be an "update" (HTTP PUT)
+// can also do {patch: true} to only have changed attributes to be sent to the server, triggers "change"/"request"/"sync"
+// pass {wait: true} if like to wait for the server before setting the new attributes on model
+book.save("author", "new update", { error: function() { }});
+
+// destroy -> model.destroy([options])
+// destroys the model on the server by delegating an HTTP DELETE request to Backbone.sync, triggers "destroy"
+book.destroy({ success: function(model, repsonse) { }});
+
+// validate -> model.validate(attributes, options)
+// by default save checks validate before setting any attributes and may tell set to validate new attributes
+// by passing {validate: true} as an option; if attributes valid, don't return anything; failed validations trigger "invalid"
+// and set validationError property on the model
+var Chapter = Backbone.Model.extend({
+	validate: function(attrs, options) {
+		if (attrs.end < attrs.start) {
+			return "Cannot end before it start";
+		}
+	}
+});
+
+// validationError -> model.validationError
+// value returned by validate during the last failed validation
+
+// isValid -> model.isValid()
+// runs validate to check the model state
+
+// url -> model.url()
+// returns relative URL where the model's resource would be located on the server
+// generate urls of the form "[collection.url]/[id]"
+
+// urlRoot -> model.urlRoot or model.urlRoot()
+// specify a urlRoot if using a model outside of a collection, "[urlRoot]/id"
+
+// parse -> model.parse(response, options)
+// whenever a model's data is returned by the server in fetch and save, should return attributes hash to be set on the model
+
+// clone -> model.clone()
+// returns a new instance of the model with identical attributes
+
+// isNew -> model.isNew()
+// if model doesn't have an id, it is considered new and not saved to the server yet
+
+// hasChanged -> model.hasChanged([attribute])
+// has model changed since last set
+// changedAttributes -> model.changedAttributes([attributes])
+
+// previous -> model.previous(attribute)
+// during "change" event, gets previous value of changed attribute
+// previousAttributes -> model.previousAttributes()
+bill.on("change:name", function(model, name) {
+	alert("Changed from " + bill.previous("name") + " to " + name);
+});
+
+
+// Backbone.Collection //
+// collections are ordered sets of models, can bind "change" events to be notified when any model in collection
+// modified, listen for "add" and "remove" events, fetch collection from server
+// any event triggered on model in a collection will also be triggered on the collection directly
+// extend -> Backbone.Collection.extend(properties, [classProperties])
+// model -> collection.model([attrs], [options])
+// override this to specify the model class that the collection contains
+var Library = Backbone.Collection.extend({
+	model: Book
+});
+
+// modelId -> collection.modelId(attrs)
+// return the value the collection will use to identify a model given its attributes
+// useful for combining models from multiple tables with different idAttribute values into a single collection
+var Library = Backbone.Collection.extend({
+	modelId: function(attrs) {
+		return attrs.type + attrs.id;
+	}
+});
+
+// constructor/initialize -> new Backbone.Collection([models], [options])
+// can pass in array of models, passing false for comparator will prevent sorting
+// models -> collection.models; raw access to the JS array of models inside collection
+// collection.toJSON([options]) -> array containing attributes hash of each model 
+// sync -> collection.sync(method, collection, [options]); persist the state of a collection to the server
+// add -> collection.add(models, [options])
+// add model or array of models to collection, firing an "add" event for each model and "update" event afterwards
+// {at: index} to splice the model into the collection at specific index, {merge:true} -> change
+ships.add([
+	{name: "Regine"}
+]);
+
+// remove -> collection.remove(models, [options])
+// remove model or arary of models from collection and return them, fires "remove" for each model and single "update"
+
+// reset -> collection.reset([models], [options])
+// replaces a collection with a new list of models or attribute hashes, triggering "reset" event 
+
+// set -> collection.set(models, [options])
+// "smart" update of collection with passed list of models, can customize
+
+// get -> collection.get(id)
+// at -> collection.at(index)
+// get a model from a collection specified by index
+
+// push -> collection.push(model, [options])
+// add a model at end of collection
+// pop -> collection.pop([options])
+// unshift -> collection.unshift(model, [options])
+// shift -> collection.shift([options])
+// collection.length
+// collection.comparator
+// collection.sort([options])
+// collection.pluck(attribute); pluck an attribute from each model in the collection (mapping and returning single attribute)
+// collection.where(attributes); returns an array of all the models in a collection that match the passed attributes (filter)
+// collection.findWhere(attributes); returns only first model in collection that matches the passed attributes
+// collection.url or collection.url(); references its location on the server
+// parse -> collection.parse(response, options); called whenever a collection's models returned by server in fetch
+// collection.clone()
+// collection.fetch([options]); shouldn't be used to populate collections on page load, should already be bootstrapped into place
+// it's for lazily loading models for interfaces that are not needed immediately
+// collection.create(attributes, [options]); creates a new instance of a model within a collection
+
+
+// Backbone.Router //
+// provides methods for routing client-side pages and connecting them to actions and events, History API
+// during page load after application finished creating all of its routers, must call
+// Backbone.history.start() or Backbone.history.start({pushState: true}) to route the initial URL
+// Backbone.Router.extend(properties, [classProperties])
+// define action functions that are triggered when certain URL fragments are matched and provide a routes hash
+// that pairs routes to actions
+var Workspace = Backbone.Router.extend({
+	routes: {
+		"help": "help",
+		"search/:query": "search"
+	},
+
+	help: function() {
+		// ...
+	},
+
+	search: function(query, page) {
+		// ...
+	}
+});
+
+// routes -> router.routes
+// hash maps URLs with parameters to functions on your router, can contain :param parameter parts
+// i.e. search/:query/p:page, file/*path, docs/:section(/:subsection)
+// docs and docs/ will fire different callbacks so can do "docs(/)" to capture both cases instead
+// new Router([ooptions])
+// route -> router.route(route, name, [callbacks]); triggered as route:name event
+// navigate -> router.navigate(fragment, [options]);
+// updates the URL and set trigger option to be true to call the route function; to update the URL without creating
+// an entry in the browser's history, set the replace option to true
+openPage: function(pageNumber) {
+	this.document.pages.at(pageNumber).open();
+	this.navigate("page/" + pageNumber);
+}
+
+// execute -> router.execute(callback, args, name)
+// override to perform custom parsing or wrapping of your routes like parsing query strings before handing them to route callback
+var Router = Backbone.Router.extend({
+	execute: function(callback, args, name) {
+		if (!loggedIn) {
+			goToLogin();
+			return false;
+		}
+		args.push(parseQueryString(args.pop()));
+		if (callback) callback.apply(this, args);
+	}
+});
+
+
+// Backbone.history //
+// global router per frame to handle hashchange events or pushState, match the appropriate route, and trigger callbacks
+// pushState support exists opt-in basis
+// Backbone.history.start([options])
+// when all Routers created and all routes set up, start it up to begin monitoring hashchange events and dispatch routes
+// root: "root URL", {hashChange: false}, call after DOM is ready
+
+// Backbone.Sync //
+// calls every time it attempts to read or save a model to the server
+// default uses jQuery.ajax to make a RESTful JSON request and returns a jqXHR
+// sync(method, model, [options]): method - CRUD, model to be saved or collection to be read, options (success/error callbacks)
+// create - POST, read - GET, update - PUT, patch - PATCH, delete - DELETE
+// Backbone.ajax = function(request) { ... }
+// Backbone.emulateHTTP = true; Backbone.emulateJSON = true to work with legacy web server
+
+// Backbone.View //
+// can be used with any JS templating library, can bind render function to "change" event
+// Backbone.View.extend(properties, [classProperties])
+var DocumentRow = Backbone.View.extend({
+	tagName: "li", 
+	className: "document-row",
+	events: {
+		"click .icon": "open",
+		"click .button.edit": "openEditDialog",
+		"click .button.delete": "destroy"
+	},
+	initialize: function() {
+		this.listenTo(this.model, "change", this.render);
+	},
+	render: function() {
+		// ...
+	}
+});
+// new View([options])
+// view.el; all views have a DOM element at all times, views can be rendered at any time and inserted into the DOM all at once
+// default an empty di
+var ItemView = Backbone.View.extend({
+	tagName: 'li'
+});
+var BodyView = Backbone.View.extend({
+	el: 'body'
+});
+// view.$el; cached jQuery object for the view's element
+view.$el.show();
+listView.$el.append(itemView.el);
+// view.setElement(element); to apply a Backbone view to a different DOM element
+// view.attributes; hash of attributes that will be set as HTML DOM element attributes on view's el or function that returns hash
+// view.$(selector); runs queries scoped within the view's element; view.$el.find(selector)
+// view.template([data])
+var LibraryView = Backbone.View.extend({
+	template: _.template(...)
+});
+// view.render(); renders view template from model data, return this at the end of render to enable chaiend calls
+var BookMark = Backbone.View.extend({
+	template: _.template(...),
+	render: function() {
+		this.$el.html(this.template(this.model.attributes));
+		return this;
+	}
+});
+// view.remove(); removes a view and its el from the DOM and calls stopListening to remove any bound events that the view has listenTo'd
+// view.events or view.events(); see the events hash to specify a set of DOM events that will be bound to methods on your View through delegateEvents
+// delegateEvents([events]); uses jQuery's on to provide declarative callbacks for DOM events within a view
+// {"event selector": "callback"}
+// undelegateEvents(); removes all of the view's delegated events
+
+// Utility //
+// Backbone.noConflict(); returns Backbone object back to its original value and can use return value of it to keep a local reference
+// to Backbone, useful for embedding Backbone on third-party websites
+var localBackbone = Backbone.noConflict();
+var model = localBackbone.model.extend(...);
+// Backbone.$ = $; if have multiple copies of jQuery on the page or simply want to tell Backbone to use a particular object as its DOM/Ajax library
+Backbone.$ = require('jquery');
+
+/* Marionette Documentation Notes */

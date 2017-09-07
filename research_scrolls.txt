@@ -65,6 +65,9 @@ https://www.smashingmagazine.com/2013/08/backbone-js-tips-patterns/
 - Marionette Guides
 https://marionette.gitbooks.io/marionette-guides/content/en/index.html
 
+- Marionette Documentation
+https://marionettejs.com/docs/current/
+
 - Backbone.js Docs
 http://backbonejs.org/#
 
