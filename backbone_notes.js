@@ -2356,4 +2356,223 @@ var model = localBackbone.model.extend(...);
 // Backbone.$ = $; if have multiple copies of jQuery on the page or simply want to tell Backbone to use a particular object as its DOM/Ajax library
 Backbone.$ = require('jquery');
 
-/* Marionette Documentation Notes */
+
+/* Marionette Documentation Notes (2.4.7) */
+// Common concepts: class-based inheritance using _.extend, value attributes passed in class, functions returning values,
+// function context assign instance of new class as this, binding attributes on instantiation, setting options to override
+// class-based attributes when you need to, getOption, mergeOptions (matching keys will be merged onto class instance)
+
+// Marionette.View //
+// exists as a base view for other view classes to be extended from and to provide common location for behaviors that are shared
+// across all views (not intended to e used directly)
+// extends Backbone.View, recommended to use listenTo method to bind model, collection, or other events from Backbone and Marionette objects
+var MyView = Marionette.ItemView.extend({
+	initialize: function() {
+		// this automatically set to the view
+		this.listenTo(this.model, "change:foo", this.modelChanged);
+		this.listenTo(this.collection, "add", this.modelAdded);
+	},
+
+	modelChanged: function(model, value) {},
+
+	modelAdded: function(model) {}
+});
+
+// "show"/onShow event
+// called on the view instance when the view has been rendered and displayed
+// event can be used to react to when a view has been shown via a region
+Marionette.ItemView.extend({
+	onShow: function() {
+		// React to when a view has been shown
+	}
+});
+// Add children views
+var LayoutView = Marionette.LayoutView.extend({
+	regions: {
+		Header: 'header',
+		Section: 'section'
+	},
+	onShow: function() {
+		this.showChildView('Header', new Header());
+		this.showChildView('Section', new Section());
+	}
+});
+
+// destroy
+// called by region managers automatically, calls an onBeforeDestroy event on view, onDestroy
+// unbinds all custom view events, unbinds all DOM events, removes this.el from DOM, unbind all listenTo events, returns view
+// onBeforeDestroy before view destroys
+var MyView = Marionette.ItemView.extend({
+	onDestroy: function(arg1, arg2) {
+		// Custom cleanup or destroying code here
+	}
+});
+
+// "attach"/onAttach event
+// triggered anytime that showing the view in a Region causes it to be attached to the document, great for jQuery plugins/other logic
+// only fired when view becomes a child of the document, propagates down the view tree like from CollectionView to children views
+// before:attach/onBeforeAttach
+
+// "dom:refresh"/onDomRefresh event
+// Triggered after the view has been rendered, has been shown in the DOM via a Marionette Region and has been re-rendered
+// useful for DOM-dependent UI plugins
+Marionette.ItemView.extend({
+	onDomRefresh: function() {
+		// Manipulate 'el' here that is rendered and full of view's HTML
+	}
+});
+
+// events
+// events and ui hash syntactic sugar
+var MyView = Marionette.ItemView.extend({
+	ui: {
+		"cat": ".dog"
+	},
+
+	events: {
+		"click @ui.cat": "bark"
+	}
+});
+
+// triggers
+// define as a hash to convert a DOM event into a view.triggerMethod call
+// by default all triggers stopped with preventDefault and stopPropagation methods
+var MyView = Marionette.ItemView.extend({
+	// ...
+	triggers: {
+		"click .do-something": "something:do:it"
+	}
+});
+var view = new MyView();
+view.render();
+view.on("something:do:it", function(args) {
+	alert("I did it!");
+});
+view.$('.do-something').trigger('click');
+// More syntactic sugar
+Marionette.CompositeView.extend({
+	ui: {
+		'something': '.do-something'
+	}
+	triggers: {
+		"click @ui.something": {
+			event: "something:do:it",
+			preventDefault: true,
+			stopPropagation: false
+		}
+	}
+});
+// trigger event handler will receive a single argument that includes the view, model, collection
+view.on("some:event", function(args) {
+	args.view; // view instance that triggered the event
+	args.model; // view.model if set on the view
+	args.collection; // view.collection if set on the view
+});
+
+// modelEvents and collectionEvents
+// more hashes for data, listenTo is memory safe, sets the context of this to be the view
+// bound and unbound with Backbone.View delegateEvents and undelegateEvents
+// can also have multiple callback functions separated by a space, can be inlined function
+// can do event configuration as a function
+Marionette.CompositeView.extend({
+	modelEvents: {
+		"change:name": "nameChanged" // equivalent to view.listenTo(view.model, "change:name", view.nameChanged, view)
+	},
+
+	collectionEvents: {
+		"add": "itemAdded" // equivalent to view.listenTo(view.collection, "add", view.itemAdded, view)
+	},
+
+	// event handler methods
+	nameChanged: function() {}
+	itemAdded: function() {}
+});
+
+// serializeModel
+// bindUIElements
+// for cases when you need to access ui elements inside the view to retrieve their data or manipulate them
+// already taken care of in ItemView and CompositeView in render method for ui hash
+// mergeOptions(options object, keys)
+var ProfileView = Marionette.ItemView.extend({
+	profileViewOptions: ['user', 'age'],
+	initialize: function(options) {
+		this.mergeOptions(options, this.profileViewOptions);
+		console.log('The merged options are: ', this.user, this.age);
+	}
+});
+// getOption to retrieve an object's attribute, or this.options
+// bindEntityEvents - bind a backbone "entity" to methods on target object to support modelEvents and collectionEvents
+// templateHelpers - can be applied to any View object that renders a template with more logic, when this attribute is
+// present its contents will be mixed in to the data object that comes back from the serializeData method
+// this is also a good place to add data not returned from serializeData
+// can change which template is rendered for a view -> getTemplate: funciton() { ... }
+var MyView = Marionette.ItemView.extend({
+	template: '#my-template',
+	templateHelpers: function() {
+		return {
+			showMessage: function() {
+				return this.name + " is the coolest!";
+			},
+			percent: this.model.get('decimal') * 100
+		};
+	}
+});
+// UI interpolation
+var MyView = Marionette.ItemView.extend({
+	ui: {
+		buyButton: '.buy-button',
+		checkoutSection: '.checkout-section'
+	},
+	events: {
+		'click @ui.buyButton': 'onClickBuyButton'
+	},
+	regions: {
+		checkoutSection: '@ui.checkoutSection'
+	},
+	onShow: function() {
+		this.getRegion('checkoutSection').show(new CheckoutSection({
+			model: this.checkoutModel
+		}));
+	}
+});
+
+
+// Marionette.CollectionView //
+// loops through all the models in the specified collection, render each of them using a specified childView
+// then append the results of the child view's el to the collection view's el
+// default maintains a sorted collection's order in the DOM (can be disabled by {sort: false})
+
+// childView
+var MyChildView = Marionette.ItemView.extend({});
+
+Marionette.CollectionView.extend({
+	childView: MyChildView
+});
+
+// getChildView - returns class that will be instantiated when a model needs to be initially rendered
+// allows you to customize per Model ChildViews
+var MyCollectionView = Marionette.CollectionView.extend({
+	getChildView: function(item) {
+		// Choose which view class to render, depending on the properties of the item model
+		if (item.get('isFoo')) {
+			return FooView;
+		} else {
+			return BarView;
+		}
+	}
+});
+var collectionView = new MyCollectionView({
+	collection: new Backbone.Collection()
+});
+var foo = new FooBar({
+	isFoo: true
+});
+var bar = new FooBar({
+	isFoo: false
+});
+collectionView.collection.add(foo);
+collectionView.collection.add(bar);
+
+// childViewOptions
+// pass data from your parent collection view in to each of the childView instances
+

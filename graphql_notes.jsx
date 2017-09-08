@@ -455,7 +455,10 @@ import App from './components/App';
 import SongList from './components/SongList';
 import SongCreate from'./components/SongCreate';
 
-const client = new ApolloClient({});
+const client = new ApolloClient({
+	// Used to identify data inside of Apollo store using id
+	dataIdFromObject: o => o.id
+});
 
 const Root = () => {
 	return (
@@ -496,7 +499,9 @@ class SongList extends Component {
 		return this.props.data.songs.map(({ id, title }) => {
 			return (
 				<li key={id} className="collection-item">
-					{title}
+					<Link to={`/songs/${id}`}
+						{title}
+					</Link>
 					<i 
 						className="material-icons"
 						onClick={() => this.onSongDelete(id)}
@@ -631,13 +636,23 @@ export default graphql(mutation)(SongCreate);
 
 // SongDetail.js: fetching like songs/:id
 // ...
+import { Link } from 'react-router';
+import fetchSong from '../queries/fetchSong';
+
 class SongDetail extends Component {
 	render() {
+		const { song } = this.props.data;
+
+		if (!song) { return <div>Loading...</div>; }
+
 		// URI params in props.params
 		console.log(this.props);
 		return (
 			<div>
-				<h3>Song Detail</h3>
+				<Link to="/">Back</Link>
+				<h3>{song.title}</h3>
+				<LyricList />
+				<LyricCreate songId={this.props.params.id} />
 			</div>
 		);
 	}
@@ -648,3 +663,71 @@ export default graphql(fetchSong, {
 	// props passed into fetchSong query to get the id query param and get specific song details
 	options: (props) => { return { variables: { id: props.params.id } } }
 })(SongDetail);
+
+// LyricCreate.js
+class LyricCreate extends Component {
+	constructor(props) {
+		super(props);
+		this.state = { content: '' };
+	}
+
+	onSubmit(event) {
+		event.preventDefault();
+
+		this.props.mutate({
+			variables: {
+				content: this.state.content,
+				songId: this.props.songId
+			}
+		}).then(() => this.setState({ content: '' }));
+	}
+
+	render() {
+		return (
+			<form onSubmit={this.onSubmit.bind(this)}>
+				<label>Add a lyric</label>
+				<input
+					value={this.state.content}
+					onChange={event => this.setState({ content: event.target.value })}
+				/>
+			</form>
+		)
+	}
+}
+
+const mutation = gql`
+	mutation AddLyricToSong($content: String, $songId: ID) {
+		addLyricToSong(content: $content, songId: $songId) {
+			id
+			lyrics {
+				content
+			}
+		}
+	}
+`;
+
+export default LyricCreate;
+
+// LyricList.js
+import React, { Component } from 'react';
+
+class LyricList extends Component {
+	renderLyrics() {
+		return this.props.lyrics.map({ id, content } => {
+			return (
+				<li key={id} className="collection-item">
+					{content}
+				</li>
+			);
+		});
+	}
+	render() {
+		return (
+			<ul className="collection">
+				LyricList
+			</ul>
+		);
+	}
+}
+
+export default LyricList;
