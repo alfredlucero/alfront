@@ -2575,4 +2575,132 @@ collectionView.collection.add(bar);
 
 // childViewOptions
 // pass data from your parent collection view in to each of the childView instances
+var CollectionView = Marionette.CollectionView.extend({
+	childViewOptions: function(model, index) {
+		// do some calculations based on the model
+		return {
+			foo: "bar",
+			childIndex: index
+		};
+	}
+});
 
+// childViewEventPrefix
+// can customize the event prefix for events that are forwarded through the collection view
+var CollectionView = Marionette.CollectionView.extend({
+	childViewEventPrefix: "some:prefix"
+});
+
+// childEvents hash or method permits handling of child views without manually setting bindings
+// catches custom events fired by a child view
+var MyCollectionView = Marionette.CollectionView.extend({
+	childEvents: function() {
+		return {
+			render: this.onChildRendered
+		};
+	},
+	onChildRendered: function() {
+		console.log('A child view has been rendered.');
+	}
+});
+
+// Child view fires a custom event 'show:message'
+var ChildView = Marionette.ItemView.extend({
+	// Events hash defines local event handlers that in turn may call 'triggerMethod'
+	events: {
+		'click .button': 'onClickButton'
+	},
+
+	// Triggeres hash converts DOM events directly to view events catchable on parent
+	triggers: {
+		'submit form': 'submit:form'
+	},
+
+	onClickButton: function() {
+		// Both 'trigger' and 'triggerMethod' events will be caught by parent
+		this.trigger('show:message', 'foo');
+		this.triggerMethod('show:message', 'bar');
+	}
+});
+
+// Parent uses childEvents to catch the child view's custom events
+var ParentView = Marionette.CollectionView.extend({
+	childView: ChildView,
+
+	childEvents: {
+		'show:message': 'onChildShowMessage',
+		'submit:form': 'onChildSubmitForm'
+	},
+
+	onChildShowMessage: function(childView, message) {
+		console.log('A child view fired show:message event with ' + message);
+	},
+
+	onChildSubmitForm: function(childView) {
+		console.log('A child view fired submit:form');
+	}
+});
+
+// buildChildView
+// when custom view instance needs to be created for the childView
+buildChildView: function(child, ChildViewClass, childViewOptions) { ... }
+// removeChildView
+// remove a specific view instance and destroy it, updates the indices of later views to keep in sync
+// addChild
+// rendering childViews and adds them to HTML, triggers events per ChildView
+// reorderOnSort
+// useful if have performance issues, there will be no re-rendering but DOM nodes will be reordered
+// emptyView
+// when a collection has no children and you need to render a view other than the list of childViews
+// getEmptyView
+// if you need the emptyView's class chosen dynamically
+// isEmpty
+// to override when the empty view is rendered
+// emptyViewOptions
+// defaults to sending in childViewOptions if not specified
+// destroyChildren
+// destroys only its childViews but keeps data in the collection
+
+// Callback methods
+// onBeforeRender
+// onRender
+// onBeforeReorder
+// onReorder
+// onBeforeDestroy
+// onDestroy
+// onBeforeAddChild
+// onAddChild
+// onBeforeRemoveChild
+// onRemoveChild
+
+// CollectionView Events
+// each called with the Marionette.triggerMethod function which calls a corresponding "on{EventName}" method on view instance
+// "before:render"/:collection" / onBeforeRenderCollection, only emitted if collection is not empty
+// "render" / onRenderCollection
+// "before:reorder" / "reorder"
+// "before:destroy" // onBeforeDestroyCollection
+// "destroy" / "destroy:collection"
+// "before:add:child" / "add:child"
+// "before:remove:child" / "remove:child"
+// "childview:*" event bubbling from child views i.e. "childview:do:something" from child's "do:something"
+// "before:render:collection"
+
+// render responsible for rendering entire collection, loops through each of the children and renders them individually as
+// a childview; after initial render, "add", "remove", and "reset" events of collection specified
+// appends the HTML of each ChildView into the element buffer and call jQuery's .append once at the end to move the HTML into
+// collection view's el
+// resortView, viewComparator, filter to prevent some of the underlying collection's models from being rendered as child views
+// uses Backbone.BabySitter to store and manage its child views i.e. cv.children.findByModel(someModel); cv.children.each((view) => { })
+// destroy called by region managers automatically that unbinds all listenTo events, custom events, DOM events, child views that were rendered
+// removes this.el from DOM, calls an onDestroy event on view and CollectionView is returned
+
+// Marionette.Region //
+// provide consistent methods to manage, show, and destroy views in your applications and layouts, use jQuery selector
+// to show views in correct place
+// add regions to applications by calling addRegions method on app instance
+// to access MyApp.mainRegion and MyApp.navigationRegion
+MyApp.addRegions({
+	mainRegion: '#main-content',
+	navigationRegion: '#navigation'
+});
+// add regions view LayoutViews
