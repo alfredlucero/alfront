@@ -2703,4 +2703,80 @@ MyApp.addRegions({
 	mainRegion: '#main-content',
 	navigationRegion: '#navigation'
 });
-// add regions view LayoutViews
+// add regions via LayoutViews
+var AppLayoutView = Marionette.LayoutView.extend({
+	template: '#layout-view-template',
+
+	regions: {
+		menu: '#menu',
+		content: '#content'
+	}
+});
+var layoutView = new AppLayoutView();
+layoutView.render();
+layoutView.menu.show(new MenuView());
+layoutView.getRegion('menu').show(new MenuView());
+layoutView.showChildView('content', new MainContentView());
+
+// Configuration types
+// jQuery string selector
+App.addRegions({
+	mainRegion: '#main'
+});
+// region class
+var MyRegion = Marionette.Region.extend({
+	el: '#main-nav'
+});
+App.addRegions({
+	navigationRegion: MyRegion
+});
+// object literal
+// expect a selector or el property or supply a regionClass
+var MyRegion = Marionette.Region.extend();
+var MyOtherRegion = Marionette.Region.extned();
+var MyElRegion = Marionette.Region.extend({ el: '#footer' });
+
+App.addRegions({
+	contentRegion: {
+		el: '#content',
+		regionClass: MyRegion
+	},
+	navigationRegion: {
+		el: '#navigation',
+		regionClass: MyOtherRegion
+		navigationOption: 42,
+		anotherNavigationOption: 'foo'
+	},
+	footerRegion: {
+		regionClass: MyElRegion
+	}
+});
+// mix and match
+// initialize a region with an el
+// showing a view
+// can call its show and empty methods to display and shutdown a view
+var myView = new MyView();
+MyApp.getRegion('mainRegion').show(myView, options);
+// empties the current view
+MyApp.getRegion('mainRegion').empty();
+// preventDestroy
+// show by default destroys the previous view so you can stop that with { preventDestroy: true }
+// forceShow
+// if you re-call show with the same view nothing will happen by default so you can { forceShow: true }
+// onBeforeAttach and onAttach triggered on show - can disable them
+
+// if you wish to check whether the region has a view, you can use hasView function
+// reset - destroys any existing view and deletes the cached el, useful when regions re-used across view instances 
+// and in unit testing
+// override the region's attachHtml method to change how the view is attached to the DOM, can add custom rendering
+Marionette.Region.prototype.attachHtml = function(view) {
+	this.$el.hide();
+	this.$el.html(view.el);
+	this.$el.slideDown("fast");
+};
+
+// can set currentView on initialization
+// call attachView on Region
+// events raised on Region during show()
+// before:show/onBeforeShow, show/onShow, before:swap/onBeforeSwap, swap/onSwap
+// before:swapOut/onBeforeSwapOut, before:empty/onBeforeEmpty, empty/onEmpty
