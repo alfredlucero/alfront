@@ -2780,3 +2780,83 @@ Marionette.Region.prototype.attachHtml = function(view) {
 // events raised on Region during show()
 // before:show/onBeforeShow, show/onShow, before:swap/onBeforeSwap, swap/onSwap
 // before:swapOut/onBeforeSwapOut, before:empty/onBeforeEmpty, empty/onEmpty
+
+
+// Marionette.Application //
+// Application is the container for the rest of the code
+// get a start method to begin routing for make AJAX request
+// provides a namespace to keep things off of the window and store JS objects
+// can integrate with Marionette Inspector
+var app = new Mn.Application();
+
+// Start history when our application is ready
+app.on('start', function() {
+	Backbone.history.start();
+});
+
+// Load some initial data, and then start our application
+loadInitialData().then(app.start);
+
+// initialize - called after app instantiated, same as passed through constructor
+var app = Marionette.Application.extend({
+	initialize: function(options) {
+		console.log('My container: ', options.container);
+	}
+});
+
+// events called by Marionette.triggerMethod such as 
+// onBeforeStart, onStart
+MyApp.on('before:start', function(options) {
+	options.moreData = 'More data here';
+});
+
+MyApp.on('start', function(options) {
+	if (Backbone.history) {
+		Backbone.history.start();
+	}
+});
+
+// MyApp.start(options)
+// should use LayoutView as root of your view tree, .rootView
+// can add/remove regions, channel but not advised since deprecated
+// Application.mergeOptions, .getOption
+
+// Event Aggregator available through the vent property
+// to passively share information between pieces of your application as events occur
+var MyApp = new Marionette.Application();
+
+// Alert the user on the 'minutePassed' event
+MyApp.vent.on('minutePassed', function(someData) {
+	alert('Received', someData);
+});
+
+MyApp.vent.trigger('minutePassed', window.someData);
+
+// Request Response
+// means for any component to request information from another component without being tightly coupled
+// available on the reqres property
+var MyApp = new Marionette.Application();
+
+// Set up a handler to return a todoList based on type
+MyApp.reqres.setHandler('todoList', function(type) {
+	return this.todoLists[type];
+});
+
+// Make the request to get the grocery list
+var groceryList = MyApp.reqres.request('todoList', 'groceries');
+// or can do this
+var groceryList = MyApp.request.('todoList', 'groceries');
+
+// Commands
+// to make any component tell another component to perform an action without direct reference to it
+// available under commands property
+var MyApp = new Marionette.Application();
+MyApp.model = new Backbone.Model();
+MyApp.commands.setHandler('fetchData', function(reset) {
+	MyApp.model.fetch({reset: reset});
+});
+MyApp.commands.execute('fetchData', true);
+MyApp.execute('fetchData', true);
+
+
+// Marionette.Behavior //
