@@ -68,6 +68,12 @@ https://marionette.gitbooks.io/marionette-guides/content/en/index.html
 - Marionette Documentation
 https://marionettejs.com/docs/current/
 
+- Marionette Explained: Connecting Data to your Views
+https://benmccormick.org/2014/12/10/marionette-explained-connecting-your-data-to-your-views/
+
+- A Visual Guide to Marionette.js Views
+https://artandlogic.com/2013/03/a-visual-guide-to-marionette-js-views/
+
 - Backbone.js Docs
 http://backbonejs.org/#
 

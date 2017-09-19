@@ -2361,6 +2361,15 @@ Backbone.$ = require('jquery');
 // Common concepts: class-based inheritance using _.extend, value attributes passed in class, functions returning values,
 // function context assign instance of new class as this, binding attributes on instantiation, setting options to override
 // class-based attributes when you need to, getOption, mergeOptions (matching keys will be merged onto class instance)
+// ItemView taking a model/collection to render, CollectionView rendering a collection with childView
+// MVVM, layouts as top-level component in your application to nest multiple views
+// add regions into areas of app that you plan on turning into Marionette.js views
+// philosophy about re-using views: should not re-use them when calling myLayout.region.show(view) or else bindings messed up
+// ItemView to provide a view for a single model and template
+// CollectionView to render a collection of models, takes in an ItemView (childView) and collection, concatenates HTML together
+// CompositeView (as a wrapper), like a collection view (extends from it) but adds in a template and ItemViewContainer option
+// like rendering an HTML table to assign a container where all the concatenated item views are inserted
+// also can be used as a branch/leaf and recursively display a collection of models which also have a collection of models
 
 // Marionette.View //
 // exists as a base view for other view classes to be extended from and to provide common location for behaviors that are shared
@@ -2860,3 +2869,64 @@ MyApp.execute('fetchData', true);
 
 
 // Marionette.Behavior //
+// Behavior is an isolated set of DOM/user interactions that can be mixed into any View or another Behavior
+// can blackbox View-specific interactions into portable logical chunks
+var MyView = Marionette.ItemView.extend({
+	ui: {
+		"destroy": ".destroy-btn"
+	},
+
+	behaviors: {
+		DestroyWarn: {
+			message: "You are destroying all your data is now gone!"
+		},
+		Tooltip: {
+			text: "What a nice mouse you have"
+		}
+	}
+});
+
+var DestroyWarn = Marionette.Behavior.extend({
+	defaults: {
+		"message": "You are destroying!"
+	},
+	events: {
+		"click @ui.destroy": "warnBeforeDestroy"
+	},
+	warnBeforeDestroy: function() {
+		alert(this.options.message);
+	}
+});
+window.Behaviors.DestroyWarn = DestoryWarn;
+
+// User must define a location where their behaviors are stored
+Marionette.Behaviors.behaviorsLookup = function() {
+	return window.Behaviors;
+}
+
+// Event proxy
+// behaviors powered by event proxy, any events triggered by view's triggerMethod function are passed to each Behavior
+// on the View as well, behavior as receiver for all of the events on your view instance
+// can call within View: this.triggerMethod("SomeEvent", {some: "data"})
+Marionette.Behavior.extend({
+	onSomeEvent: function(data) {
+		console.log("Wow such data", data);
+	}
+});
+// modelEvents and collectionEvents respond to View's model/collection events
+// can use same life cycle functions that you find on views like initialize, onRender, onBeforeShow/Destroy
+// any triggers you define on the Behavior will be triggered in response to the appropriate event on the View
+// behaviors key to group multiple behaviors together
+Marionette.Behavior.extend({
+	behaviors: {
+		SomeBehavior: {}
+	},
+	onShow: function() {
+		// $ is direct proxy of the View's $ lookup method; also the el/$el
+		this.$('.zerg');
+	}
+});
+// defaults hash, view is a reference to the View instance the behavior is attached to, also ui hash
+
+
+// Marionette.AppRouter //
