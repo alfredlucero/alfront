@@ -107,6 +107,13 @@ https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 https://css-tricks.com/snippets/css/complete-guide-grid/
 
 
+General JS Resources/Libraries I Found Useful:
+
+- Shepherd - Guide your users through a tour of your app (Repo)
+https://github.com/HubSpot/shepherd
+
+- fullPage.js - Fullscreen scrolling websites library
+https://alvarotrigo.com/fullPage/
 
 
 

@@ -2930,3 +2930,110 @@ Marionette.Behavior.extend({
 
 
 // Marionette.AppRouter //
+// reduce boilerplate code of handling route events and then calling a single method on another object
+// configure routers/routes here with appRoutes
+var MyRouter = Marionette.AppRouter.extend({
+	// "someMethod" must exist at controller.someMethod
+	appRoutes: {
+		"some/route": "someMethod"
+	},
+
+	// standard routes can be mixed with appRoutes/controllers
+	routes: {
+		"some/otherRoute": "someOtherMethod"
+	},
+	someOtherMethod: function() {
+
+	}
+});
+// can add routes at runtime with appRoute() method that works like router.route() from Backbone's Router
+var MyRouter = Marionette.AppRouter.extend({});
+
+var router = new MyRouter();
+router.appRoute("/foo", "fooThat");
+// can use processAppRoutes to specify a controller with multiple routes at runtime
+// App routers can only use one controller object - must have methods you specified in appRoutes
+// will call the onRoute method whenever a user navigates within your app
+
+
+// Marionette.Object //
+// base class which other classes can extend from, uses initialize and Backbone.Events
+var Friend = Marionette.Object.extend({
+	initialize: function(options) {
+		console.log(options);
+	}
+});
+// includes triggerMethod to emit events that other objects can listen for with on or listenTo
+var Friend = Marionette.Object.extend({
+	graduate: function() {
+		this.triggerMethod('announce', 'I graduated!');
+	}
+});
+var john = new Friend({name: 'Alfred'});
+john.on('announce', function(message) {
+	console.log(message);
+});
+// mergeOptions, getOption, bindEntityEvents, destroy method
+
+
+// Marionette.Renderer //
+// Renderer object extracted from ItemView rendering process in order to create a consistent and re-usable method of rendering
+// a template with or without data
+// basic usage to call render method, uses data object as context
+var template = "#some-template";
+var data = {foo: "bar"};
+var html = Marionette.Renderer.render(template, data);
+// if the template parameter of the render function is itself a function, the renderer treats this as a pre-compiled template
+// and does not try to compile it again
+var myTemplate = _.template("<div>Foo</div>");
+Marionette.ItemView.extend({
+	template: myTemplate
+});
+
+// by default takes a jQuery selector object as the first parameter and JSON data object as optional second param
+// uses TemplateCache to load template by specified selector
+
+
+// Marionette.TemplateCache //
+// TemplateCache provides a cache for retrieving templates from script blocks in your HTML to improve speed of subsequent
+// calls to get a template using the "get" method
+var template = Marionette.TemplateCache.get("#my-template", {some: options});
+// use the template
+template({param1: 'value1', paramN: 'valueN'});
+// clear items from cache using the "clear" method, this forces it to re-loadfrom the DOM via the loadTemplate function
+Marionette.TemplateCache.clear();
+
+
+// Marionette.Behaviors //
+// glues your Behavior instances to their given View, must override the class level behaviorsLookup method or set the option
+// behaviorClass for things to work properly; getBehaviorClass- responsible for lookup of single Behavior
+// behaviorsLookup defines where you Behavior classes are stored, usually by key but can pass a class in behaviorClass
+Marionette.Behaviors.behaviorsLookup = function() {
+	return window.Behavior;
+} 
+
+
+// Marionette Functions //
+// Marionette.extend - similar to Backbone.extend, extends functionality without having to decide if you want to use Backbone.View
+// or Backbone.model or any other object
+// Marionette.isNodeAttached - determines whether the passed-in node is a child of the document
+// Marionette.mergeOptions - pluck certain options and attach them directly to an instance
+// Marionette.getOption - retrieve an object's attribute from the object or from this.options
+// Marionette.proxyGetOption - proxies Marionette.getOption to be easily added to instance
+// Marionette.triggerMethod - trigger an event and a corresponding method on the target object
+// i.e. triggerMethod("before:destroy") -> onBeforeDestrou
+// Marionette.triggerMethodOn - invoke triggerMethod on a specific context
+// Marionette.bindEntityEvents - bind a backbone "entity" (collection/model) to methods on a target object
+// Marionette.unbindEntityEvents - unbind callbacks from entities' (e.g. collection/model) events
+// Marionette.proxyBindEntityEvents - proxies Marionette.bindEntityEvents to add easily to an instance
+// Marionette.proxyUnbindEntityEvents - similar to above
+// Marionette.normalizeMethods - receives a hash of event names and functions and returns same hash with function names
+// replaced with function references themselves
+// Marionette.normalizeUIKeys - allows you to use the @ui.syntax within a given key for triggers and event hashes
+// Marionette.normalizeUIValues - allows you to use the @ui.syntax within a given hash value
+// Marionette.actAsCollection - mixes underscore collection behavior to an object
+
+
+// Marionette.RegionManager //
+
+
