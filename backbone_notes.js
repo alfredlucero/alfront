@@ -3035,5 +3035,125 @@ Marionette.Behaviors.behaviorsLookup = function() {
 
 
 // Marionette.RegionManager //
+// provide a consistent way to manage a number of Marionette.Region objects within application
+// to facilitate addition, storage, retrieval, and removal of regions from that object
+var rm = new Marionette.RegionManager();
+var region = rm.addRegion("foo", "#bar");
+// takes optional region option in their constructor
+var manager = new Marionette.RegionManager({
+	regions: {
+		"aRegion": "#bar"
+	}
+});
+manager.get('aRegion').show(new MyView, options);
+// addRegion/addRegions method with region name and region definition as arguments
+// retrieve a region using the get/getRegions method and passing in name of the region
+// removeRegion - will have empty method called before removed from RegionManager instance and stopListening is called
+// emptyRegions, destroy (destroys and removes all regions from RegionManager instance)
+// events such as before:add:region, add:region, before:remove:region, remove:region
+// can iterate using underscore.js helpers such as each
+rm.on("add:region", function(name, region) {
+	myObject[name] = region;
+});
+rm.addRegion("foo", "#bar");
 
 
+// Marionette.CompositeView //
+// CompositeView extends from CollectionView to be used as a composite view for scenarios where it should represent both
+// a branch and leaf in a tree structure or for where a collection needs to be rendered within a wrapper template
+// maintains a sorted collection's order in the DOM
+// can set a modelView or default to Marionette.ItemView
+// assumes a hierarchical, recursive structure
+var CompositeView = Marionette.CompositeView.extend({
+	template: "#leaf-branch-template"
+});
+
+new CompositeView({
+	model: someModel,
+	collection: someCollection,
+	template: "#some-template",
+	templateHelpers: function() {
+		return { items: this.collection.toJSON() };
+	},
+	// added to composite view template
+	childView: ChildView
+});
+
+// sample rendering a table view with collection items going into <tbody>
+var RowView = Marionette.ItemView.extend({
+	tagName: "tr",
+	template: "#row-template"
+});
+
+var TableView = Marionette.CompositeView.extend({
+	childView: RowView,
+	// Specify a jQuery selector to put the childView instances into
+	// can also have getChildViewContainer for more specific container selection
+	childViewContainer: "tbody",
+	template: "#table-template"
+});
+// events such as before:render:template, render:template, before:render:collection, render:collection
+// before:render, render; can organize UI elements in ui hash; can bind to model/collection events
+
+
+// Marionette.ItemView //
+// view that represents a single item that may be a Backbone.Model or a Backbone.Collection, extends
+// directly from Marionette.View, defers to Marionette.Renderer to render template
+var MyView = Marionette.ItemView.extend({
+	template: "#some-template"
+});
+
+new MyView().render();
+
+// attaching behavior and events to static content that has been rendered by your server
+var MyView = Marionette.ItemView.extend({
+	el: "#my-element",
+	template: false,
+	ui: {
+		paragraph: "p",
+		button: ".my-button"
+	},
+	events: {
+		"click @ui.button": "clickedButton"
+	},
+	clickedButton: function() {
+		console.log("I clicked the button");
+	}
+});
+// serializeData - serialize a model or collection by calling .toJSON to be passed to template that is rendered
+// ui hash, model/collectionEvents
+new MyItemView({
+	template: "#myItemTemplate",
+	model: myModel
+});
+
+
+// Marionette.LayoutView //
+// hybrid of ItemView and a collection of Region objects
+// ideal for rendering applicaiton layouts with multiple sub-regions managed by specified region managers
+// can act as a composite view to aggregate multiple views and sub-application areas of the screen allowing
+// applications to attach multiple region managers to dynamically rendered HTML
+var AppLayoutView = Marionette.LayoutView.extend({
+	template: "#layout-view-template",
+	regions: {
+		menu: "#menu",
+		content: "#content"
+	}
+});
+var layoutView = new AppLayoutView();
+layoutView.render();
+
+layoutView.getRegion('menu').show(new MenuView(), options);
+layoutView.showChildView('menu', new MenuView(), options);
+
+// childEvents hash or method permits handling of child view events without manually setting bindings
+// childViews must call this.triggerMethod("child:event")
+// any defined regions within a layoutView will be available to the View or any calling code immediately
+// after instantiating the View
+// - first render delegates to the ItemView prototype
+// - render function modified to account for re-rendering with regions in the layoutView,
+// forcing every region to be emptied by calling the empty method on them, attaches to new elements
+// - avoid re-rendering the entire layoutview, should listen to model's "change" events and only update the necessary DOM elements
+// - for efficient nested view structures, can render all of the children in the onBeforeShow callback
+// - can call destroy method on it, check for attach events, can add/removeRegions
+// - prototype chain: Backbone.View > Marionette.View > Marionette.ItemView > Marionette.LayoutView
