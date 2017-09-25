@@ -714,12 +714,13 @@ import React, { Component } from 'react';
 class LyricList extends Component {
 	onLike(id, likes) {
 		// Going to guess optimistic response to have better UI update experience
+		// if incorrect, will resolve to right value from response
 		this.props.mutate({ 
 			variables: { id },
 			optimisticResponse: {
 				_typename: 'Mutation',
 				likeLyric: {
-					id: id,
+					id,
 					__typename: 'LyricType',
 					likes: likes + 1
 				}
@@ -768,3 +769,143 @@ export default LyricList;
 const client = new ApolloClient({
 	dataIdFromObject: o => o.id
 });
+
+// Passing in cookie to graphQL requests
+const networkInterface = createNetworkInterface({
+	uri: '/graphql',
+	opts: {
+		// Sends along cookies when sending query to backend servers
+		credentials: 'same-origin'
+	}
+});
+const client = new ApolloClient({
+	networkInterface,
+	dataIdFromObject: o => o.id
+});
+
+// Sample AuthForm (to be used by LoginForm and SignupForm)
+import React, { Component } from 'react';
+
+class AuthForm extends Component {
+	constructor(props) {
+		super(props);
+
+		this.state = { email: '', password: '' };
+	}
+
+	onSubmit() {
+		event.preventDefault();
+
+		this.props.onSubmit(this.state);
+	}
+
+	render() {
+		return (
+			<div className="row">
+				<form onSubmit={this.onSubmit.bind(this)} className="col s4">
+					<div className="input-field">
+						<label>Email</label>
+						<input
+							placeholder="Email"
+							value={this.state.email}
+							onChange={e => this.setState({ email: e.target.value })}
+						/>
+					</div>
+					<div className="input-field">
+						<label>Password</label>
+						<input 
+							placeholder="Email"
+							type="password"
+							value={this.state.password}
+							onChange={e => this.setState({ password: e.target.value })}
+						/>
+					</div>
+					<div className="errors">
+						{this.props.errors.map(error => <div key={error}>{error}</div>)}
+					</div>
+					<button className="btn">Submit</button>
+				</form>
+			</div>
+		);
+	}
+}
+
+export default AuthForm;
+
+// Login Form
+import React, { Component } from 'react';
+import AuthForm from './AuthForm';
+import mutation from '../mutations/Login';
+import { graphql } from 'react-apollo';
+import query from '../queries/CurrentUser';
+
+class LoginForm extends Component {
+	constructor(props) {
+		super(props);
+		
+		this.state = { errors: [] };
+	}
+	
+	onSubmit({ email, password }) {
+		this.props.mutate({
+			variables: { email, password },
+			refetchQueries: [{ query }]
+		})
+		// .then(() => { router.push('/dashboard' }), will have race condition so just do componentWillUpdate before pushing 
+		// and making sure refetchQueries response returns before re-rendering component
+		.catch(res => { 
+			const errors = res.graphQLErrors.map(error => error.message);
+			this.setState({ errors });
+		});
+	}
+
+	render() {
+		return (
+			<div>
+				<h3>Login</h3>
+				<AuthForm 
+					errors={this.state.errors} 
+					onSubmit={this.onSubmit.bind(this)} 
+				/>
+			</div>
+		);
+	}	
+}
+
+export default graphql(mutation)(LoginForm);
+
+// Login Mutation
+const login = gql`
+	mutation Login($email: String, $password: String) {
+		login(email: $email, password: $password) {
+			id
+			email
+		}
+	}
+`;
+
+// use a requireAuth HOC to have authenticated routes like dashboard, account settings, profile page
+// after going through login/signup forms
+import React, { Component } from 'react';
+import { graphql } from 'react-apollo';
+import currentUserQuery from '../queries/CurrentUser';
+
+export default (WrappedComponent) => {
+	class RequireAuth extends Component {
+		componentWillUpdate(nextProps) {
+			if (!nextProps.data.loading && !nextProps.data.user) {
+				hashHistory.push('/login');
+			}
+		}
+		
+		render() {
+			return (
+				<WrappedComponent {...this.props} />
+			);
+		}
+	}	
+}
+
+graphql(currentUserQuery)(RequireAuth);
+
+// <Route path="dashboard" component={requireAuth(Dashboard)} />
