@@ -31,6 +31,9 @@ https://mxstbr.blog/2016/11/styled-components-magic-explained/
 - Storybook (Development UI Components)
 https://github.com/storybooks/storybook
 
+- Using React and jQuery together if you need to
+http://tech.oyster.com/using-react-and-jquery-together/
+
 
 
 
@@ -186,6 +189,15 @@ https://coolors.co/
 
 - Codepen: Code Collaboration and Display
 https://codepen.io
+
+- Can I Use: Check browser compatibility for HTML/CSS features
+http://caniuse.com
+
+- Font Awesome: Free Icons to Use for your site
+http://fontawesome.io/icons/
+
+- Adding Google reCAPTCHA
+https://developers.google.com/recaptcha/docs
 
 
 

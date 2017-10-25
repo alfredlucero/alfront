@@ -1394,6 +1394,7 @@ export default adminComponent(ComponentOne);
 // - remove the mapping between styles and components and writing CSS in JS
 // - takes advantage of tagged template literals and call functions with backticks 
 // like styled.h1``
+// - themes, passing in props, extending styles, keyframes animations, media templates, refs, etc.
 function Button(props) {
 	const className = `btn${props.primary ? ' btn--primary' : ''}`;
 	return (
@@ -1429,35 +1430,68 @@ logArgs`I like ${favoriteFood}`
 // styled-components at render time passes the props into all interpolated functions to allow
 // users to change the styling based on the props
 // -> Executed!
-execFuncArgs`Hi, ${() => { console.log('Executed!') }`
+// execFuncArgs`Hi, ${() => { console.log('Executed!') }`
 
-// There is full CSS support and it generates a class name and injects CSS into the DOM
-// styled.input()
-const Input = styled.input`
-	font-size: 1.25em;
-	border: none;
-	background: papayawhip;
-	/* ... more styles here ... */
+// // There is full CSS support and it generates a class name and injects CSS into the DOM
+// // styled.input()
+// const Input = styled.input`
+// 	font-size: 1.25em;
+// 	border: none;
+// 	background: papayawhip;
+// 	/* ... more styles here ... */
 
-	&:hover {
-		box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+// 	&:hover {
+// 		box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+// 	}
+
+// 	@media (min-width: 650px) {
+// 		font-size: 1.5em;
+// 	}
+// `;
+
+// const Button = styled.button`
+// 	border-radius: 3px;
+// 	padding: 0.25 em 1em;
+// 	margin: 0 1em;
+// 	background: transparent;
+// 	color: palevioletred;
+// 	border: 2px solid palevioletred;
+
+// 	${props => props.primary && css`
+// 		background: palevioletred;
+// 		color: white;
+// 	`}
+// `;
+
+
+
+// React Documentation Notes //
+// Introducing JSX:
+// syntax extension to JS, produces React "elements"
+// prevents injection attacks (XSS) as ReactDOM escapes any values embedded in JSX before rendering them (converted to string)
+// Babel compiles JSX down to React.createElement() calls, React reads these objects to construct the DOM
+const element = <h1>Hello, world!</h1>
+const sameElement = React.createElement(
+	'h1',
+	'Hello, world!'
+);
+const elementObject = {
+	type: 'h1',
+	props: {
+		children: 'Hello, world!'
 	}
+};
+// can embed any JS expression in JSX
+// after compilation, JSX expressions become regular JS objects
+// can specify attributes with JS expression/string literals (don't put quotes around curly braces when embedding)
+// use camelCase for attribute names like className or tabIndex
+function formatName(user) {
+	return user.firstName + ' ' + user.lastName;
+}
 
-	@media (min-width: 650px) {
-		font-size: 1.5em;
-	}
-`;
-
-const Button = styled.button`
-	border-radius: 3px;
-	padding: 0.25 em 1em;
-	margin: 0 1em;
-	background: transparent;
-	color: palevioletred;
-	border: 2px solid palevioletred;
-
-	${props => props.primary && css`
-		background: palevioletred;
-		color: white;
-	`}
-`
+const user = { firstName: 'Alfred', lastName: 'Lucero' };
+const embedElement = <h2>{formatName(user)}</h2>;
+ReactDOM.render(
+	embedElement,
+	document.getElementById('root')
+);

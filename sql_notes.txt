@@ -1,0 +1,12 @@
+Learning SQL (more specifically, PostGreSQL):
+- Spreadsheets for one-time analysis, chart, reasonable data set size, untrained people can work with data
+- Databases for data integrity, massive amounts of data, different datasets, automate steps for re-use, support data for websites/apps
+- Imagine tables, columns, rows
+- PostgreSQL - free open source, widely used, multiplatform; SQLite - open source and mainly command line,
+  MySQL/MariaSQL
+- SQL = Structured Query Language to communicate with databases
+- pgAdmin - popular graphical interface for PostgreSQL
+
+- Restoring a database but only the table schema (table names and data types, no actual data)
+-> restore .tar file and set only schema option
+
