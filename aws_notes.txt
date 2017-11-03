@@ -208,3 +208,34 @@ on top of these volumes, run a database, or use them in any other way you would 
 - Magnetic (Standard)
 -> lowest cost per gigabyte of all EBS volume types that is bootable, ideal when data accessed infrequently and the lowest storage cost important
 - cannot mount 1 EBS volume to multiple EC2 instances, instead use EFS
+
+Setting up EC2 Instance
+- Click Launch Instance -> Choose Amazon Machine Image (AMI - virtual machines to boot up) i.e. Amazon Linux with AWS CL Tools
+-> Choose Instance Type like free t2 micro (m type is main one for applications) -> Configure instance details (one subnet = 1 availability zone)
+-> Add storage (root volume - virtual hard disk on cloud to boot from like general purpose SSD, etc; EBS volumes possible, default delete on termination, can encrypt volumes)
+-> Add tags (key value pairs like name, department, team, etc.) -> Security group (virtual firewalls and rules, what traffic you want to allow through like SSH, HTTP/HTTPS to view website,
+custom IP address range to access - 0.0.0.0/0 is anyone) -> Review Instance Launch (can set public/private key pair to connect to instance securely and then view instances)
+- Check public IP address description of instance to SSH into it (go to private key download - .pem file)
+-> i.e. ssh ec2user@<publicIpAddress> -i some_private_key.pem; sudo yum update -y
+-> going to public DNS address will open up your webserver if you have one
+- Security group: 1 instance can have multiple, virtual firewall, rules to handle types of inbound/outbound traffic like HTTP/HTTPS/SSH and IP ranges
+-> anything allowed in is allowed out (stateful)
+-> all inbound traffic blocked by default, all outbound traffic is allowed by default, changes to security group take effect immediately
+-> can have any number of ec2 instances within a security group, can have multiple security groups attached to EC2 instances
+-> cannot block specific IP addreses using security groups, instead use Network Access Control Lists
+-> can specify allow rules, not deny rules
+- Upgrading EBS volumes: can be changed on the fly (except for magnetic standard), best practice to stop ec2 instance and then change volume
+-> can change volume types by taking snapshot and using snapshot to create a new volume, if you change volume on fly, must wait 6 hours before making another change
+-> can scale EBS volumes up only, volumes must be in the same AZ as EC2 instances
+- EFS (Elastic File System): file storage service fo EC2 instances, elastic storage capacity, growing and shrinking automaticcaly as one adds and removes files
+-> pay for storage you use (no pre-provisioning required), supports Network File System version 4 (NFSv4) protocol
+-> can scale up to petabytes, support thousands of concurrent NFS connections, data is stored across multiple AZs within a region
+-> read after write consistency
+- CLI commands: AWS EC2 DESCRIBE-INSTANCES (current running instances)
+-> AWS EC2 DESCRIBE-IMAGES (all images available to you)
+-> AWS EC2 RUN-INSTANCES (launch/create new instances) vs. START-INSTANCES (start a stopped instance) vs. terminate
+- can run a bash script when starting up EC2 instance
+- Elastic Load Balancers: instanced monitored by ELB are reported as InService or OutOfService
+-> Health Checks check the instance health by talking to it
+-> have own DNS name, never given an IP address, read ELB FAQ for Classic Load Balancers
+- SDKs for like Android, iOS, JS (browser), etc.

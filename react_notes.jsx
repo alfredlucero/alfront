@@ -1495,3 +1495,277 @@ ReactDOM.render(
 	embedElement,
 	document.getElementById('root')
 );
+
+// Rendering Elements
+// - elements are plain objects
+// - React DOM takes care of updating DOM to match React elements
+// - integrating React into an existing app you may have as many isolated root DOM nodes as you like
+// - elements are immutable, can't change its children or attributes once created, represents UI at certain point in time
+// - most apps only call ReactDOM.render() once, compares element and its children to previous one and only applies
+// DOM updates necessary to bring DOM to desired state
+const element = <h1>Hello, world</h1>;
+ReactDOM.render(
+	element,
+	document.getElementById('root')
+);
+
+// Components and Props
+// - Components: let you split UI into independent, reusable pieces, and think about each piece in isolation
+// - like js functions that accept arbitrary inputs  called props and return React elements describing what should appean on screen
+// - typically have one App components and rest underneath
+// Functional Components
+function Welcome(props) {
+	return <h1>Hello, {props.name}</h1>;
+}
+// Class component
+class Welcome extends React.Component {
+	render() {
+		return <h1>Hello, {this.props.name}</h1>;
+	}
+}
+// Usage
+<Welcome name="Alfred" />;
+
+// Breaking up components into smaller ones
+// Before sample Comment component
+function Comment(props) {
+	return (
+		<div className="Comment">
+			<div classNaem="UserInfo">
+				<img className="Avatar"
+					src={props.author.avatarUrl}
+					alt={props.author.name}
+				/>
+				<div className="UserInfo-name">
+					{props.author.name}
+				</div>
+			</div>
+			<div className="Comment-text">
+				{props.text}
+			</div>
+			<div>
+				{formatDate(props.date)}
+			</div>
+		</div>
+	);
+}
+// Splitting it up like; name props from the component's own point of view
+// i.e. Avatar, Button, Panel, App, FeedStory, Comment
+function Avatar(props) {
+	return (
+		<img className="Avatar"
+			src={props.user.avatarUrl}
+			alt={props.user.name}
+		/>
+	);
+}
+function UserInfo(props) {
+	return (
+		<div className="UserInfo">
+			<Avatar user={props.user} />
+			<div className="UserInfo-name">
+				{props.user.name}
+			</div>
+		</div>
+	)
+}
+// Props are read-only when declaring component as function or a class, "pure"
+// as they don't attempt to change their inputs and always return same result
+// - all React components must act like pure functions with respect to their props
+// - state allows components to change their output over time in response to user actions,
+// network responses, etc.
+
+// State and Lifecycle
+// - state is private and fully controlled by the component
+// - local state only available to classes
+// - lifecycle hooks
+// - if you don't use something in render(), it shouldn't be in state
+// - don't modify state directly, the only place where you can assign this.state is the constructor
+// - state updates may be asynchronous
+// - state updates are merged upon calling setState() - merges the object you provide into the current state
+class Clock extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = { date: new Date() };
+	}
+
+	// When Clock is rendered to DOM for the first time - "mounting"
+	// runs after component output has been rendered to the DOM
+	componentDidMount() {
+		// Can have additional fields to this
+		this.timerID = setInterval(
+			() => this.tick(),
+			1000
+		);
+	}
+
+	// When DOM produced by Clock is removed - "unmounting"
+	componentWillUnmount() {
+		clearInterval(this.timerID);
+	}
+
+	tick() {
+		// React calls render() again upon new state
+		this.setState({
+			date: new Date()
+		});
+	}
+
+	render() {
+		return (
+			<div>
+				<h1>Hello, world!</h1>
+				<h2>It is {this.state.date.toLocaleTimeString()}.</h2>
+			</div>
+		)
+	}
+}
+
+// Handling asynchronous updates
+// Wrong way
+this.setState({
+	counter: this.state.counter + this.props.increment,
+});
+// Correct way, consistent previous state as first argument and props at time update is applied
+this.setState((prevState, props) => ({
+	return {
+		counter: prevState.counter + props.increment
+	};
+}));
+
+// Updating several variables, shallow merging, leaves other properties intact
+componentDidMount() {
+	fetchPosts().then(response => {
+		this.setState({
+			posts: response.posts
+		});
+	});
+
+	fetchComments().then(response => {
+		this.setState({
+			comments: response.comments
+		});
+	});
+}
+
+// Data flows down; neither parent nor child components can know if certain component is stateful or stateless and shouldn't care
+// - state is often local or encapsulated, component may pass its state down as props to child components
+// - "top-down" or "unidirectional" data flow
+// - any state owned by some specific component and any data or UI derived from that state can only affect components "below" them in the tree
+<FormattedDate date={this.state.date} />
+// All components isolated
+function App() {
+	// Each Clock sets up its own timer and updates independently
+	return (
+		<div>
+			<Clock />
+			<Clock />
+			<Clock />
+		</div>
+	)
+}
+
+ReactDOM.render(
+	<App />,
+	document.getElementById('root')
+);
+
+// Handling events
+// - React events named using camelCase
+// - with JSX you pass a function as the event handler, rather than a string
+function ActionLink() {
+	function handleClick(e) {
+		// e is a synthetic event defined according to W3C spec with cross-browser compatibility
+		e.preventDefault();
+		console.log('The link was clicked');
+	}
+
+	return (
+		<a href="#" onClick={handleClick}>
+			Click me
+		</a>
+	);
+}
+
+// Using event handlers with classes
+class Toggle extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = { isToggleOn: true };
+
+		// This binding is necessary to make 'this' work in the callback
+		// class methods are not bound by default, will be undefined otherwise
+		this.handleClick = this.handleClick.bind(this);
+	}
+
+	handleClick() {
+		this.setState(prevState => ({
+			isToggleOn: !prevState.isToggleOn
+		}));
+	}
+
+	render() {
+		return (
+			<button onClick={this.handleClick}>
+				{this.state.isToggleOn ? 'ON' : 'OFF'}
+			</button>
+		);
+	}
+}
+
+ReactDOM.render(
+	<Toggle />,
+	document.getElementById('root')
+);
+
+// Passing arguments to event handlers like a row ID
+<div>
+	<button onClick={(e) => this.deleteRow(id, e)}>Delete Row</button>
+	<button onClick={this.deleteRow.bind(this, id)}>Delete Row</button>
+</div>
+
+// Conditional Rendering
+// - create distinct components that encapsulate behavior you need and render only some of them depending
+// on state of your application
+// - can use variables to store elements
+// - to prevent a component from rendering, return null instead of its render output, doesn't affect firing of component's
+// lifecycle methods and componentWillUpdate and componentDidUpdate will still be called
+function UserGreeting(props) {
+	return <h1>Welcome back!</h1>;
+}
+
+function GuestGreeting(props) {
+	return <h1>Please sign up.</h1>;
+}
+
+function Greeting(props) {
+	const isLoggedIn = props.isLoggedIn;
+	if (isLoggedIn) {
+		return <UserGreeting />;
+	}
+	
+	return <GuestGreeting />;
+}
+
+ReactDOM.render(
+	<Greeting isLoggedIn={false} />,
+	document.getElementById('root')
+);
+// may embed any expressions in JSX by wrapping in curly braces and use logical && operator
+// true && expression evaluates to expression
+// condition ? true : false
+function Mailbox(props) {
+	const unreadMessages = props.unreadMessages;
+	return (
+		<div>
+			<h1>Hello!</h1>
+			{unreadMessages.length > 0 &&
+				<h2>
+					You have {unreadMessages.length} unread messages.
+				</h2>
+			}
+		</div>
+	);
+}
+
+// List and Keys

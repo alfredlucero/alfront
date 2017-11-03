@@ -64,3 +64,22 @@ interface and those pages can manipulate the DOM if needed, programmable network
 -> life cycle -> installing -> activated/error -> idle -> fetch/message or terminated
 - Should ask: What needs to be on screen immediately? What supporting resources needed for app shell?
 - i.e. have loader visible by default to see loader immediately as page loads
+
+SEO Notes: https://udemy.com/seo-roadmap/learn/v4/overview
+- 3 SEO steps to bring to top of search results: keyword research, content optimization, building authority with links
+- need to implement SEO for an individual webpage basis for Google search results
+- Keyword Research: brainstorm and build list of 50-70 keyword ideas, narrow down list by assessing keyword search volumes
+with Google Keyword Planner Tool, finalize your keyword selection by assessing the competition
+-> Some tools for keyword brainstorming: wikipedia (Think Laterally), reddit.com (Go Deep), ubersuggest.org (Go Long Tail - 2 to 3 words)
+-> Go to Google AdWords to research how many searches there are for those keywords/competition/bidding
+-> Moz bar chrome extension to see competitive keywords, page authority, domain authority on Google Search results
+-> look for around 30-40 page authority so we can show up on top results with those keywords with content optimization/link building
+-> typically more words and more specific descriptions have lower competition so you can show up at top of results for those
+-> look at bid prices because ads pay high prices per click and see how valuable the keywords are, competition relates to the auction not the SEO
+- Page optimization: to appear more often based on keywords
+-> URL optimization: use readable URLs only, keyword rich URLs, short, use hyphens in urls never underscore
+-> Title tags: keywords here too for what people will be searching as clost to front as possible, can see it in tab as well, people often put location too, 
+keep it <= 55 chars, make sure other webpages have distinct titles too
+-> Optimizing descriptions underneath title tag: include keywords, show value proposition, start with a verb, can see them in search results, focus, <= 156 characters,
+have unique descriptions for every page
+-> heading tag and copy optmization: 
