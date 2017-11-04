@@ -1769,3 +1769,272 @@ function Mailbox(props) {
 }
 
 // List and Keys
+// - use map() function, can build collections of elements and include them in JSX using curly braces
+// - need a key for list items - special string attribute to include when creating lists of elements
+// - keys help with identifying which items changed/added/removed, use unique IDs and indexes as last resort
+const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) =>
+	<li>{number}</li>
+);
+
+function NumberList(props) {
+	const numbers = props.numbers;
+	const listItems = numbers.map((number) => 
+		<li key={number.toString()}>
+			{number}
+		</li>
+	);
+	return (
+		<ul>{listItems}</ul>
+	);
+}
+// Correct key usage with components
+// - keys must only be unique among siblings but not globally unique
+// - keys serve as a hint to React but don't get passed to your components
+// - can also inline the map() in curly braces
+function ListItem(props) {
+	// Don't specify key here
+	return <li>{props.value}</li>;
+}
+function NumberList(props) {
+	const numbers = props.numbers;
+	const listItems = numbers.map((number) =>
+		<ListItem key={number.toString()}
+							value={number} />
+	);
+	return (
+		<ul>
+			{listItems}
+		</ul>
+	)
+}
+
+// Forms
+// - by default HTML forms browse to a new page when user submits the form
+// - can have "controlled components" to access data the user entered into form
+// - typically <input>, <textarea>, <select> maintain their own state and update based on user input
+// - in React, mutable state is kept in state property of components and updatd with setState
+class NameForm extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = { value: '' };
+
+		this.handleChange = this.handleChange.bind(this);
+		this.handleSubmit = this.handleSubmit.bind(this);
+	}
+
+	handleChange(event) {
+		this.setState({
+			value: event.target.value.toUpperCase()
+		});
+	}
+
+	handleSubmit(event) {
+		alert('A name was submitted: ' + this.state.value);
+		event.preventDefault();
+	}
+
+	render() {
+		// form value attribute gets state.value
+		// handleChange runs on every keystroke to update React state
+		// every state mutation has an associated handler function
+		return (
+			<form onSubmit={this.handleSubmit}>
+				<label>
+					Name:
+					<input
+						type="text"
+						value={this.state.value}
+						onChange={this.handleChange}
+					/>
+				</label>
+				<input type="submit" value="Submit"/>
+			</form>
+		);
+	}
+}
+
+// Typically <textarea>children...</textarea>
+// in React we use value attribute and similar to single-line input
+class EssayForm extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			value: 'Please write an essay here.'
+		};
+
+		this.handleChange = this.handleChange.bind(this);
+		this.handleSubmit = this.handleSubmit.bind(this);
+	}
+
+	handleChange(event) {
+		this.setState({
+			value: event.target.value
+		});
+	}
+
+	handleSubmit(event) {
+		alert('An essay was submitted: ' + this.state.value);
+		event.preventDefault();
+	}
+
+	render() {
+		return (
+			<form onSubmit={this.handleSubmit}>
+				<label>
+					Name:
+					<textarea value={this.state.value} onChange={this.handleChange} />
+				</label>
+				<input type="submit" value="Submit"/>
+			</form>
+		);
+	}
+}
+
+// typically <select> with <option> children and value="..." and selected attribute
+// creates a dropdown list
+// - React uses a value attribute on the root select tag
+class FlavorForm extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = { value: 'coconut' };
+
+		this.handleChange = this.handleChange.bind(this);
+		this.handleSubmit = this.handleSubmit.bind(this);
+	}
+
+	handleChange(event) {
+		this.setState({
+			value: event.target.value
+		});
+	}
+
+	handleSubmit(event) {
+		alert('Your favorite flavor is: ' + this.state.value);
+		event.preventDefault();
+	}
+
+	// Can also pass an array into the value attribute and put multiple={true}
+	// to handle multiple selected options
+	// i.e. <select multiple={true} value={['B', 'C']}
+	render() {
+		return (
+			<form onSubmit={this.handleSubmit}>
+				<label>
+					Pick your favorite La Croix flavor:
+					<select value={this.state.value} onChange={this.handleChange}>
+						<option value="grapefruit">Grapefruit</option>
+						<option value="coconut">Coconut</option>
+					</select>
+				</label>
+				<input type="submit" value="Submit"/>
+			</form>
+		);
+	}
+}
+
+// Handling multiple inputs by setting name attribute to distinguish between them
+// and observing event.target.name in the handler function
+class Reservation extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			isGoing: true,
+			numberOfGuests: 2
+		};
+
+		this.handleInputChange = this.handleInputChange.bind(this);
+	}
+
+	handleInputChange(event) {
+		const target = event.target;
+		const value = target.type === 'checkbox' ? target.checked : target.value;
+		const name = target.name;
+
+		this.setState({
+			[name]: value
+		});
+	}
+
+	render() {
+		return (
+			<form>
+				<label>
+					Is going:
+					<input
+						name="isGoing"
+						type="checkbox"
+						checked={this.state.isGoing}
+						onChange={this.handleInputChange}
+					/>
+				</label>
+				<br/>
+				<label>
+					Number of guests:
+					<input
+						name="numberOfGuests"
+						type="text"
+						value={this.state.numberOfGuests}
+						onChange={this.handleInputChange}
+					/>
+				</label>
+			</form>
+		);
+	}
+}
+
+// Lifting State Up
+// - when several components need to reflect the same changing data, we recommend
+// lifting the shared state up to their closest comment ancestor
+// - the parent components will be the source of truth of shared state to update children components
+// and keep them in sync
+// - pass in state from parent to keep in sync through read-only props in the children
+// and children components will be passed down a callback through props to update state in the parent
+class Calculator extends React.Component {
+	constructor(props) {
+		super(props);
+		this.handleCelsiusChange = this.handleCelsiusChange.bind(this);
+		this.handleFahrenheitChange = this.handleFahrenheitChange.bind(this);
+		this.state = {
+			temperature: '',
+			scale: 'c'
+		};
+	}
+
+	handleCelsiusChange(temperature) {
+		this.setState({ scale: 'c', temperature });
+	}
+
+	handleFahrenheitChange(temperature) {
+		this.setState({ scale: 'f', temperature });
+	}
+
+	// inside temperatureinput to update parent's state from changed input
+	// handleChange(e) { this.props.onTemperatureChange(e.target.value) }
+	render() {
+		const scale = this.state.scale;
+		const temperature = this.state.temperature;
+		const celsius = scale === 'f' ? tryConvert(temperature, toCelsius): temperature;
+		const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
+		
+		return (
+			<div>
+				<TemperatureInput
+					scale="c"
+					temperature={celsius}
+					onTemperatureChange={this.handleCelsiusChange}
+				/>
+
+				<TemperatureInput
+					scale="f"
+					temperature={celsius}
+					onTemperatureChange={this.handleFahrenheitChange}
+				/>
+
+				<BoilingVerdict
+					celsius={parseFloat(celsius)}
+				/>
+			</div>
+		)
+	}	
+}
