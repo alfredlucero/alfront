@@ -2038,3 +2038,164 @@ class Calculator extends React.Component {
 		)
 	}	
 }
+
+// Composition vs. Inheritance
+// - use composition instead of inheritance to reuse code between components
+// - use special children prop to pass children elements into output for components that may not know its children
+// - favor composition and props rather than component inheritance hierarchis
+// - to reuse non-UI functionality create JS module to import 
+function FancyBorder(props) {
+	return (
+		<div className={'FancyBorder FancyBorder-' + props.color}>
+			{props.children}
+		</div>
+	);
+}
+
+function WelcomeDialog() {
+	return (
+		<FancyBorder color="blue">
+			<h1>Children underneath</h1>
+		</FancyBorder>
+	)
+}
+
+// Sometimes may need multiple holes instead of using children
+function SplitPane(props) {
+	return (
+		<div className="SplitPane">
+			<div className="SplitPane-left">
+				{props.left}
+			</div>
+			<div className="SplitPane-right">
+				{props.right}
+			</div>
+		</div>
+	)
+}
+
+function App() {
+	return (
+		<SplitPane
+			left={
+				<Contacts />
+			}
+			right={
+				<Chat />
+			}
+		/>
+	);
+}
+
+// Thinking in React
+// - 1. break UI into component hierarchy
+// -> single responsibility principle - component should ideally do only one thing
+// -> map JSON data model to UI in your mock
+// - 2. build static version in React with no interactivity, pass data using props, don't use state at all (reserved for interactivity)
+// -> easier to go bottom-up and write tests as you build with larger projects; top-down for simple examples, only have render() methods
+// -> one-way data flow to keep it modular and fast
+// - 3. identify the minimal (but complete) representation of UI state
+// -> think of the minimal set of mutable state app needs (DRY)
+// -> ask these questions: Is it passed in from a parent via props? If so, it probably isn't state
+// Does it remain unchanged over time? If so, it probably isn't state; Can you compute it based on any other state or props in your component?
+// If so, it isn't state; examples of state are like search text input, value of checkbox, etc.
+// - 4. identify where your state should live
+// -> see which component mutates or owns this state
+// -> identify every component that renders something based on state, find common owner component (single component above all components
+// that need the state in the hierarchy), either the common owner or another component higher up in the hierarchy should own the state
+// - 5. add inverse data flow
+// - forms deep in hierarchy need to update state in components in higher level through callbacks in onChange events and using setState
+
+// JSX in Depth
+// - provides syntactic sugar for React.createElement(component, props, ...children) function
+// - React must be in scope, can use dot notation for JSX type, make sure capitalized so React knows it's a component
+// - can pass in any JS expression as prop by surrounding it with {}, if/for aren't expressions and can be done outside
+// - can pass in string literal as prop, if you pass no value for a prop, it defaults to true
+// - can use ...props to pass whole props object
+<div>
+<MyButton color="blue" shadowSize={2}>
+	Click me
+</MyButton>
+<div className="sidebar" />
+</div>
+// compiles into this
+React.createElement(
+	MyButton,
+	{color: 'blue', shadowSize: 2},
+	'Click me'
+);
+
+React.createElement(
+	'div',
+	{className: 'sidebar'},
+	null
+);
+// can choose type at runtime
+import React from 'react';
+import { PhotoStory, VideoStory } from './stories';
+
+const components = {
+	photo: PhotoStory,
+	video: VideoStory
+};
+
+function Story(props) {
+	const SpecificStory = components[props.storyType];
+	return <SpecificStory story={props.story} />;
+}
+// in JSX expressions that contain both an opening and closing tag, content between those tags is passed as props.children
+// - pass through string literals, unescaped HTML
+// - removes whitespace at beginning and end of line, blank lines, etc.
+// - booleans, null, undefined ignored - must convert to string if you want it to render
+<MyComponent>Children of MyComponent</MyComponent>
+// - can also return an array of elements
+render() {
+	// no need to wrap list items in an extra element
+	return [
+		<li key="A">First Item</li>
+		<li key="B">Second Item</li>
+		<li key="C">Third Item</li>
+	];
+}
+// - rendering list of JSX expressions
+function Item(props) {
+	return <li>{props.message}</li>;
+}
+function TodoList() {
+	const todos = ['finish doc', 'submit pr'];
+	return (
+		<ul>
+			{todos.map((message) => <Item key={message} message={message} />)}
+		</ul>
+	);
+}
+// sample conditional rendering of React elements, 0 will still be rendered
+<div>
+	{showHeader && <Header />}
+	<Content />
+</div>
+
+// Typechecking with PropTypes
+// - since v15.5 React.PropTypes is in prop-types library, some features like Flow or TypeScript
+import PropTypes from 'prop-types';
+
+class Greeting extends React.Component {
+	render() {
+		return (
+			<h1>Hello, {this.props.name}</h1>
+		);
+	}
+}
+
+// typechecking will also apply to this
+Greeting.defaultProps = {
+	name: 'Stranger'
+};
+
+// can export a range of validators like isRequired, any, func, etc.
+// PropTypes.element specifies only single child passed to a component as children
+Greeting.propTypes = {
+	name: PropTypes.string
+};
+
+

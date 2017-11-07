@@ -385,3 +385,17 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 app.listen(process.env.PORT || 3050, () => console.log('Listening'));
+
+
+// Webpack Documentation Notes
+// - used to compile JavaScript modules
+// - npm install --save-dev webpack
+// - "source" code we write and edit, "distribution" code minimized and optimized output of build processes
+// that will eventually be loaded in the browser
+// - can build dependency graph to generate optimized bundle.js where scripts executed in correct order
+// - webpack "transpiles" code so older browsers can run ES2015 import/export
+// - supports a config file like webpack.config.js to specify loader rules, plugins, resolve options, etc.
+// - custom parameters can be passed to webpack by adding two dashes between the npm run build command and your parameters
+// like npm run build -- --colors
+// - dynamically bundle all dependencies, can include any other type of file besides JavaScript for which there is a loader
+// <script src="./bundle.js"></script>
