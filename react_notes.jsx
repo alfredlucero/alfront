@@ -2198,4 +2198,653 @@ Greeting.propTypes = {
 	name: PropTypes.string
 };
 
+// Refs and the DOM
+// - In typical React dataflow, props are the only way that parent components interact with their children
+// - To modify child, you re-render it with new props
+// - When to use refs: managing focus, text selection, media playback, triggering imperative animations, 
+// integrating with third-party libraries
+// - refs can attach to any special component, takes a callback function, executed immediately after
+// component is mounted or unmounted; when used on HTML element, receives underlying DOM element as argument
+class CustomTextInput extends React.Component {
+	constructor(props) {
+		super(props);
+		this.focusTextInput = this.focusTextInput.bind(this);
+	}
 
+	focusTextInput() {
+		 // Explicitly focus the text input using the raw DOM API
+		 this.textInput.focus();
+	}
+
+	render() {
+    // Use the `ref` callback to store a reference to the text input DOM
+		// element in an instance field (for example, this.textInput).
+		// called with DOM element on mount, null on unmount
+    return (
+      <div>
+        <input
+          type="text"
+          ref={(input) => { this.textInput = input; }} />
+
+        <input
+          type="button"
+          value="Focus the text input"
+          onClick={this.focusTextInput}
+        />
+      </div>
+    );
+  }
+}
+
+// Simulating click and focus on input since it takes DOM element as argument from ref
+// and setting it as property of the class
+// - cannot use ref attribute on functional components because they don't have instances
+// - generally not recommended to access child DOM node from parent component but you
+// can do it by passing a ref callback to functional component
+// - can use it as an escape hatch, findDOMNode() is discouraged too
+// - legacy string refs should not be used because will be removed in future releases i.e. 
+// this.refs.textInput and recommend callback pattern instead
+// - ref callback will be called twice if used as inline function, first with null and again
+// with DOM element, usually have callback as method bound on class instead
+class AutoFocusTextInput extends React.Component {
+  componentDidMount() {
+    this.textInput.focusTextInput();
+  }
+
+  render() {
+    return (
+      <CustomTextInput
+        ref={(input) => { this.textInput = input; }} />
+
+    );
+  }
+}
+
+// Uncontrolled Components
+// - recommend controlled components in which form data is handled by a React component
+// - uncontrolled components has form data handled by DOM itself
+// - can use a ref to get form values from the DOM rather than writing event handler for every state
+// - specify defaultValue attribute for React to specify the initial value but leave subsequent updates
+// uncontrolled
+class NameForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleSubmit(event) {
+    alert('A name was submitted: ' + this.input.value);
+    event.preventDefault();
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Name:
+          <input defaultValue="Set once" type="text" ref={(input) => this.input = input} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    );
+  }
+}
+
+// Optimizing Performance
+// - Use the minified production build, dark background for icon on React DevTools
+// - offer single-file builds of React and ReactDOM (.production.min.js)
+// - uglify-js-brunch -> brunch build -p for production
+// - webpack production plugin
+new webpack.DefinePlugin({
+  'process.env': {
+    NODE_ENV: JSON.stringify('production')
+  }
+}),
+new webpack.optimize.UglifyJsPlugin()
+// - can observe Chrome Performance tab and press Record -> React events will be grouped
+// under the User Timing label
+// - avoid reconciliation by altering the shouldComponentUpdate() to not return true in 
+// some cases as it is triggered before the re-rendering process
+class CounterButton extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {count: 1};
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+		// If only color props and count state changes, check those before re-rendering 
+    if (this.props.color !== nextProps.color) {
+      return true;
+    }
+    if (this.state.count !== nextState.count) {
+      return true;
+    }
+    return false;
+  }
+
+  render() {
+    return (
+      <button
+        color={this.props.color}
+        onClick={() => this.setState(state => ({count: state.count + 1}))}>
+        Count: {this.state.count}
+      </button>
+    );
+  }
+}
+// Or one can do React.PureComponent for the same "shallow comparison" between all props and state
+// to determine if the component should update -> be wary of arrays/objects with properties/elements mutated
+// as it will not catch that
+// - avoid mutating values used for props and state by using concat, spread operator, Object.assign
+// - can use Immutable.js: immutable, persistent collections that work via structural sharing
+// -> immutable: once created, a collection cannot be altered at another point in time
+// -> persistent: new collections can be created from a previous collection and a mutation such as set; original
+// collection is still valid after the new collection is created
+// -> structural sharing: new collections created from a previous collection using as much of same structure as original
+// collection as possible, reducing copying to a minimum to improve performance
+// -> tracks changes on new objects by checking references to object changed in the shouldComponentUpdate
+
+// React without ES6
+// - can use create-react-class, getDefaultProps(), getInitialState(), don't need to call .bind(this), avoid mixins
+
+// React without JSX
+// - convenient when you don't want to set up compilation in your build environment
+// - React.createElement(component, props, ...children); use Babel compiler to see JSX converted to JS
+
+// Reconciliation
+// - "diffing" algorithm for faster performance apps on component updates
+// - render() creates a tree of React elements, returns a different one given different props or states
+// and React needs to figure out how to efficiently update the UI
+// - minimum number of operations to transform one tree into another is O(n^3) 
+// - React uses a heuristic O(n) based on two assumptions
+// 1. Two elements of different types will produce different trees
+// 2. Developer can hint at which child elements may be stable across different renders with a key prop
+// - Diffing algorithm: 
+// -> first compares the root element: whenever elements have different types, it rebuilds the tree from scratch
+// and old DOM nodes destroyed (componentWillUnmount()) and when building new tree it triggers componentWillMount
+// and componentDidMount; any elements below the root will be unmounted with state destroyed
+// --> for DOM elements of the same type, React looks at the attributes of both, keeps same underlying DOM node,
+// and only updates the changed attributes; React then recurses its children
+// --> for component elements of the same type: when a component updates, the instance stays the same so that state is
+// maintained across renders; updates props of underlying component instance to match and triggers componentWillReceiveProps
+// and componentWillUpdate and render method is called with diffing happening to previous and next results
+// -> when recursing on children its best to add new list items to the end for better performance as it will re-render everything instead
+// or one can just use the key attribute for React to match children in the original tree with children in the subsequent tree
+// (key only has to be unique among its siblings); avoid using index as key for reorders
+// -> takeaways: algorithm will not try to match subtrees of different component types (if similar output, may consider just one component type)
+// -> keys should be stable, predictable and unique otherwise DOM nodes and component instances will be recreated, leading to performance
+// degradation and lost state in child components
+
+// Context
+// - experimental API to help with not passing down props at every level -> probably use Redux of MobX instead
+import PropTypes from 'prop-types';
+
+class Button extends React.Component {
+  render() {
+    return (
+      <button style={{background: this.context.color}}>
+        {this.props.children}
+      </button>
+    );
+  }
+}
+
+Button.contextTypes = {
+  color: PropTypes.string
+};
+
+class Message extends React.Component {
+  render() {
+    return (
+      <div>
+        {this.props.text} <Button>Delete</Button>
+      </div>
+    );
+  }
+}
+
+class MessageList extends React.Component {
+  getChildContext() {
+    return {color: "purple"};
+  }
+
+  render() {
+    const children = this.props.messages.map((message) =>
+      <Message text={message.text} />
+    );
+    return <div>{children}</div>;
+  }
+}
+
+MessageList.childContextTypes = {
+  color: PropTypes.string
+};
+
+// Portals
+// - first-class way to render children into a DOM node that exists outside the DOM hierarchy of the parent component
+ReactDOM.createPortal(child, container);
+// - Normally, when you return an element from a component’s render method, it’s mounted into the DOM as a child of the nearest parent node
+// - A typical use case for portals is when a parent component has an overflow: hidden or z-index style, 
+// but you need the child to visually “break out” of its container. For example, dialogs, hovercards, and tooltips.
+// - behaves like a normal React child even if outside the DOM hierarchy as it still exists in the React tree
+// - an event fired inside the portal will propagate (event bubbling) to ancestors in the containing tree
+<html>
+  <body>
+    <div id="app-root"></div>
+    <div id="modal-root"></div>
+  </body>
+</html>
+
+// These two containers are siblings in the DOM
+const appRoot = document.getElementById('app-root');
+const modalRoot = document.getElementById('modal-root');
+
+class Modal extends React.Component {
+  constructor(props) {
+    super(props);
+    this.el = document.createElement('div');
+  }
+
+  componentDidMount() {
+    // The portal element is inserted in the DOM tree after
+    // the Modal's children are mounted, meaning that children
+    // will be mounted on a detached DOM node. If a child
+    // component requires to be attached to the DOM tree
+    // immediately when mounted, for example to measure a
+    // DOM node, or uses 'autoFocus' in a descendant, add
+    // state to Modal and only render the children when Modal
+    // is inserted in the DOM tree.
+    modalRoot.appendChild(this.el);
+  }
+
+  componentWillUnmount() {
+    modalRoot.removeChild(this.el);
+  }
+
+  render() {
+    return ReactDOM.createPortal(
+      this.props.children,
+      this.el,
+    );
+  }
+}
+
+class Parent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {clicks: 0};
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick() {
+    // This will fire when the button in Child is clicked,
+    // updating Parent's state, even though button
+    // is not direct descendant in the DOM.
+    this.setState(prevState => ({
+      clicks: prevState.clicks + 1
+    }));
+  }
+
+  render() {
+    return (
+      <div onClick={this.handleClick}>
+        <p>Number of clicks: {this.state.clicks}</p>
+        <p>
+          Open up the browser DevTools
+          to observe that the button
+          is not a child of the div
+          with the onClick handler.
+        </p>
+        <Modal>
+          <Child />
+        </Modal>
+      </div>
+    );
+  }
+}
+
+function Child() {
+  // The click event on this button will bubble up to parent,
+  // because there is no 'onClick' attribute defined
+  return (
+    <div className="modal">
+      <button>Click</button>
+    </div>
+  );
+}
+
+ReactDOM.render(<Parent />, appRoot);
+
+// Error Boundaries
+// - JS error in part of the UI shouldn't break the whole app; React 16 introduces "error boundary"
+// - Error boundaries are React components that catch JS errors anywhere in their child component tree,
+// log those errors, and display a fallback UI instead of the component tree that crashed
+// -> catch errors in rendering, lifecycle methods, constructors of whole tree below
+// -> don't catch errors for event handlers, async code (setTimeout, requestAnimationFrame), server-side rendering,
+// errors thrown in error boundary itself rather than children
+// -> defines componentDidCatch(error, info)
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+	// error is the error thrown
+	// info is an object with componentStack key
+  componentDidCatch(error, info) {
+    // Display fallback UI
+		this.setState({ hasError: true });
+		/* Example stack information: info.componentStack
+			in ComponentThatThrows (created by App)
+			in ErrorBoundary (created by App)
+			in div (created by App)
+     	in App
+  	*/
+    // You can also log the error to an error reporting service
+    logErrorToMyService(error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // You can render any custom fallback UI
+      return <h1>Something went wrong.</h1>;
+    }
+    return this.props.children;
+  }
+}
+// Usage, only class components can be error boundaries
+<ErrorBoundary>
+  <MyWidget />
+</ErrorBoundary>
+// - As of React 16, errors that were not caught by any error boundary will result in unmounting of the whole React component tree.
+// - React 16 prints all errors that occurred during rendering to the console in development, even if the application accidentally swallows them. 
+// In addition to the error message and the JavaScript stack, it also provides component stack traces.
+// - don't use try/catch for rendering elements but rather for event hanlder errors because that's imperative rather than Error boundaries which are declarative
+
+// Web Components
+// - provide strong encapsulation for reusable components while React provides a declarative library that keeps DOM in sync with your data
+// - use "class" instead of "className", often expose imperative API, need a ref to that DOM element, events may not propagate correctly 
+// - may use a wrapper around third-party web components
+
+// Higher-order Components
+// - advanced technique to reuse component logic
+// - HOC is a function that takes a component and returns a new component
+// and transforms one component into another rather than just transforming props into UI
+// - i.e. in Redux's connect and Relay's createContainer
+// - pure function with zero side effects, wraps in a container component, entirely props-based
+// - don't mutate original component, use composition
+// - container components: manage things like subscriptions and state and pass props to components
+// that handle things like rendering UI, separates responsibility between high-level and low-level concerns
+// This function takes a component...
+function withSubscription(WrappedComponent, selectData) {
+  // ...and returns another component...
+  return class extends React.Component {
+    constructor(props) {
+      super(props);
+      this.handleChange = this.handleChange.bind(this);
+      this.state = {
+        data: selectData(DataSource, props)
+      };
+    }
+
+    componentDidMount() {
+      // ... that takes care of the subscription...
+      DataSource.addChangeListener(this.handleChange);
+    }
+
+    componentWillUnmount() {
+      DataSource.removeChangeListener(this.handleChange);
+    }
+
+    handleChange() {
+      this.setState({
+        data: selectData(DataSource, this.props)
+      });
+    }
+
+    render() {
+      // ... and renders the wrapped component with the fresh data!
+      // Notice that we pass through any additional props
+      return <WrappedComponent data={this.state.data} {...this.props} />;
+    }
+  };
+}
+// HOCs should pass through props that are unrelated to its specific concern.
+/*
+render() {
+  // Filter out extra props that are specific to this HOC and shouldn't be
+  // passed through
+  const { extraProp, ...passThroughProps } = this.props;
+
+  // Inject props into the wrapped component. These are usually state values or
+  // instance methods.
+  const injectedProp = someStateOrInstanceMethod;
+
+  // Pass props to wrapped component
+  return (
+    <WrappedComponent
+      injectedProp={injectedProp}
+      {...passThroughProps}
+    />
+  );
+}
+*/
+// React Redux's `connect`
+const ConnectedComment = connect(commentSelector, commentActions)(CommentList);
+// connect is a function that returns another function
+const enhance = connect(commentListSelector, commentListActions);
+// The returned function is a HOC, which returns a component that is connected
+// to the Redux store
+const ConnectedComment = enhance(CommentList);
+// wrap display name for easy debugging with HOC
+function withSubscription(WrappedComponent) {
+  class WithSubscription extends React.Component {/* ... */}
+  WithSubscription.displayName = `WithSubscription(${getDisplayName(WrappedComponent)})`;
+  return WithSubscription;
+}
+
+function getDisplayName(WrappedComponent) {
+  return WrappedComponent.displayName || WrappedComponent.name || 'Component';
+}
+
+// - don't use HOCs inside the render function as the entire subtree will unmount/remount every time
+// and loses all the state
+/*
+render() {
+  // A new version of EnhancedComponent is created on every render
+  // EnhancedComponent1 !== EnhancedComponent2
+  const EnhancedComponent = enhance(MyComponent);
+  // That causes the entire subtree to unmount/remount each time!
+  return <EnhancedComponent />;
+}
+*/
+// - refs aren't passed through - not really a prop like key, references outermost component container not wrapped component
+// - static methods must be copied over or else HOC loses it
+function enhance(WrappedComponent) {
+  class Enhance extends React.Component {/*...*/}
+  // Must know exactly which method(s) to copy :(
+  Enhance.staticMethod = WrappedComponent.staticMethod;
+  return Enhance;
+}
+
+// Integrating with other libraries
+// - React unaware of changes made to the DOM outside of React, determines updates based on its own internal representation
+// - easiest way to avoid conflicts is to prevent the React component from updating
+// -> attach ref to the root element, pass ref inside componentDidMount to jQuery plugin, return empty div
+// from render method so React has no reason to update it
+class SomePlugin extends React.Component {
+  componentDidMount() {
+    this.$el = $(this.el);
+    this.$el.somePlugin();
+  }
+
+	// need to detach event listeners for jQuery to prevent memory leaks
+  componentWillUnmount() {
+    this.$el.somePlugin('destroy');
+  }
+
+  render() {
+    return <div ref={el => this.el = el} />;
+	}
+}
+// - can embed into other applications due to flexibility of ReactDOM.render() - can be called multiple times
+// and Facebook uses this way and embed applications piece by piece
+// - old pattern to describe chunks of DOM as a string and insert it into DOM like $el.html(htmlString)
+// -> replace string-based rendering with React
+// -> replacing Backbone view: typically use HTML strings or string-producing template functions to create content
+// for their DOM elements
+function Paragraph(props) {
+  return <p>{props.text}</p>;
+}
+
+const ParagraphView = Backbone.View.extend({
+  render() {
+    const text = this.model.get('text');
+    ReactDOM.render(<Paragraph text={text} />, this.el);
+    return this;
+  },
+  remove() {
+		// Unregisters event handlers
+    ReactDOM.unmountComponentAtNode(this.el);
+    Backbone.View.prototype.remove.call(this);
+  }
+});
+// -> can listen to Backbone models and collections by listening to change events and manually force an update
+// --> listen to 'change' events for model changes and 'add'/'remove' for collections => this.forceUpdate()
+class Item extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange() {
+    this.forceUpdate();
+  }
+
+  componentDidMount() {
+    this.props.model.on('change', this.handleChange);
+  }
+
+  componentWillUnmount() {
+    this.props.model.off('change', this.handleChange);
+  }
+
+  render() {
+    return <li>{this.props.model.get('text')}</li>;
+  }
+}
+
+class List extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange() {
+    this.forceUpdate();
+  }
+
+  componentDidMount() {
+    this.props.collection.on('add', 'remove', this.handleChange);
+  }
+
+  componentWillUnmount() {
+    this.props.collection.off('add', 'remove', this.handleChange);
+  }
+
+  render() {
+    return (
+      <ul>
+        {this.props.collection.map(model => (
+          <Item key={model.cid} model={model} />
+        ))}
+      </ul>
+    );
+  }
+}
+// -> can also extract model's attributes as plain data when it changes, keep logic in single place
+// and use a HOC that puts it into state and pass data into wrapped component
+function connectToBackboneModel(WrappedComponent) {
+  return class BackboneComponent extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = Object.assign({}, props.model.attributes);
+      this.handleChange = this.handleChange.bind(this);
+    }
+
+    componentDidMount() {
+      this.props.model.on('change', this.handleChange);
+    }
+
+    componentWillReceiveProps(nextProps) {
+      this.setState(Object.assign({}, nextProps.model.attributes));
+      if (nextProps.model !== this.props.model) {
+        this.props.model.off('change', this.handleChange);
+        nextProps.model.on('change', this.handleChange);
+      }
+    }
+
+    componentWillUnmount() {
+      this.props.model.off('change', this.handleChange);
+    }
+
+    handleChange(model) {
+      this.setState(model.changedAttributes());
+    }
+
+    render() {
+      const propsExceptModel = Object.assign({}, this.props);
+      delete propsExceptModel.model;
+      return <WrappedComponent {...propsExceptModel} {...this.state} />;
+    }
+  }
+}
+// Sample usage of this HOC pattern
+function NameInput(props) {
+  return (
+    <p>
+      <input value={props.firstName} onChange={props.handleChange} />
+      <br />
+      My name is {props.firstName}.
+    </p>
+  );
+}
+
+const BackboneNameInput = connectToBackboneModel(NameInput);
+
+function Example(props) {
+  function handleChange(e) {
+    model.set('firstName', e.target.value);
+  }
+
+  return (
+    <BackboneNameInput
+      model={props.model}
+      handleChange={handleChange}
+    />
+
+  );
+}
+
+const model = new Backbone.Model({ firstName: 'Frodo' });
+ReactDOM.render(
+  <Example model={model} />,
+  document.getElementById('root')
+);
+
+// Accessibility
+// - a11y, design and creation of websites for everyone
+// - WCAG: web content accessibility guidelines
+// - WAI-ARIA (web accessibility initiative - accessible rich internet applications)
+// -> all aria-* HTML attributes supported in JSX whereas most DOM properties and React
+// attributes camelcased i.e. aria-label={...}
+// -> need labeling on input forms for screen readers
+{/* <label htmlFor="namedInput">Name:</label>
+<input id="namedInput" type="text" name="name"/> */}
+// -> focus control (using only keyboard to use application); can set outline: 0 and set 
+// your own custom focus
+// -> skiplinks for easier navigation, use landmark elements and roles like <main>, <aside>
+// -> programmatically manage focus
+// -> setting language, document title, ensure great color contrast
+// -> try using your keyboard and using tab or shift+tab to navigate and pressing enter to activate elements
+// -> can use react-axe (accessibility engine) to run accessibility tests and report to console

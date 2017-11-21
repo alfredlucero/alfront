@@ -440,3 +440,47 @@ class OrderShippedState implements State {
     console.log('You cannot ship it again, already shipped...');
   } 
 }
+
+// TypeScript Documentation Notes
+// - JS with types and static type checking
+// -> Boolean
+let isDone: boolean = false;
+// -> Number (floating type)
+let decimal: number = 4;
+// -> String (single/double quotes/template strings ``)
+let color: string = "blue";
+// -> Array
+let list: number[] = [1, 2, 3];
+// -> Tuple - type of fixed number of elements is known
+let x: [string, number];
+x = ["somestring", 4]; // cannot be [4, "somestring"], order matters; cannot do x[1].substr(1)
+// when accessing an element outside the set of unknown indices, union type is used instead
+// -> Enum - give more friendly names to numeric values like C#
+enum Color { Red, Green, Blue }
+let c: Color = Color.Green;
+// -> Any - to avoid compile time checks
+let notSure: any = 4; // any[] for array of mixed types
+// -> Object - can assign any value to them but can't call arbitrary methods on them even if they exist
+let prettySure: Object = 4;
+// -> Void - absence of having any type at all
+// can only assign null or undefined to them
+function warnUser(): void {
+  alert('This is my warning message');
+}
+// -> Null and undefined - subtypes of all other types, can only assign to void
+// --strictNullChecks makes sure null and undefined only assignable to void
+// -> Never - type of values that never occur like return type for function expression or arrow function
+// that always throws an exception or one that never returns, assignable to every type
+// i.e. Function returning never must have unreachable end point
+function error(message: string): never {
+  throw new Error(message);
+}
+// - Type assertions - telling the compiler "trust me, I know what I'm doing", like a type cast
+// but performs no special checking or restructuring of data, no runtime impact but used by compiler
+// -> TypeScript assumes you have performed any special checks you need and are sure of the type suggested
+let someValue: any = "this is a string";
+// angle bracket syntax
+let strLength: number = (<string>someValue).length;
+// as syntax
+let someValue2: any = "this is a string";
+let strLength2: number = (someValue2 as string).length;
