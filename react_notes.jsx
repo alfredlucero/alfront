@@ -2848,3 +2848,4 @@ ReactDOM.render(
 // -> setting language, document title, ensure great color contrast
 // -> try using your keyboard and using tab or shift+tab to navigate and pressing enter to activate elements
 // -> can use react-axe (accessibility engine) to run accessibility tests and report to console
+// -> test screen readers such as NVDA in Firefox, VoiceOver in Safari, JAWS in IE
