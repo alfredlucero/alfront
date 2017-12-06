@@ -80,6 +80,9 @@ Elm Resources I Found Useful:
 - An Introduction to Elm
 https://guide.elm-lang.org/
 
+- 5 Common JSON Decoders
+https://robots.thoughtbot.com/5-common-json-decoders
+
 
 
 
@@ -131,6 +134,12 @@ https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 
 - A Complete Guide to CSS Grid
 https://css-tricks.com/snippets/css/complete-guide-grid/
+
+- CSS Grid Garden (Game to help you learn CSS Grid)
+http://cssgridgarden.com/
+
+- CSS Flexbox Froggy (Game to help you learn CSS Flexbox)
+http://flexboxfroggy.com/
 
 
 General JS Resources/Libraries I Found Useful:
@@ -189,6 +198,12 @@ https://www.udemy.com/aws-certified-developer-associate
 
 General Frontend Web Resources I Found Useful:
 
+- What's next for CSS?
+https://jonathantneal.github.io/css-db/
+
+- Design Systems Handbook
+https://www.designbetter.co/design-systems-handbook
+
 - Do's and Don'ts of Web Design
 https://uxplanet.org/dos-and-don-ts-of-web-design-8c9d6a5de7c6
 
@@ -230,8 +245,26 @@ https://webdesign.tutsplus.com/tutorials/comprehensive-guide-when-to-use-em-vs-r
 
 
 
-
 Backend Resources I Found Useful:
 
-Firebase
-- https://firebase.google.com/
+- Firebase
+https://firebase.google.com/
+
+
+
+Cheatsheets I Found Useful:
+
+- VSCode Shortcuts
+https://code.visualstudio.com/shortcuts/keyboard-shortcuts-macos.pdf
+
+
+UI/UX Resources I Found Useful:
+
+- Material UI Components
+https://material-ui-next.com/
+
+- Shopify Design System
+https://polaris.shopify.com/principles/principles
+
+- Design Systems Handbook
+https://www.designbetter.co/design-systems-handbook

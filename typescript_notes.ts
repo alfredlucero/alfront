@@ -484,3 +484,217 @@ let strLength: number = (<string>someValue).length;
 // as syntax
 let someValue2: any = "this is a string";
 let strLength2: number = (someValue2 as string).length;
+
+// Variable Declarations
+// - var with function scoping, leaks out to containing function
+// - let with lexical/block scoping, helps with new scope per iteration (don't need to use IIFE)
+// - const cannot be changed once bound, block scoping, internal state still modifiable though
+// TS lets you specify members of an object are readonly
+// - array destructuring
+function f([first, second]: [number, number]) {
+  console.log(first);
+  console.log(second);
+}
+
+let [first, ...rest] = [1,2,3,4];
+console.log(first);
+// - object destructuring
+let o = {
+  a: "foo",
+  b: 12,
+  c: "bar"
+};
+let { a, b } = o;
+
+let { a, ...passthrough } = o;
+let total = passthrough.b + passthrough.c.length;
+
+// Setting types on destructured objects and setting default values
+let { a, b }: { a: string, b: number } = o;
+function keepWholeObject(wholeObject: { a: string, b?: number }) {
+  let { a, b = 1001 } = wholeObject;
+}
+
+// Function declarations
+type C = { a: string, b?: number }
+function functionTest({ a, b }: C): void {
+  // ...
+}
+// with defaults
+function funcDefaultTest({ a, b } = { a: "", b: 0 }): void {
+  // ...
+}
+
+// spread operator
+let first = [1,2];
+let second = [3,4];
+let bothPlus = [0, ...first, ...second];
+
+// Interfaces
+// - typechecking focuses on the shape the values have - "duck typing" or "structural subtyping"
+// - checks for at least the ones required are present and match the types required
+interface LabelledValue {
+  label: string;
+}
+
+function printLabel(labelledObj: LabelledValue) {
+  console.log(labelledObj.label);
+}
+
+let myObj = { size: 10, label: "Size 10" };
+printLabel(myObj);
+
+// optional properties denoted by ?
+interface SquareConfig {
+  color?: string;
+  width?: number;
+}
+
+// function someFunc(args) : return types { ...functionbody }
+function createSquare(config: SquareConfig) : { color: string; area: number } {
+  let newSquare = {color: "white", area: 100};
+  if (config.color) {
+      newSquare.color = config.color;
+  }
+  if (config.width) {
+      newSquare.area = config.width * config.width;
+  }
+  return newSquare;
+}
+let mySquare = createSquare({ color: "black" });
+
+// use readonly to denote that some properties should only be modifiable when an object is first created
+// - variables use const, properties use readonly
+interface Point {
+  readonly x: number;
+  readonly y: number;
+}
+let p1: Point = { x: 10, y: 20 };
+// p1.x = 5; // error!
+// ReadonlyArray<T> which is same as Array<T> with all mutating methods removed
+let arr: number[] = [1,2,3];
+let ro: ReadonlyArray<number> = arr;
+// can override it with type assertion like arr = ro as number[]
+// ro[0] = 12; // error!
+// ro.push(5); // error!
+// ro.length = 100; // error!
+// a = ro; // error!
+
+// When using optional properties ("option bags"), there is excess property checking
+// when assigning them to other variables or passing them as arguments
+// - if an object literal has any properties that the "target type" doesn't have, you get an error
+// error: 'colour' not expected in type 'SquareConfig'
+//let mySquare1 = createSquare({ colour: "red", width: 100 });
+// - can get around with type assertion
+let mySquare2 = createSquare({ width: 100, opacity: 0.5 } as SquareConfig);
+
+// - can also do string index signatures
+// can have any number of properties with any type that aren't color and width
+// - or can just assign object to another variable to get around excess property checks
+interface SquareConfigStringSignature {
+  color?: string;
+  width?: number;
+  [propName: string]: any;
+}
+
+// Function types and interfaces
+// - like with only parameter list and return type
+interface SearchFunc {
+  (source: string, subString: string): boolean;
+}
+
+// parameter names do not need to match but the types do
+// - also does contextual typing that can infer argument types and return types
+let mySearch: SearchFunc;
+mySearch = function(source: string, subString: string) {
+  let result = source.search(subString);
+  return result > -1;
+}
+
+// Indexable types
+// - index signature that describes the types we can use to index into the object along
+// with the corresponding return types when indexing
+// - two types of supported index signatures: string and number
+// - helps with "dictionary" pattern
+interface StringArray {
+  [index: number]: string;
+}
+
+let myArray: StringArray;
+myArray = ["Bob", "Fred"];
+
+let myStr: string = myArray[0];
+
+// Class types
+// - can implement an interface that describes the public side of the class
+// - two types: type of the static side and type of instance side
+// - when a class implements an interface, only the instance side of the class is checked
+// and constructor sits in static side and not included in check
+interface ClockInterfaceTest {
+  currentTime: Date;
+  setTime(d: Date);
+}
+
+class Clock implements ClockInterfaceTest {
+  currentTime: Date;
+  setTime(d: Date) {
+    this.currentTime = d;
+  }
+  constructor(h: number, m: number) { }
+}
+
+interface ClockConstructor {
+  new (hour: number, minute: number): ClockInterface;
+}
+interface ClockInterface {
+  tick();
+}
+
+function createClock(ctor: ClockConstructor, hour: number, minute: number): ClockInterface {
+  return new ctor(hour, minute);
+}
+
+class DigitalClock implements ClockInterface {
+  constructor(h: number, m: number) { }
+  tick() {
+      console.log("beep beep");
+  }
+}
+class AnalogClock implements ClockInterface {
+  constructor(h: number, m: number) { }
+  tick() {
+      console.log("tick tock");
+  }
+}
+
+let digital = createClock(DigitalClock, 12, 17);
+let analog = createClock(AnalogClock, 7, 32);
+
+// - interfaces can extend each other with "extends"
+// - interfaces can extend a class type as it inherits the members of the class but not their 
+// implementations
+interface Shape {
+  color: string;
+}
+
+interface Square extends Shape {
+  sideLength: number;
+}
+
+let square = <Square>{};
+square.color = "blue";
+square.sideLength = 10;
+
+// Classes
+// - ES6 with more OO approach
+class Greeter {
+  greeting: string;
+  constructor(message: string) {
+      this.greeting = message;
+  }
+  greet() {
+      return "Hello, " + this.greeting;
+  }
+}
+
+let greeter = new Greeter("world");
