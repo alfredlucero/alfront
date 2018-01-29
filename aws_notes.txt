@@ -238,4 +238,196 @@ custom IP address range to access - 0.0.0.0/0 is anyone) -> Review Instance Laun
 - Elastic Load Balancers: instanced monitored by ELB are reported as InService or OutOfService
 -> Health Checks check the instance health by talking to it
 -> have own DNS name, never given an IP address, read ELB FAQ for Classic Load Balancers
-- SDKs for like Android, iOS, JS (browser), etc.
+- SDKs for like Android, iOS, JS (browser), etc., default region = US-EAST-1
+- Lambda: compute service where you can upload your code and create a Lambda Functions
+-> takes care of provisioning and managing servers to run code
+-> event-driven, runs code in response to events like changes to data in S3 bucket or DynamoDB table
+-> run code in response to HTTP requests using Amazon API Gateway or API calls made using AWS SDKs
+-> need to select blueprint, configure valid triggers through things like API Gateway (autoscales)
+-> two users invoking two HTTP requests invokes two Lambda functions, one set of code responding to multiple requests
+-> 1 million free invocations per month, supports Node.js, Java, C#, Python
+-> priced based on number of requests, $0.20 per 1 million requests thereafter the first 1 million requests free - low costs
+-> also billed on duration: calculated from time your code begins executing until it returns or otherwise terminates rounded up to nearest 100ms,
+-> depends on amount of memory you allocate to your function, cannot execute over 5 minutes
+-> benefits: no servers, continuous scaling, cheap i.e. everytime speaking to amazon echo, responds with Lambda functions
+-> scales out (not up) automatically, functions are independent (1 event = 1 function), serverless, know what services are serverless such as S3, API Gateway, DynamoDB
+-> can trigger other lambda functions, 1 event can lead to x functions if functions trigger other functions
+-> AWS X-ray allows you to debug what is happening, can do things globally like back up S3 buckets, etc.
+
+S3 Essentials
+- Simple Storage Service, highly-scalable object storage, place to store files in cloud
+- object-based storage and data is spread across multiple devices and facilities i.e. used by Dropbox
+- files can be from 0 bytes to 5TB, unlimited storage, files stored in buckets (folder)
+- S3 is universal namespace, names must be unique globally, creates DNS address like https://s3-region.amazonaws.com/bucketname
+- when you upload a file to S3, will receive an HTTP 200 code if successful
+- data consistency model: read after write consistency for PUTS of new objects (can read immediately after creating new object)
+-> eventual consistency for overwrite PUTS and DELETES (can take some time for updates/deletes to propagate)
+-> will either get the old version or new version, not a partial corrupted one
+-> simple key (name of object) value (data) store, version ID, metadata (like date uploaded, last updated), 
+subresources (exist underneath object) like access control lists and torrent
+- 99.99% availability SLA, 11 x 9's durability for information, tiered storage available
+- lifecycle management, versioning of objects, encryption, secure data using access control lists and bucket policies
+- storage tiers/classes
+-> S3: stored redundantly across multiple devices in multiple facilities and is designed to sustain loss of 2 facilities concurrently
+-> S3-IA (infrequently accessed): for data accessed less frequently but requires rapid access when needed, lower fee than S3
+but charged a retrieval fee
+-> Reduced Redundancy Storage: designed to provide 99.99% durability and availability of objets over a given year
+-> Glacier: very cheap but archival only, 3-5 hours to restore from glacier, as little as $0.01 per gb per month, great for infrequently accessed data
+- charged for storage, requests, storage management pricing (tagging and tracking costs), data transfer pricing (coming in is free, replication in another region is charged),
+transfer acceleration (transfers of files over long distances, takes advantage of CloudFront's globally distributed edge locations, data arrives at edge and routed to S3 over optimized network path)
+- not suitable to install an operating system
+- creating an S3 bucket in console: name and region -> properties (version, logging, tagging) -> permissions (public/system, users)
+-> clicking on files in bucket so you can see the links to objects but they are private by default, need to set objects to public
+-> per object can set storage class, encryption option, metadata, tags (individual objects don't inherit the bucket tags)
+-> per bucket can set versioning, logging, static website hosting, tags, transfer acceleration, events, requester pays
+-> bucket policies or access control lists, can set CORS configuration, lifecycle/replication/analytics/metrics/inventory management and reports
+-> client and server side encryption (with S3 managed keys SSE-S3, KMS, Customer Provided Keys), control access to buckets with bucket ACL or bucket policies
+-> by default buckets are private and all objects stored inside them are private
+- creating an S3 website: bucket name has to be exact name as domain based on route 53
+-> can enable static website hosting and use the bucket to host a website, set index and error documents, redirects
+-> need to grant public read access so you can access it online
+- Cross Origin Resource Sharing (CORS) in S3
+-> allowing JavaScript code in one resource/bucket to access those in another bucket/resource like bucketname.com/<resource>
+-> go to CORS configuration editor, <AllowedOrigin ...resource/bucket url...>
+- build a serverless webpage with API Gateway and Lambda
+-> i.e. flow: user will make a GET request to resolve domain name through Route 53, go to S3 with index.html/error.html, hitting button will trigger GET request through
+API Gateway and then trigger event to Lambda function to print out your name and response passed back all the way to user
+- using Amazon Polly (text to speech converter): type text and download speech as MP3 and store in S3+DynamoDB and use Lambda functions
+-> first create S3 bucket to host static website, another to store Polly audio MP3 files, use Simple Notification Service to dispatch new topic notifications, and Lambda functions
+to hit SNS and DynamoDB (need to set up role with JSON policies to allow Lambda to affect DynamoDB, S3, etc.)
+-> Lambda function will update DynamoDB record and send notification about new post to SNS to trigger lambda to convert and save MP3 to S3, can use environment variables for table name/SNS topic ARN (name), test events
+-> need to set up GET and POST methods in API Gateway with Lambda function integration type and CORS enabled
+- building an Alexa skill (Echo/FireTv/RaspberryPi is hardware, voice service is Alexa): automatic speech recognition and natural language understanding
+-> skill service: AWS Lambda; skill interface: invocation name, intent schema, slot type, utterances in console
+-> intent is what you want to do (like AMAZON.HelpIntent) in json file, utterances are ways of saying a command in .txt file
+-> Alexa Skill Kit in Lambda, can test in console with text as well, return facts mp3 files
+- S3 Version Control:
+-> once versioning turned on, can only be disabled not removed; can track versions of objects in bucket (sum up all versions' sizes for cost); can restore versions deleted, backup tool
+-> integrates with lifecycle rules, MFA (multi-factor authentication) delete capability
+- Cross Region Replication:
+-> can replicate your buckets across different regions, only new objects replicated over not existing ones unless using CLI
+-> can use awscli (pip install awscli), aws configure (pass in access key ID and secret access key)
+-> aws s3 cp --recursive s3://<frombucketname> s3://<tobucketname>
+-> versioning must be enabled on both source and destination, regions must be unique, files in existing bucket not replicated automatically but subsequent ones are replicated automatically
+-> cannot replicate to multiple buckets or use daisy chaining, delete markers are replicated, deleting individual versions or delete markers will not be replicated
+- S3 Lifecycle management, S3-IA and Glacier
+-> Glacier for data archival low-cost storage service
+-> lifecycle management to expire objects, automate transition to tiered storage, create rules to manage objects
+-> i.e. transition to Standard-IA 30 days after object creation, Glacier after 60 days for current version or previous versions; configure expiration/permanent deletion after X days
+-> can be used in conjunction with versioning, applied to current and previous versions, transition to standard-IA with 128Kb and 30 days after creation date,
+archive to glacier 30 days after IA, can permanently delete
+- CloudFront
+-> content delivery network (CDN): system of distributed servers (network) that deliver webpages and other web content to a user based on the geographic locations of the user, the origin of the webpage and content delivery server
+-> edge location: location where content will be cached, separate to an AWS region/AZ
+-> origin: origin of all files that CDN will distribute, this can be S3 bucket, EC2 instance, an Elastic Load Balancer or Route53
+-> distribution: name given the CDN which consists of a collection of edge locations
+-> users would just pull from local edge location that cached files retrieved already by different users, first user suffers performance penalty to access
+-> can deliver entire website and other content using global network of edge locations, requests for your content are automatically routed to nearest edge location, so content is delivered with best possible performance
+-> can work with any non-AWS origin server which stores the original, definitive versions of your files
+-> web distribution: typically used for websites
+-> RTMP: used for media streaming
+-> edge location are not just read only, you can write to them too; objects cached for life of the TTL (Time To Live)
+-> you can clear cached objects but you will be charged
+- Create a CDN i.e. a distribution with origin in S3 bucket
+-> go to CloudFront to create a distribution (set delivery method to either Web or RTMP streaming media files)
+-> set origin domain name to be one of your S3 buckets/load balancer/EC2/web address of your on-prem origin and path, etc.
+-> can set default cache behavior settings like HTTPS, requests, TTL (default for 24 hrs at edge location)
+-> use presigned URLs/cookies to help with making sure you can view certain content with validated URLs after paying to secure objects in S3/CloudFront
+-> can set distribution setings like web application firewall (WAF), SSL certificate, HTTP/2, etc.
+-> takes a while to provision a distribution and to change things
+-> can enable geo-restrictions (whitelist and blacklist certain countries), create invalidations to stop things from being cached but costs money, can add tags
+- securing your buckets: by default all newly created buckets are private
+-> can setup access control to your buckets using bucket policies, access control lists
+-> S3 buckets can be configured to create access logs which log all requests made to the S3 bucket, can be done to another bucket
+- encryption
+-> in transit (when sending information to and from bucket) through SSL/TLS
+-> at rest through server side encryption - S3 managed keys SSE-S3, AWS Key Management Service Managed Keys SSE-KMS, Server side encryption with customer provided keys SSE-C
+and client side encryption
+- Storage Gateway: service that connects an on-prem software appliance with cloud-based storage to provide seamless and secure integration between an organization's on-prem IT environment and AWS's storage infrastructure
+and enables you to securely store data to AWS cloud for scalable and cost-effective storage
+-> available for download as VM image to install on host in datacenter (VMware ESXi or Microsoft Hyper-V)
+-> File Gateway (NFS): store flat files in S3, Volumes Gateway (iSCSI) - Stored Volumes (entire copy of dataset on-prem), Cached Volumes (only most frequently accessed data on-prem, rest on AWS)
+and Tape Gateway (VTL): backup and archiving to eventually send to Glacier
+-> File Gateway - files stored as objects in S3 buckets accessed through Network File System mount point, meta-data for permissions on S3 bucket
+-> Volume Gateway - presents applications with disk volumes with iSCSI block protocol, can be asynchronously backed up as point-in-time snapshots and stored in cloud as Amazon EBS snapshots that only capture changed blocks and compressed
+-> Stored Volumes - entire dataset is stored on site and is asynchronously backed up to S3
+-> Cached Volumes - entire dataset stored on S3 and most frequently accessed data is cached on site
+-> Gateway Virtual Tape Library (VTL) used for backup and uses popular backup applications like NetBackup, Backup Exec, Veam, etc. 
+- AWS Import/Export Disk accelerates moving large amounts of data into and out of AWS cloud using portable storage devices for transport, uses Amazon's high-speed internal network
+-> Snowball: petabyte-scale data transport solution that uses secure appliances to transfer large amounts of data into and out of AWS, 80TB snowball in all regions
+-> Snowball Edge: 100TB data transfer device with on-board storage and compute capabilities
+-> AWS Snowmobile: Exabyte-scale data transfer service to move extremely large amounts of data to AWS
+-> Snowball can import to and export from S3
+- S3 Transfer Acceleration: utilizes CloudFront Edge Network to accelerate uploads to S3, using a distinct URL to upload to edge location which will then transfer that file to S3 bucket
+- S3 Review: object based to upload files, files from 0B to 5TB, unlimited storage, files stored in buckets, universal namespace (names must be unique globally)
+-> Read after write consistency for PUTS of new objects, classes like S3, S3-IA, S3 Reduced Reduncancy Storage, Glacier
+-> Key (name), value (data), version ID, metadata, access control lists, can store all versions of object (not for installing OS), backup tools, CloudFront CDN, bucket policies, encryption
+
+Databases 101
+- relational databases like traditional spreadsheet, tables, rows, fields (columns) - for online transaction processing
+-> SQL Server, Oracle, MySQL server, PostgreSQL, Aurora, and MariaDB on RDS
+- non relational databases like collections (table), document (row), key value pairs (fields) - JSON/NoSQL
+-> like DynamoDB
+- In-memory cache like ElastiCache - web service that makes it easy to deploy, operate, and scale an in-memory cache in the cloud
+-> allowing you to retrieve information from fast, managed, in-memory caches instead of relying on slower disk-based databases
+-> two open-source in-memory caching engines: Memcached, Redis
+- Redshift for online analytics processing
+- Database Migration Service (DMS) allows you to migrate production database to AWS
+
+DynamoDB
+- fast and flexible NoSQL database for apps that need consistent, single-digit millisecond latency at any scale that is fully managed database that supports both document and key-value data models
+- stored on SSD storage and spread across 3 geographically distinct data centers
+- eventual consistent reads (usually reached within a second and repeating a read after a short time should return updated data - default)
+- tables, items (think of a row of data in table), attributes (think of column of data in a table)
+- pricing: provisioned throughput capacity based on write and read throughput, first 25GB stored per month is free and then $0.25/GB per month
+-> i.e. 1 million writes = 11.6 writes per second and 1 millions reads per day, 28GB of storage
+and 1 DynamodDB write capacity unit can handle 1 write per second, so we would need 12 WCUs which charges $0.0065 for every 10 units ~ $0.1872 per day
+and for 1 million writes = 11.6 writes per second and you would need 12 RCUs and charged $0.0065 for every 50 units ~$0.0374 per day
+and since first 25GB free, we pay for 3GB per month ~$0.75 ==> $7.488 per month
+-> free tier we get 25 RCU and 25 WCU
+- i.e. creating a DynamoDB table, create a role for it in IAM and attach DynamoDB policies like full access, can go to DynamoDB console to check the table items
+- two types of primary keys
+-> single attribute (like uniqueID) - partition key (hash key) composed of one attribute
+-> composite (like uniqueID and date range) - partition key and sort key (hash and range) composed of two attributes
+- partition key: used as input to an internal hash function which determines the partition (physical location in which the data is stored), no two items in a table can have same partition key value
+- partition key and sort key: two items can have same partition key but must have different sort key, all items with same partition key are stored together in sorted order by sort key value
+- local secondary index: same partition key, different sort key; can only be created when creating table, cannot be removed or modified later
+- global secondary index: has different partition key and different sort key, can be created at table creation or added later
+- streams: used to capture any kind of modification to the DynamoDB tables
+-> if new item added to table, stream captures image of entire item including all of its attributes
+-> if item is updated, stream capture the "before" and "after" image of any attributes that were modified in the item
+-> if an item is deleted from the table, the stream captures an image of the entire item before it was deleted
+-> stored changes for up to 24hrs, can configure triggers Lambda functions to replicate this data in a table in another region or send an email with SES
+-> i.e. triggering email send lambda function after signup, replicating data in response to new stream changes
+- push button scalability, setting policies for tables
+- query: finds items in a table using only primary key attribute values, must provide partition attribute name and distinct value to search for like id=17
+-> can optionally provide a sort key attribute name and alue and use comparison operator to refine search results like user=17 and postedBy is past 7 days
+-> by default query returns all of data attributes for items with specified primary keys but you can use ProjectionExpression parameter so that query only returns some of attributes rather than all of them
+-> results sorted by sort key like in ascending numeric order or ASCII character code values, can set ScanIndexForward parameter to false to do descending order
+-> by default eventually consistent but can be changed to strongly consistent (all writes before read will be captured)
+- scan: examines every item in the table; by default returns all of the data attributes for every item but can use ProjectionExpression parameter to return only some of them
+-> generally query operation is more efficient, scan always goes through entire table and filters out values to provide desired result (slow and can use up provisioned throughput for large table in single operation)
+- for quicker response times, use Query, Get, or BatchGetItem APIs instead or use Scan operations in way that minimizes the impact on your table's request rate
+- provisioned throughput calculations
+-> unit of read provisioned throughput: all reads rounded up to increments of 4KB
+-> eventually consistent reads by default consist of 2 reads per second
+-> strongly consistent reads consist of 1 read per second
+-> unit of write provisioned throughput: all writes are 1KB
+-> all writes consist of 1 write per second
+i.e. read 10 items of 1KB per second using eventual consistency. what should you set read throughput to?
+(size of read rounded to nearest 4KB chunk / 4KB) * number of items = read throughput -> divide by 2 if eventually consistent (divide by 1 if strongly consistent)
+1KB rounded to nearest 4KB increment = 4
+4KB / 4KB = 1 read unit per item
+1 * 10 read items = 10
+eventual consistency is 10 / 2 = 5
+5 units of read throughput
+-> 400 HTTP Status Code - ProvisionedThroughputExceededException: exceeded max allowed provisioned throughput for table or for one or more global secondary indexes
+- using web identity providers with DynamoDB: can use FB, Google, Amazon, Open-ID Connect-compatible Identity provider)
+-> need to create a role first, need web identity token, app ID of provider, ARN of role
+-> user authenticates with ID provider (such as Facebook), passed a token by ID provider, code calls AssumeRoleWithWebIdentity API and provides providers Token
+and specifies ARN for the IAM role, app can now access DynamodDB from between 15 minutes to 1 hour
+- conditional writes are idempotent, can send same conditional write request multiple times but have no further effect on item after first time DynamoDB performs specified update
+- supports atomic counters where you use UpdateItem operation to increment/decrement value of existing attribute without interfering with other write requests (applied in order they are received)
+-> not idempotent which means counter will increment each time you call UpdateItem, retrying could risk updating counter twice (banking app needs conditional update rather than atomic counter for like site visitor count)
+- if you need to read multiple items you can use BatchGetItem API and a single BatchGetItem request can retrieve up to 1MB of data which can contain as many as 100 items and can retrieve from multiple tables
+

@@ -141,6 +141,28 @@ http://cssgridgarden.com/
 - CSS Flexbox Froggy (Game to help you learn CSS Flexbox)
 http://flexboxfroggy.com/
 
+- Understanding Flexbox: Everything you need to know
+https://medium.freecodecamp.org/understanding-flexbox-everything-you-need-to-know-b4013d4dc9af
+
+- How CSS Grid Beats Bootstrap
+https://hackernoon.com/how-css-grid-beats-bootstrap-85d5881cf163
+
+- Solved by Flexbox
+https://philipwalton.github.io/solved-by-flexbox/
+
+- CSS Grid Specification
+https://www.w3.org/TR/css-grid-1/
+
+- 11 Things I Learned Reading the CSS Grid Spec
+https://medium.freecodecamp.org/11-things-i-learned-reading-the-css-grid-specification-fb3983aa5e0
+
+- How to efficiently master the css grid in a jiffy
+https://medium.com/flexbox-and-grids/how-to-efficiently-master-the-css-grid-in-a-jiffy-585d0c213577
+
+- CSS Grid Playground by Mozilla
+https://mozilladevelopers.github.io/playground/css-grid/
+
+
 
 General JS Resources/Libraries I Found Useful:
 
@@ -149,6 +171,15 @@ https://github.com/HubSpot/shepherd
 
 - fullPage.js - Fullscreen scrolling websites library
 https://alvarotrigo.com/fullPage/
+
+- Animated Icons with Mo.js
+https://tympanus.net/Development/Animocons/
+
+- Mo.js: Motion for the Web (Cool Animation Library for things like Burst)
+http://mojs.io/
+
+- Event Bubbling JavaScript Explained
+https://www.sitepoint.com/event-bubbling-javascript/
 
 
 
@@ -159,6 +190,9 @@ https://medium.com/ladies-storm-hackathons/how-we-built-our-first-full-stack-jav
 
 - Using Slack to Monitor Your App
 https://www.smashingmagazine.com/2017/04/using-slack-monitor-app/
+
+- Cypress: End to End Testing Framework (doesn't use Selenium)
+https://www.cypress.io/
 
 Computer Network Resources I Found Useful: 
 
@@ -193,6 +227,12 @@ https://www.udemy.com/docker-mastery/learn/v4/overview
 
 - (PAID) AWS Certified Developer Associate Course
 https://www.udemy.com/aws-certified-developer-associate
+
+- Majestic: Zero config UI for Jest
+https://github.com/Raathigesh/majestic/
+
+- Recipes (Testing different scenarios with Cypress)
+https://docs.cypress.io/examples/examples/recipes.html
 
 
 
@@ -242,6 +282,21 @@ https://udemy.com/seo-roadmap/learn/v4/overview
 
 - When to use em vs. rem
 https://webdesign.tutsplus.com/tutorials/comprehensive-guide-when-to-use-em-vs-rem--cms-23984
+
+- CSS Quantum Engine of Mozilla Firefox
+https://hacks.mozilla.org/2017/08/inside-a-super-fast-css-engine-quantum-css-aka-stylo/
+
+- Firefox Devtools Debugger
+https://mozilladevelopers.github.io/playground/debugger/
+
+- Creative Gooey Effects
+https://tympanus.net/Development/CreativeGooeyEffects/
+
+- Animated Checkboxes
+https://tympanus.net/Development/AnimatedCheckboxes/
+
+- An Overview of SVG Sprite Creation Techniques
+https://24ways.org/2014/an-overview-of-svg-sprite-creation-techniques/
 
 
 

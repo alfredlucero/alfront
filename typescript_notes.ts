@@ -698,3 +698,184 @@ class Greeter {
 }
 
 let greeter = new Greeter("world");
+
+// - can extend existing classes to create new ones using inheritance
+class Animal {
+  name: string;
+  constructor(theName: string) { this.name = theName; }
+  move(distanceInMeters: number = 0) {
+      console.log(`${this.name} moved ${distanceInMeters}m.`);
+  }
+}
+
+class Snake extends Animal {
+  constructor(name: string) { super(name); }
+  move(distanceInMeters = 5) {
+      console.log("Slithering...");
+      super.move(distanceInMeters);
+  }
+}
+
+class Horse extends Animal {
+  constructor(name: string) { super(name); }
+  move(distanceInMeters = 45) {
+      console.log("Galloping...");
+      super.move(distanceInMeters);
+  }
+}
+
+let sam = new Snake("Sammy the Python");
+let tom: Animal = new Horse("Tommy the Palomino");
+
+sam.move();
+tom.move(34);
+// - public by default
+// - marking as private means it cannot be accessed from outside of its containing class
+// - protected acts like private except that members declared protected can be accessed by instances
+// of deriving classes
+// - can properties as readonly that must be initialized at their declaration or in the constructor
+// - can have parameter properties to create and initialize a member in one place
+// - supports getters/setters as way of intercepting accesses to a member of an object
+let passcode = "secret passcode";
+
+class Employee {
+    private _fullName: string;
+
+    get fullName(): string {
+        return this._fullName;
+    }
+
+    set fullName(newName: string) {
+        if (passcode && passcode == "secret passcode") {
+            this._fullName = newName;
+        }
+        else {
+            console.log("Error: Unauthorized update of employee!");
+        }
+    }
+}
+
+let employee = new Employee();
+employee.fullName = "Bob Smith";
+if (employee.fullName) {
+    console.log(employee.fullName);
+}
+// - can create static members of a class, those that are visible on the class itself rather than on the
+// instances
+class Grid {
+  static origin = {x: 0, y: 0};
+  calculateDistanceFromOrigin(point: {x: number; y: number;}) {
+      let xDist = (point.x - Grid.origin.x);
+      let yDist = (point.y - Grid.origin.y);
+      return Math.sqrt(xDist * xDist + yDist * yDist) / this.scale;
+  }
+  constructor (public scale: number) { }
+}
+
+let grid1 = new Grid(1.0);  // 1x scale
+let grid2 = new Grid(5.0);  // 5x scale
+
+console.log(grid1.calculateDistanceFromOrigin({x: 10, y: 10}));
+console.log(grid2.calculateDistanceFromOrigin({x: 10, y: 10}));
+// - abstract classes are base classes from which other classes may be derived, may not be instantiated directly
+// and may contain implementation details for its members unlike an interface
+abstract class Organism {
+  // must be implemented in the derived class
+  abstract makeSound(): void;
+  move(): void {
+      console.log("roaming the earth...");
+  }
+}
+// - when declaring a class in TypeScript, actualy creating multiple declarations at the same time
+// and the first is the type of the instance of the class, then constructor function that we call
+// when we new up instances of the class (with static members of class), and instance of class
+class GreeterTest {
+  static standardGreeting = "Hello, there";
+  greeting: string;
+  greet() {
+      if (this.greeting) {
+          return "Hello, " + this.greeting;
+      }
+      else {
+          return GreeterTest.standardGreeting;
+      }
+  }
+}
+
+let greeter1: GreeterTest;
+greeter1 = new GreeterTest();
+console.log(greeter1.greet());
+
+// This lets us access static members of constructor function
+let greeterMaker: typeof GreeterTest = GreeterTest;
+greeterMaker.standardGreeting = "Hey there!";
+// This lets us access the instance functions
+let greeter2: GreeterTest = new greeterMaker();
+console.log(greeter2.greet());
+
+// Functions
+// Typing the function
+function add(x: number, y: number): number {
+  return x + y;
+}
+// As long as parameters line up, it's valid type for function
+// - if function doesn't return anything, use void
+// - there is contextual typing as well
+// - number of arguments given to a function has to match number of parameters function expects
+// - in JS, every parameter is optional and users may leave them off and will be undefined
+let myAdd: (baseValue: number, increment: number) => number =
+  function(x: number, y: number): number { return x + y; };
+// can have default-initialized parameters
+function buildName(firstName: string, lastName = "Lucero") {
+  return firstName + " " + lastName;
+}
+// optional parameters
+function buildNameOptional(firstName: string, lastName?: string) {}
+// - in JS can use arguments variable inside function body, or 
+// you can do rest operator in TS, boundless number of optional parameters
+function buildNameRest(firstName: string, ...restOfName: string[]) {
+  return firstName + " " + restOfName.join(" ");
+}
+// - can use ES6 arrow functions to capture this where function is created rather than where it is invoked
+// --noImplicitThis flag to compiler will point out when this is of type any
+// can do this:void to make sure it is unusable in the function
+// - doing something like this:Deck explicitly specifies that its callee must be of type Deck
+interface Card {
+  suit: string;
+  card: number;
+}
+interface Deck {
+  suits: string[];
+  cards: number[];
+  createCardPicker(this: Deck): () => Card;
+}
+let deck: Deck = {
+  suits: ["hearts", "spades", "clubs", "diamonds"],
+  cards: Array(52),
+  // NOTE: The function now explicitly specifies that its callee must be of type Deck
+  createCardPicker: function(this: Deck) {
+      return () => {
+          let pickedCard = Math.floor(Math.random() * 52);
+          let pickedSuit = Math.floor(pickedCard / 13);
+
+          return {suit: this.suits[pickedSuit], card: pickedCard % 13};
+      }
+  }
+}
+// can overload like this, should arrange from most specific to least specific
+let suits = ["hearts", "spades", "clubs", "diamonds"];
+function pickCard(x: {suit: string; card: number; }[]): number;
+function pickCard(x: number): {suit: string; card: number; };
+function pickCard(x): any {
+    // Check to see if we're working with an object/array
+    // if so, they gave us the deck and we'll pick the card
+    if (typeof x == "object") {
+        let pickedCard = Math.floor(Math.random() * x.length);
+        return pickedCard;
+    }
+    // Otherwise just let them pick the card
+    else if (typeof x == "number") {
+        let pickedSuit = Math.floor(x / 13);
+        return { suit: suits[pickedSuit], card: x % 13 };
+    }
+}
