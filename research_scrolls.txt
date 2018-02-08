@@ -34,6 +34,15 @@ https://github.com/storybooks/storybook
 - Using React and jQuery together if you need to
 http://tech.oyster.com/using-react-and-jquery-together/
 
+- React Router Guide
+https://reacttraining.com/react-router/web/guides/philosophy
+
+- React/Redux Helpful Learning Resources
+https://redux.js.org/docs/introduction/LearningResources.html
+
+- React-Redux Links
+https://github.com/markerikson/react-redux-links
+
 
 
 
@@ -162,6 +171,9 @@ https://medium.com/flexbox-and-grids/how-to-efficiently-master-the-css-grid-in-a
 - CSS Grid Playground by Mozilla
 https://mozilladevelopers.github.io/playground/css-grid/
 
+- CSS Grid Free Course by Wes Bos
+https://cssgrid.io/
+
 
 
 General JS Resources/Libraries I Found Useful:
@@ -202,6 +214,14 @@ https://jakearchibald.com/2017/h2-push-tougher-than-i-thought/
 - A Comprehensive Guide to HTTP/2 Server Push
 https://www.smashingmagazine.com/2017/04/guide-http2-server-push/
 
+- 12 Factor Apps (Best Practices for your App)
+http://www.clearlytech.com/2014/01/04/12-factor-apps-plain-english/
+
+- AWS Tips I Wish I'd Known Before I Started
+https://wblinks.com/notes/aws-tips-i-wish-id-known-before-i-started/
+
+- AWS Open Guides
+https://github.com/open-guides/og-aws
 
 
 
@@ -304,6 +324,9 @@ Backend Resources I Found Useful:
 
 - Firebase
 https://firebase.google.com/
+
+- DynamoDB Guide
+https://www.dynamodbguide.com/what-is-dynamo-db/
 
 
 

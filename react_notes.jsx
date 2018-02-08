@@ -2849,3 +2849,1713 @@ ReactDOM.render(
 // -> try using your keyboard and using tab or shift+tab to navigate and pressing enter to activate elements
 // -> can use react-axe (accessibility engine) to run accessibility tests and report to console
 // -> test screen readers such as NVDA in Firefox, VoiceOver in Safari, JAWS in IE
+
+// React Router Notes
+// - Before we had static routing and declared routes as part of app's initialization before any rendering like Rails, Express,
+// Ember, Angular, etc. - and so was React Router pre-v4
+// - Dynamic routing: takes place as app is rendering, not in config/convention outside of running app, almost everything is component
+import { BrowserRouter } from 'react-router-dom';
+
+// Route will render <Dashboard {...props} />; otherwise it will render null
+const App = () => (
+	<div>
+		<nav>
+			<Link to="/dashboard">Dashboard</Link>
+		</nav>
+		<div>
+			<Route path="/dashboard" component={Dashboard}/>
+		</div>
+	</div>
+)
+
+ReactDOM.render((
+	<BrowserRouter>
+		<App/>
+	</BrowserRouter>
+), el);
+
+// For nested routes you just nest the Route like a div
+const App = () => (
+	<BrowserRouter>
+		<div>
+			<Route path="/tacos" component={Tacos} />
+		</div>
+	</BrowserRouter>
+);
+
+// when the url matches `/tacos` this component renders
+const Tacos = ({ match }) => (
+	<div>
+		{/* Nested route match.url helps us make a relative path */}
+		<Route
+			path={match.url + '/carnitas'}
+			component={Carnitas}
+		/>
+	</div>
+);
+
+// can think of routing as UI components, be more responsive
+// i.e. can have set of valid routes change depending on the dynamic nature of mobile device
+const App = () => (
+  <AppLayout>
+    <Route path="/invoices" component={Invoices}/>
+  </AppLayout>
+);
+
+const Invoices = () => (
+  <Layout>
+
+    {/* always show the nav */}
+    <InvoicesNav/>
+
+    <Media query={PRETTY_SMALL}>
+      {screenIsSmall => screenIsSmall
+        // small screen has no redirect
+        ? <Switch>
+            <Route exact path="/invoices/dashboard" component={Dashboard}/>
+            <Route path="/invoices/:id" component={Invoice}/>
+          </Switch>
+        // large screen does!
+        : <Switch>
+            <Route exact path="/invoices/dashboard" component={Dashboard}/>
+            <Route path="/invoices/:id" component={Invoice}/>
+            <Redirect from="/invoices" to="/invoices/dashboard"/>
+          </Switch>
+      }
+    </Media>
+  </Layout>
+);
+
+// Quick Start
+// - npm install react-router-dom
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Route,
+  Link
+} from 'react-router-dom';
+
+const Home = () => (
+  <div>
+    <h2>Home</h2>
+  </div>
+);
+
+const About = () => (
+  <div>
+    <h2>About</h2>
+  </div>
+);
+
+const Topic = ({ match }) => (
+  <div>
+    <h3>{match.params.topicId}</h3>
+  </div>
+);
+
+const Topics = ({ match }) => (
+  <div>
+    <h2>Topics</h2>
+    <ul>
+      <li>
+        <Link to={`${match.url}/rendering`}>
+          Rendering with React
+        </Link>
+      </li>
+      <li>
+        <Link to={`${match.url}/components`}>
+          Components
+        </Link>
+      </li>
+      <li>
+        <Link to={`${match.url}/props-v-state`}>
+          Props v. State
+        </Link>
+      </li>
+    </ul>
+
+    <Route path={`${match.url}/:topicId`} component={Topic}/>
+    <Route exact path={match.url} render={() => (
+      <h3>Please select a topic.</h3>
+    )}/>
+  </div>
+);
+
+const BasicExample = () => (
+  <Router>
+    <div>
+      <ul>
+        <li><Link to="/">Home</Link></li>
+        <li><Link to="/about">About</Link></li>
+        <li><Link to="/topics">Topics</Link></li>
+      </ul>
+
+      <hr/>
+
+      <Route exact path="/" component={Home}/>
+      <Route path="/about" component={About}/>
+      <Route path="/topics" component={Topics}/>
+    </div>
+  </Router>
+);
+export default BasicExample
+
+// Server Rendering
+// - Rendering on server is stateless, so you use <StaticRouter> instead of
+// <BrowserRouter>, passing in requested url from server so routes can match and a context prop
+// Client
+<BrowserRouter>
+	<App />
+</BrowserRouter>
+// Server
+<StaticRouter
+	location={req.url}
+	context={context}
+>
+	<App />
+</StaticRouter>
+//  router only adds context.url, can handle different status redirects
+const RedirectWithStatus = ({ from, to, status }) => (
+	<Route render={({ staticContext }) => {
+		// there is not staticContext on the client so need guard against that
+		if (staticContext)
+			staticContext.status = status;
+		return <Redirect from={from} to={to}/>
+	}}/>
+);
+
+const App = () => (
+	<Switch>
+		<RedirectWithStatus
+			status={301}
+			from="/users"
+			to="/profiles"
+		/>
+		<RedirectWithStatus
+			status={302}
+			from="/courses"
+			to="/dashboards"
+		/>
+	</Switch>
+);
+
+// on the server
+const context = {};
+
+const markup = ReactDOMServer.renderToString(
+	<StaticRouter context={context}>
+		<App/>
+	</StaticRouter>
+);
+
+if (context.url) {
+	redirect(context.status, context.url);
+}
+
+// 404, 401, or other status
+const Status = ({ code, children }) => (
+	<Route render={({ staticContext }) => {
+		if (staticContext)
+			staticContext.status = code;
+		return children;
+	}}
+	/>
+);
+
+// <Route component={NotFound}/>
+const NotFound = () => (
+	<Status code={404}>
+		<div>
+			<h1>Sorry, can't find that.</h1>
+		</div>
+	</Status>
+);
+
+// General pieces to put it all together
+import { createServer } from 'http';
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
+import { StaticRouter } from 'react-router';
+import App from './App';
+
+createServer((req, res) => {
+	const context = {};
+
+	const html = ReactDOMServer.renderToString(
+		<StaticRouter
+			location={req.url}
+			context={context}
+		>
+			<App/>
+		</StaticRouter>
+	);
+	
+	if (context.url) {
+		res.writeHead(301, {
+			location: context.url
+		});
+		res.end();
+	} else {
+		res.write(`
+			<!doctype html>
+			<div id="app">${html}</div>	
+		`);
+		res.end();
+	}
+}).listen(3000);
+// client
+import ReactDOM from 'react-dom';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+
+ReactDOM.render((
+	<BrowserRouter>
+		<App/>
+	</BrowserRouter>
+), document.getElementById('app'));
+
+// load data before you render, exports matchPath static function to match locations to routes
+// -> can use this function on server to help determine what your data dependencies will be before rendering
+const routes = [
+	{
+		path: '/',
+		component: Root,
+		loadData: () => getSomeData(),
+	}
+];
+
+import { routes } from './routes';
+
+const App = () => (
+	<Switch>
+		{routes.map(route => (
+			<Route {...route}/>
+		))}
+	</Switch>
+);
+
+import { matchPath } from 'react-router-dom';
+const promises = [];
+// use 'some' to imitate '<Switch>' behavior of selecting the first to match
+routes.some(route => {
+	const match = matchPath(req.url, route);
+	if (match) {
+		promises.push(route.loadData(match));
+	}
+	return match;
+});
+
+Promise.all(promises).then(data => {
+	// do something with data so client can access it then render app
+});
+
+// Code Splitting
+// - like incrementally downloading the app like with webpack and bundle loader
+// - can make a component that loads dynamic imports as user navigates to it
+import loadSomething from 'bundle-loader?lazy!./Something';
+
+<Bundle load={loadSomething}>
+	{(mod) => (
+		{/* do something with module */}
+	)}
+</Bundle>
+
+// Takes prop load we get from webpack bundle loader
+// when the component mounts or gets a new load prop,
+// it will call load, then place the returned value in state
+// and calls back render with module
+<Bundle load={loadSomething}>
+	{(Components) => (Components
+		? <Components />
+		: <Loading />
+	)}
+</Bundle>
+
+import React, { Component } from 'react';
+
+class Bundle extends Component {
+	state = {
+		mod: null
+	}
+
+	componentWillMount() {
+		this.load(this.props);
+	}
+
+	componentWillReceiveProps(nextProps) {
+		if (nextProps.load !== this.props.load) {
+			this.load(nextProps);
+		}
+	}
+
+	load(props) {
+		this.setState({
+			mod: null
+		});
+		props.load((mod) => {
+			this.setState({
+				// handle both es imports and cjs
+				mod: mod.default ? mod.default : mod
+			})
+		});
+	}
+
+	render() {
+		// Returns null state on render before module has been fetched
+		// can indicate loading instead
+		return this.state.mod ? this.props.children(this.state.mod) : null;
+	}
+}
+
+export default Bundle;
+
+// There is also import() that can be used too
+// - benefit of bundle loader is that second time it calls back synchronously
+//  which prevents flashing the loading screen every time you vist a code-split screen
+// - component handles the code loading when it render and now you just render a <Bundle>
+//  wherever you want to load code dynamically
+<Bundle load={() => import('./something')}>
+	{(mod) => ()}
+</Bundle>
+
+// - Bundle component great for loading as you approach a new screen but also beneficial
+// to preload the rest of the app in the background
+import loadAbout from 'bundle-loader?lazy!./loadAbout';
+import loadDashboard from 'bundle-loader?lazy!./loadDashboard';
+
+// components load their module for initial visit
+const About = (props) => (
+	<Bundle load={loadAbout}>
+		{(About) => <About {...props}/>}
+	</Bundle>
+);
+
+const Dashboard = (props) => (
+	<Bundle load={loadDashboard}>
+		{(Dashboard) => <Dashboard {...props}/>}
+	</Bundle>
+);
+
+class App extends React.Component {
+	componentDidMount() {
+		// preloads the rest
+		loadAbout(() => {})
+		loadDashboard(() => {})
+	}
+
+	render() {
+		return (
+			<div>
+				<h1>Welcome!</h1>
+				<Route path="/about" component={About}/>
+				<Route path="/dashboard" component={Dashboard}/>
+			</div>
+		);
+	}
+}
+// - when and how much of your app to load is your own decision
+// and doesn't need to be tied to specific routes, possibly when user is inactive
+// -> when they visit a route maybe preload the rest of app after initial render
+ReactDOM.render(<App/>, preloadTheRestOfTheApp);
+
+// - code-splitting and server rendering too tough, need synchronous module resolution on server
+// so you can get those bundles in initial render
+// -> need to load all bundles in client that involved in server render before rendering so client render is same as server render
+// -> need async resolution for rest of client app's life
+// -> probably better to do code-splitting + service worker caching
+
+// Scroll restoration
+// - browsers starting to handle scroll restoration with history.pushState like in chrome
+// -> starting to handle the "default case"
+// - "scroll to the top" i.e. <ScrollToTop> component that will scroll window up on every navigation
+// and be sure to wrap it in withRouter to give it access to router's props
+class ScrollToTop extends Component {
+	componentDidUpdate(prevProps) {
+		if (this.props.location !== prevProps.location) {
+			window.scrollTo(0, 0);
+		}
+	}
+
+	render() {
+		return this.props.children;
+	}
+}
+
+export default withRouter(ScrollToTop);
+
+// then render at top of your app but below Router
+// or render anywhere you want but just one
+const App = () => (
+	<Router>
+		<ScrollToTop>
+			<App />
+		</ScrollToTop>
+	</Router>
+);
+
+// for tab interfaces you may not want to be scrolling to top when they switch tabs
+class ScrollToTopOnMount extends Component {
+	componentDidMount(prevProps) {
+		window.scrollTo(0, 0);
+	}
+
+	render() {
+		return null;
+	}
+}
+
+class LongContent extends Component {
+	render() {
+		<div>
+			<ScrollToTopOnMount />
+			<h1>Here is long content page</h1>
+		</div>
+	}
+}
+
+<Route path="/long-content" component={LongContent} />
+
+// Generic solution to scroll up on navigation so you don't start a new screen scrolled to bottom
+// -> restoring scroll positions of window and overflow elements on "back" and "forward" clicks but not Link clicks
+
+// Testing
+// - relies on React context to work, affects how you can test your components that use our components
+// - when using <Link> or <Route>, etc. it may get errors and warnings about context so you should
+// wrap your unit test in a <StaticRouter> or <MemoryRouter>
+test('it expands when the button is clicked' () => {
+	render(
+		<MemoryRouter>
+			<Sidebar />
+		</MemoryRouter>
+	);
+	click(theButton);
+	expect(theThingToBeOpen);
+});
+
+// <MemoryRouter> supports initialEntries and initialIndex props so you can boot up app
+// or smaller part of app at a specific location
+test('current user is active in sidebar', () => {
+	render(
+		<MemoryRouter initialEntries={['/users/2']}>
+			<Sidebar />
+		</MemoryRouter>
+	);
+	expectUserToBeActive(2);
+});
+
+// Redux Integration
+// - occasionally an app can have a component that doesn't update when the location changes (child routes or active nav links)
+// -> happens if the component is connected to redux via connect()(Component)
+// -> component is not a "route component" meaning it is not rendered like <Route component={SomeConnectedThing} />
+// -> problem is Redux implements shouldComponentUpdate and no indication if anything changed if it isn't receiving props from the router
+// -> solution: find where you connect your component and wrap it in withRouter
+// before
+export default connectToBackboneModel(mapStateToProps)(Something);
+// after
+import { withRouter } from 'react-router-dom';
+export default withRouter(connectToBackboneModel(mapStateToProps)(Something));
+// - can just pass the history object provided to route components to actions and navigate with it there rather than dispatching actions to navigate
+// -> routing data is already a prop of most components
+// - react-router-redux@next and history to keep state in sync with router v5 with react-router-v4
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+import { createStore, combineReducers, applyMiddleware } from 'redux';
+import { Provider } from 'react-redux';
+
+import createHistory from 'history/createBrowserHistory';
+import { Route } from 'react-router';
+
+import { ConnectedRouter, routerReducer, routerMiddleware, push } from 'react-router-redux';
+
+import reducers from './reducers';
+
+// Create a history of your choosing (using browser history in this case)
+const history = createHistory();
+
+// Build the middleware for intercepting and dispatching navigation actions
+const middleware = routerMiddleware(history);
+
+// Add the reducer to your store on the router key
+// also apply our middleware for navigating
+const store = createStore(
+	combineReducers({
+		...reducers,
+		router: routerReducer
+	}),
+	applyMiddleware(middleware)
+);
+
+// Now you can dispatch navigation actions from anywhere!
+// store.dispatch(push('/foo'))
+ReactDOM.render(
+	<Provider store={store}>
+		{/* ConnectedRouter will use store from Provider automatically */}
+		<ConnectedRouter history={history}>
+			<div>
+				<Route exact path="/" component={Home} />
+				<Route path="/about" component={About} />
+				<Route path="/topics" component={Topics} />
+			</div>
+		</ConnectedRouter>
+	</Provider>,
+	document.getElementById('root')
+);
+
+// Redux Documentation Notes 
+// - predictable state container for JS apps, live code editing combined with time traveling debugger
+// - (2kB including dependencies), evolves ideas of Flux and takes inspiration from Elm
+// - npm install --save redux, npm install --save react-redux, --save-dev redux-devtools
+// - whole state of your app is stored in object tree inside a single store
+// -> change state tree by emitting an action = object describing what happened
+// -> to specify how the actions transform the state tree, you write pure reducers
+import { createStore } from 'redux';
+
+// reducer: pure function with (state, action) => state signature
+// shape of state can be primitive, array, object, or Immutable.js data structure
+//  -> should not mutate the state object but return new object if state changes
+function counter(state = 0, action) {
+	switch (action.type) {
+		case 'INCREMENT':
+			return state + 1;
+		case 'DECREMENT': 
+			return state - 1;
+		default:
+			return state;
+	}
+}
+
+// Create a Redux store holding the state of your app
+// API is { subscribe, dispatch, getState }
+let store = createStore(counter);
+
+// Can use subscribe() to update the UI in response to state changes
+// -> normally use view binding library like React Redux
+// -> can be handy to persist current state in localStorage
+store.subscribe(() =>
+	console.log(store.getState())
+);
+
+// The only way to mutate the internal state is to dispatch an action
+// -> actions can be serialized, logged or stored and later replayed
+store.dispatch({ type: 'INCREMENT' });
+store.dispatch({ type: 'DECREMENT' });
+
+// * summary: specify the mutations you want to happen with plain objects called actions
+// and then write special function called reducer to decide how every action transforms the entire application's state
+// - Redux doesn't have a Dispatcher or support many stores, but a single store with single root reducing function
+// -> instead of adding stores, you split the root reducer into smaller reducers independently operating on the
+//  different parts of the state tree like how we have one root component in React app but composed of many small components
+
+// Motivation
+// - handling mutation and asynchronicity, managing state in complex SPA, making state mutations predictable
+// Core Concepts
+// - app's state as a plain object; changing state by dispatching an action = plain JS object that describes what happened
+const addTodoAction = { type: 'ADD_TODO', text: 'Go study at le cafe' };
+// - reducer is a function that takes state and action as arguments and returns the next state of the app
+function visibilityFilter(state = 'SHOW_ALL', action) {
+	if (action.type === 'SET_VISIBILITY_FILTER') {
+		return action.filter;
+	} else {
+		return state;
+	}
+}
+
+function todos(state = [], action) {
+	switch (action.type) {
+		case 'ADD_TODO':
+			return state.concat([{ text: action.text, completed: false }]);
+		case 'TOGGLE_TODO':
+			return state.map(
+				(todo, index) =>
+					action.index === index
+						? { text: todo.text, completed: !todo.completed }
+						: todo
+			);
+		default:
+			return state;
+	}
+}
+// another reducer manages the complete state of our app by calling those two reducers for the corresponding state keys
+function todoApp(state = {}, action) {
+	return {
+		todos: todos(state.todos, action),
+		visibilityFilter: visibilityFilter(state.visibilityFilter, action)
+	};
+}
+// * summary: describe how your state is updated over time in response to action objects
+
+// Three principles
+// 1. Single source of truth: state of whole app is stored in an object tree within a single store
+// 2. State is read-only: only way to change state is to emit an action, object describing what happened, express intent to transform state
+// 3. Changes are made with pure functions: to specify how state tree is transformed by actions, you write pure reducers that take previous
+// state and an action and then return the next state
+import { combineReducers, createStore } from 'redux';
+const reducer = combineReducers({ visibilityFilter, todos });
+const store = createStore(reducer);
+
+// Actions
+// - actions are payloads of information that send data from your application to your store
+// - only source of information for the store, send them to store with store.dispatch()
+const ADD_TODO = 'ADD_TODO';
+const addTodoAction = {
+	type: ADD_TODO,
+	text: 'Build my first Redux app'
+};
+// - plain JS objects that must have a type property that indicates the type of action being performed
+// typically defined as string constants and may want to move them into separate module
+import { ADD_TODO, REMOVE_TODO } from '../actionTypes';
+// - action creators are functions that create actions and return an action
+function addTodo(text) {
+	return {
+		type: ADD_TODO,
+		text
+	};
+}
+// usually we pass result of action creator to dispatch function
+dispatch(addTodo(text));
+// - can create bound action creator that automatically dispatches
+const boundAddTodo = text => dispatch(addTodo(text));
+const boundCompleteTodo = index => dispatch(completeTodo(index));
+// - can access dispatch function directly through store.dispatch or just use
+// react-redux's connect() to access it or use bindActionCreators() to automatically bind many action creators
+// to a dispatch() function
+
+// Reducers
+// - specify how application's state changes in response to actions sent to the store (all app state stored as single object)
+// - in modeling app state, keep it as normalized as possible without any nesting and with objects storied with ID as a key and IDs
+// to reference other entities or lists, app's state as a database
+// (previousState, action) => newState (Array.prototype.reducer(reducer, ?initialValue)), pure function so you should never
+//  mutate its args, perform side effects like API calls and routing transitions, call non-pure functions like Date.now(), Math.random()
+// - need to define initial state or else state will be undefined on the first time 
+// -> can do reducer composition to give reducer a slice of state to manage
+function todoApp(state = initialState, action) {
+	switch (action.type) {
+		case SET_VISIBILITY_FILTER:
+			// can also use object spread operator
+			return Object.assign({}, state, {
+				visibilityFilter: action.fitler
+			});
+		case ADD_TODO:
+			return Object.assign({}, state, {
+				todos: todos(state.todos, action)
+			});
+		case TOGGLE_TODO:
+			return Object.assign({}, state, {
+				todos: todos(state.todos, action)
+			});
+		default:
+			return state;
+	}
+}
+// - Can break out visibility filter actions and todo actions such that it looks like this instead
+function todoAppRefactored(state = {}, action) {
+	return {
+		visibilityFiler: visibilityFilter(state.visibilityFilter, action),
+		todos: todos(state.todos, action)
+	};
+}
+// - Eventually can split them out into separate files and keep them independent and manage different data domains
+// and it's equivalent to the above reducer
+// -> combineReducers() generates a function that calls your reducers with slices of state selected according to their keys
+//  and combining results into single object again
+import { combineReducers } from 'redux';
+
+const todoApp = combineReducers({
+	visibilityFilter,
+	todos
+});
+
+export default todoApp;
+// i.e. can give them different keys 
+const reducer = combineReducers({
+	a: doSomethingWithA,
+	b: processB,
+	c: c
+});
+// i.e. can call functions differently
+function reducer(state = {}, action) {
+	return {
+		a: doSomethingWithA(state.a, action),
+		b: processB(state.b, action),
+		c: c(state.c, action)
+	};
+}
+
+// Store
+// - object that brings them together, holds application state, allows access via getState()
+// - allows state to be updated via dispatch(action)
+// - registers listeners via subscribe(listener)
+// - handles unregistering of listeners via function returned by subscribe(listener)
+// - single store in Redux app, use reducer composition instead of many stores for data handling logic
+import { createStore } from 'redux';
+import todoApp from './reducers';
+let store = createStore(todoApp);
+// - can also specify initial state to hydrate state of client with server state
+let store = createStore(todoApp, window.STATE_FROM_SERVER);
+
+import {
+	addTodo,
+	toggleTodo,
+	setVisibilityFilter,
+	VisibilityFilters
+} from './actions';
+
+// Log the initial state
+console.log(store.getState());
+
+// Every time state changes, log it
+// subscribe() returns a function for unregistering the listener
+const unsubscribe = store.subscribe(() =>
+	console.log(store.getState())
+);
+
+// Dispatch some actions
+store.dispatch(addTodo('Learn more about action'));
+
+// Stop listening to state updates
+unsubscribe();
+
+// Data Flow
+// - strict unidirectional data flow
+// 1. call store.dispatch(action)
+// 2. Redux store calls the reducer function you gave it
+// -> store passes two arguments to reducer: current state tree and action; computes next state as pure function
+// 3. root reducer may combine output of multiple reducers into single state tree
+// -> combineReducers() to "split" the root reducer into separate functions that each manage one branch of the state tree
+// 4. Redux store saves the complete state tree returned by the root reducer
+// -> every listener registered with store.subscribe(listener) will be invoked and listeners may call store.getState() to get current state
+// -> React Redux: component.setState(newState) is called
+
+// Usage with React
+// - works well with React because they let you describe UI as a function of state and Redux emits state updates in response to actions
+// - npm install --save react-redux
+// - embrace idea of separating presentational and container components
+// -> presentational: how things look like markup/styles, not aware of Redux, read data from props, invoke callbacks from props, written by hand
+// -> container: how things work (data fetching, state updates), aware of Redux, subscribe to Redux state, dispatch Redux actions, generated by React Redux
+// - should design the UI hierarchy to match the shape of the root state object
+// - presentational components describe the look but don't know where the data comes from or how to change it, only render what's given
+// - container components connect the presentational components to Redux
+// - use functional stateless components unless you need to use local state or lifecycle methods
+// i.e. Todo presentational components
+import React from 'react';
+import PropTypes from 'prop-types';
+
+const Todo = ({ onClick, completed, text }) => (
+	<li
+		onClick={onClick}
+		style={{
+			textDecoration: completed ? 'line-through' : 'none'
+		}}
+	>
+		{text}
+	</li>
+);
+
+Todo.propTypes = {
+	onClick: PropTypes.func.isRequired,
+	completed: PropTypes.bool.isRequired,
+	text: PropTypes.string.isRequired
+};
+
+export default Todo;
+
+import React from 'react'
+import PropTypes from 'prop-types'
+import Todo from './Todo'
+
+const TodoList = ({ todos, onTodoClick }) => (
+  <ul>
+    {todos.map((todo, index) => (
+      <Todo key={index} {...todo} onClick={() => onTodoClick(index)} />
+    ))}
+  </ul>
+)
+
+TodoList.propTypes = {
+  todos: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      completed: PropTypes.bool.isRequired,
+      text: PropTypes.string.isRequired
+    }).isRequired
+  ).isRequired,
+  onTodoClick: PropTypes.func.isRequired
+}
+
+export default TodoList
+
+// i.e. container components with React Redux
+// - does a lot of performance optimizations to prevent unnecessary re-renders and no implementing
+// shouldComponentUpdate
+// - connect() defines a special function called mapStateToProps that tells how to transform the current
+// Redux store state into the props you want to pass to a presentational component you are wrapping
+const getVisibleTodos = (todos, filter) => {
+	switch (filter) {
+		case 'SHOW_COMPLETED':
+			return todos.filter(t => t.completed);
+		case 'SHOW_ACTIVE':
+			return todos.filter(t => !t.completed);
+		case 'SHOW_ALL':
+		default:
+			return todos;
+	}
+};
+
+const mapStateToProps = state => {
+	return {
+		todos: getVisibleTodos(state.todos, state.visibilityFilter)
+	}
+};
+// - can also dispatch actions, mapDispatchToProps
+const mapDispatchToProps = dispatch => {
+	return {
+		onTodoClick: id => {
+			dispatch(toggleTodo(id));
+		}
+	};
+};
+// - need to call connect() and pass those two functions to VisibleTodoList component
+import { connect } from 'react-redux';
+
+const VisibleTodoList = connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(TodoList);
+
+export default VisibleTodoList;
+
+// Can use <Provider> to magically make store available to all container components in the application without
+// passing it explicitly; only need to use it once when rendering the root component
+import React from 'react'
+import { render } from 'react-dom'
+import { Provider } from 'react-redux'
+import { createStore } from 'redux'
+import todoApp from './reducers'
+import App from './components/App'
+
+let store = createStore(todoApp)
+
+render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+	document.getElementById('root'));
+	
+// Async Actions
+// - two crucial moments for async API
+// 1. moment you start the call
+// 2. moment when you receive an answer or a timeout
+// - need three different kinds of actions
+// 1. action informing the reducers that the request began
+// i.e. reducer may handle action by toggling isFetching flag in state so you can show spinner in UI
+// 2. action informing the reducers that the request finished successfully
+// i.e. reducers may handle this action by merging new data into state they manage and reset isFetching
+// and hide the spinner and display fetched data
+// 3. action informing the reducers that the request failed
+// i.e. reducer may handle this action by resetting isFetching and store error message so UI can display it
+// -> may use status field with single action type
+// { type: 'FETCH_POSTS' }
+// { type: 'FETCH_POSTS', status: 'error', error: 'Oops' }
+// { type: 'FETCH_POSTS', status: 'success', response: { ... } }
+// OR with multiple action types
+// { type: 'FETCH_POSTS_REQUEST' }
+// { type: 'FETCH_POSTS_FAILURE', error: 'Oops' }
+// { type: 'FETCH_POSTS_SUCCESS', response: { ... } }
+export const SELECT_SUBREDDIT = 'SELECT_SUBREDDIT';
+
+export function selectSubreddit(subreddit) {
+	return {
+		type: SELECT_SUBREDDIT,
+		subreddit
+	};
+}
+export const INVALIDATE_SUBREDDIT = 'INVALIDATE_SUBREDDIT'
+
+export function invalidateSubreddit(subreddit) {
+  return {
+    type: INVALIDATE_SUBREDDIT,
+    subreddit
+  }
+}
+export const REQUEST_POSTS = 'REQUEST_POSTS'
+
+function requestPosts(subreddit) {
+  return {
+    type: REQUEST_POSTS,
+    subreddit
+  }
+}
+export const RECEIVE_POSTS = 'RECEIVE_POSTS'
+
+function receivePosts(subreddit, json) {
+  return {
+    type: RECEIVE_POSTS,
+    subreddit,
+    posts: json.data.children.map(child => child.data),
+    receivedAt: Date.now()
+  }
+}
+// - think about structuring app state tree with lists
+// -> store each subreddit's information separately so we can cache every subreddit and when we switch between
+// them the update will be instant, no need to worry about all these items in memory unless dealing with tens of thousands of items
+// -> for every list of items you'll want to store isFetching to show a spinner, didInvalidate so you can later toggle it when the data
+// is stale, lastUpdated so you know when it was fetched the last time, and items
+// -> also want to store pagination state like fetchedPageCount and nextPageUrl
+// -> can consider normalizing with normalizr for dynamic apps
+const store = {
+  selectedSubreddit: 'frontend',
+  postsBySubreddit: {
+    frontend: {
+      isFetching: true,
+      didInvalidate: false,
+      items: []
+    },
+    reactjs: {
+      isFetching: false,
+      didInvalidate: false,
+      lastUpdated: 1439478405547,
+      items: [
+        {
+          id: 42,
+          title: 'Confusion about Flux and Relay'
+        },
+        {
+          id: 500,
+          title: 'Creating a Simple Application Using React JS and Flux Architecture'
+        }
+      ]
+    }
+  }
+};
+
+import { combineReducers } from 'redux'
+import {
+  SELECT_SUBREDDIT,
+  INVALIDATE_SUBREDDIT,
+  REQUEST_POSTS,
+  RECEIVE_POSTS
+} from '../actions'
+
+function selectedSubreddit(state = 'reactjs', action) {
+  switch (action.type) {
+    case SELECT_SUBREDDIT:
+      return action.subreddit
+    default:
+      return state
+  }
+}
+
+function posts(
+  state = {
+    isFetching: false,
+    didInvalidate: false,
+    items: []
+  },
+  action
+) {
+  switch (action.type) {
+    case INVALIDATE_SUBREDDIT:
+      return Object.assign({}, state, {
+        didInvalidate: true
+      })
+    case REQUEST_POSTS:
+      return Object.assign({}, state, {
+        isFetching: true,
+        didInvalidate: false
+      })
+    case RECEIVE_POSTS:
+      return Object.assign({}, state, {
+        isFetching: false,
+        didInvalidate: false,
+        items: action.posts,
+        lastUpdated: action.receivedAt
+      })
+    default:
+      return state
+  }
+}
+
+function postsBySubreddit(state = {}, action) {
+  switch (action.type) {
+    case INVALIDATE_SUBREDDIT:
+    case RECEIVE_POSTS:
+    case REQUEST_POSTS:
+      return Object.assign({}, state, {
+        [action.subreddit]: posts(state[action.subreddit], action)
+      })
+    default:
+      return state
+  }
+}
+
+const rootReducer = combineReducers({
+  postsBySubreddit,
+  selectedSubreddit
+})
+
+export default rootReducer
+
+// - can handle network requests with Redux Thunk middleware (redux-thunk)
+// -> action creator can return a function instead of an action object so the action creator becomes a thunk
+// -> that returned function will get executed by Redux Thunk middleware, can have side effects, async API calls
+// -> can also dispatch actions
+import fetch from 'cross-fetch'
+
+export const REQUEST_POSTS = 'REQUEST_POSTS'
+function requestPosts(subreddit) {
+  return {
+    type: REQUEST_POSTS,
+    subreddit
+  }
+}
+
+export const RECEIVE_POSTS = 'RECEIVE_POSTS'
+function receivePosts(subreddit, json) {
+  return {
+    type: RECEIVE_POSTS,
+    subreddit,
+    posts: json.data.children.map(child => child.data),
+    receivedAt: Date.now()
+  }
+}
+
+export const INVALIDATE_SUBREDDIT = 'INVALIDATE_SUBREDDIT'
+export function invalidateSubreddit(subreddit) {
+  return {
+    type: INVALIDATE_SUBREDDIT,
+    subreddit
+  }
+}
+
+// Meet our first thunk action creator!
+// Though its insides are different, you would use it just like any other action creator:
+// store.dispatch(fetchPosts('reactjs'))
+
+export function fetchPosts(subreddit) {
+  // Thunk middleware knows how to handle functions.
+  // It passes the dispatch method as an argument to the function,
+  // thus making it able to dispatch actions itself.
+
+  return function (dispatch) {
+    // First dispatch: the app state is updated to inform
+    // that the API call is starting.
+
+    dispatch(requestPosts(subreddit))
+
+    // The function called by the thunk middleware can return a value,
+    // that is passed on as the return value of the dispatch method.
+
+    // In this case, we return a promise to wait for.
+    // This is not required by thunk middleware, but it is convenient for us.
+
+    return fetch(`https://www.reddit.com/r/${subreddit}.json`)
+      .then(
+        response => response.json(),
+        // Do not use catch, because that will also catch
+        // any errors in the dispatch and resulting render,
+        // causing a loop of 'Unexpected batch number' errors.
+        // https://github.com/facebook/react/issues/6895
+        error => console.log('An error occurred.', error)
+      )
+      .then(json =>
+        // We can dispatch many times!
+        // Here, we update the app state with the results of the API call.
+
+        dispatch(receivePosts(subreddit, json))
+      )
+  }
+}
+
+import thunkMiddleware from 'redux-thunk'
+import { createLogger } from 'redux-logger'
+import { createStore, applyMiddleware } from 'redux'
+import { selectSubreddit, fetchPosts } from './actions'
+import rootReducer from './reducers'
+
+const loggerMiddleware = createLogger()
+
+const store = createStore(
+  rootReducer,
+  applyMiddleware(
+    thunkMiddleware, // lets us dispatch() functions
+    loggerMiddleware // neat middleware that logs actions
+  )
+)
+
+store.dispatch(selectSubreddit('reactjs'))
+store
+  .dispatch(fetchPosts('reactjs'))
+	.then(() => console.log(store.getState()))
+	
+	import fetch from 'cross-fetch'
+
+export const REQUEST_POSTS = 'REQUEST_POSTS'
+function requestPosts(subreddit) {
+  return {
+    type: REQUEST_POSTS,
+    subreddit
+  }
+}
+
+export const RECEIVE_POSTS = 'RECEIVE_POSTS'
+function receivePosts(subreddit, json) {
+  return {
+    type: RECEIVE_POSTS,
+    subreddit,
+    posts: json.data.children.map(child => child.data),
+    receivedAt: Date.now()
+  }
+}
+
+export const INVALIDATE_SUBREDDIT = 'INVALIDATE_SUBREDDIT'
+export function invalidateSubreddit(subreddit) {
+  return {
+    type: INVALIDATE_SUBREDDIT,
+    subreddit
+  }
+}
+
+function fetchPosts(subreddit) {
+  return dispatch => {
+    dispatch(requestPosts(subreddit))
+    return fetch(`https://www.reddit.com/r/${subreddit}.json`)
+      .then(response => response.json())
+      .then(json => dispatch(receivePosts(subreddit, json)))
+  }
+}
+
+function shouldFetchPosts(state, subreddit) {
+  const posts = state.postsBySubreddit[subreddit]
+  if (!posts) {
+    return true
+  } else if (posts.isFetching) {
+    return false
+  } else {
+    return posts.didInvalidate
+  }
+}
+
+export function fetchPostsIfNeeded(subreddit) {
+  // Note that the function also receives getState()
+  // which lets you choose what to dispatch next.
+
+  // This is useful for avoiding a network request if
+  // a cached value is already available.
+
+  return (dispatch, getState) => {
+    if (shouldFetchPosts(getState(), subreddit)) {
+      // Dispatch a thunk from thunk!
+      return dispatch(fetchPosts(subreddit))
+    } else {
+      // Let the calling code know there's nothing to wait for.
+      return Promise.resolve()
+    }
+  }
+}
+// Other middleware like redux-promise, redux-observable, redux-sage, redux-pack, etc.
+
+// Async Flow
+// - without middleware, Redux store only supports synchronous data flow by default with createStore()
+// - can applyMiddleware(), async middleware like redux-thunk wraps the store's dispatch() method and allows you
+// to dispatch something other than actions like functions or Promises
+// - when the last middleware in the chain dispatches an action, it has to be a plain object so synchronous Redux data flow takes place
+
+// Middleware
+// - middleware is some code you can put between the framework receiving a request and the framework generating a response
+// i.e. Express or Koa middleware to add CORS headers, logging, compression, etc.
+// - composable in a chain and can use multiple independent third-party middleware in single project
+// - Redux middleware provides third-party extension point between dispatching an action and the moment it reaches the reducer
+// -> used for logging, crash reporting, talking to async API, routing, etc.
+// - problems with logging actions dispatched: tough to log manually, wrap the dispatch in function to output action and nextState,
+//  and monkeypatching dispatch function
+// - problems with crash reporting: may want to apply transformations to dispatch to report JS errors in prod
+// -> window.onerror event not reliable without stack information on some older browsers
+// i.e. sample Redux middleware under the hood using the next dispatch() function and returns a dispatch() and currying
+const logger = store => next => action => {
+  console.log('dispatching', action)
+  let result = next(action)
+  console.log('next state', store.getState())
+  return result
+}
+
+const crashReporter = store => next => action => {
+  try {
+    return next(action)
+  } catch (err) {
+    console.error('Caught an exception!', err)
+    Raven.captureException(err, {
+      extra: {
+        action,
+        state: store.getState()
+      }
+    })
+    throw err
+  }
+}
+import { createStore, combineReducers, applyMiddleware } from 'redux'
+
+let todoApp = combineReducers(reducers)
+let store = createStore(
+  todoApp,
+  // applyMiddleware() tells createStore() how to handle middleware
+  applyMiddleware(logger, crashReporter)
+)
+// Will flow through both logger and crashReporter middleware!
+// store.dispatch(addTodo('Use Redux'))
+
+// Usage with React Router
+// - Redux will be source of truth for your data and React Router will be source of truth for your URL
+// - okay to have the separate unless you need to time travel and rewind actions that trigger URL change
+// - npm install --save react-router-dom
+// - need to configure development server since it may be unaware of declared routes in React Router configuration
+// i.e. serving index.html from Express
+app.get('/*', (req, res) => {
+	res.sendFile(path.join(__dirname, 'index.html'));
+});
+// i.e. serving index.html from WebpackDevServer
+// devServer: { historyApiFallback: true }
+// - wrap <Route /> in <Router /> so that when URL changes, <Router /> will match a branch of its routes and render configured
+// components; <Route /> is used to declaratively map routes to application's component hierarchy
+import { BrowserRouter as Router, Route } from 'react-router-dom';
+// - need <Provider /> higher-order component provided by React Redux to bind Redux to React
+import { Provider } from 'react-redux';
+
+const Root = ({ store }) => (
+	<Provider store={store}>
+		<Router>
+			<Route path="/:filter?" component={App} />
+		</Router>
+	</Provider>
+);
+
+Root.propTypes = {
+	store: PropTypes.object.isRequired
+};
+
+export default Root;
+
+import React from 'react';
+import { render } from 'react-dom';
+import { createStore } from 'redux';
+import todoApp from './reducers';
+import Root from './components/Root';
+
+let store = createStore(todoApp);
+render(
+	<Root store={store} />,
+	doucment.getElementById('root')
+);
+// - <Link /> components lets you navigate around your application (<NavLink /> if you want style props like activeStyle)
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+
+const FilterLink = ({ filter, children }) => (
+	<NavLink
+		to={filter === 'SHOW_ALL' ? '/' : `/${filter}`}
+		activeStyle={ {
+			textDecoration: 'none',
+			color: 'black'
+		} }
+	>
+		{children}
+	</NavLink>
+);
+
+export default FilterLink;
+// can use ownProps to pass in the URL parameters
+// -> params property is an object with every param specified in the url with the match object like match.params 
+const mapStateToProps = (state, ownProps) => {
+  return {
+    todos: getVisibleTodos(state.todos, ownProps.filter) // previously was getVisibleTodos(state.todos, state.visibilityFilter)
+  }
+}
+// can access it like so
+const App = ({ match: { params } }) => {
+  return (
+    <div>
+      <AddTodo />
+      <VisibleTodoList filter={params.filter || 'SHOW_ALL'} />
+      <Footer />
+    </div>
+  )
+}
+
+// Writing Tests
+// - easy to test pure Redux functions without mocking
+// - action creators are functions which return plain objects
+// i.e. test whether the correct action creator was called and also whether the right action was returned
+export function addTodo(text) {
+	return {
+		type: 'ADD_TODO',
+		text
+	};
+}
+
+import * as actions from '../../actions/TodoActions';
+import * as types from '../../constants/ActionTypes';
+
+describe('actions', () => {
+	it('should create an action to add a todo', () => {
+		const text = 'Finish docs';
+		const expectedAction = {
+			type: types.ADD_TODO,
+			text
+		};
+		expect(actions.addTodo(text)).toEqual(expectedAction);
+	});
+});
+
+// - for async action creators using Redux Thunk or other middleware, best to completely mock the Redux store
+// for tests and you can apply the middleware to a mock store using redux-mock-store or use fetch-mock to mock HTTP requests
+// i.e. testing fetchTodos
+import 'cross-fetch/polyfill'
+
+function fetchTodosRequest() {
+  return {
+    type: FETCH_TODOS_REQUEST
+  }
+}
+
+function fetchTodosSuccess(body) {
+  return {
+    type: FETCH_TODOS_SUCCESS,
+    body
+  }
+}
+
+function fetchTodosFailure(ex) {
+  return {
+    type: FETCH_TODOS_FAILURE,
+    ex
+  }
+}
+
+export function fetchTodos() {
+  return dispatch => {
+    dispatch(fetchTodosRequest())
+    return fetch('http://example.com/todos')
+      .then(res => res.json())
+      .then(body => dispatch(fetchTodosSuccess(body)))
+      .catch(ex => dispatch(fetchTodosFailure(ex)))
+  };
+}
+import configureMockStore from 'redux-mock-store'
+import thunk from 'redux-thunk'
+import * as actions from '../../actions/TodoActions'
+import * as types from '../../constants/ActionTypes'
+import fetchMock from 'fetch-mock'
+import expect from 'expect' // You can use any testing library
+
+const middlewares = [thunk]
+const mockStore = configureMockStore(middlewares)
+
+describe('async actions', () => {
+  afterEach(() => {
+    fetchMock.reset()
+    fetchMock.restore()
+  })
+
+  it('creates FETCH_TODOS_SUCCESS when fetching todos has been done', () => {
+    fetchMock
+      .getOnce('/todos', { body: { todos: ['do something'] }, headers: { 'content-type': 'application/json' } })
+
+
+    const expectedActions = [
+      { type: types.FETCH_TODOS_REQUEST },
+      { type: types.FETCH_TODOS_SUCCESS, body: { todos: ['do something'] } }
+    ]
+    const store = mockStore({ todos: [] })
+
+    return store.dispatch(actions.fetchTodos()).then(() => {
+      // return of async actions
+      expect(store.getActions()).toEqual(expectedActions)
+    })
+  })
+})
+// Testing reducers that return the new state after applying the action to the previous state
+import { ADD_TODO } from '../constants/ActionTypes';
+
+const initialState = [
+	{
+		text: 'Use Redux',
+		completed: false,
+		id: 0
+	}
+];
+
+export default function todos(state = initialState, action) {
+	switch (action.type) {
+		case ADD_TODO:
+			return [
+				{
+					id: state.reduce((maxId, todo) => Math.max(todo.id, maxId), -1) + 1,
+					completed: false,
+					text: action.text
+				},
+				...state
+			]
+
+			default:
+				return state;
+	}
+}
+import reducer from '../../reducers/todos';
+import * as types from '../../constants/ActionTypes';
+
+describe('todos reducer', () => {
+	it('should return the initial state', () => {
+		expect(reducer(undefined, {})).toEqual([
+			{
+				text: 'Use Redux',
+				completed: false,
+				id: 0
+			}
+		]);
+	});
+
+	it('should handle ADD_TODO', () => {
+		expect(
+			reducer([], {
+				type: types.ADD_TODO,
+				text: 'Run the tests'
+			})
+		).toEqual([
+			{
+				text: 'Run the tests',
+				completed: false,
+				id: 0
+			}
+		]);
+		expect(
+      reducer(
+        [
+          {
+            text: 'Use Redux',
+            completed: false,
+            id: 0
+          }
+        ],
+        {
+          type: types.ADD_TODO,
+          text: 'Run the tests'
+        }
+      )
+    ).toEqual([
+      {
+        text: 'Run the tests',
+        completed: false,
+        id: 1
+      },
+      {
+        text: 'Use Redux',
+        completed: false,
+        id: 0
+      }
+    ])
+	});
+})
+// - since React components are usually small and only rely on props so they're easy to test
+// npm install --save-dev enzyme, enzyme-adapter-react-16; setup() helper to pass stubbed callbacks as props and
+// renders the component with shallow rendering such that tests can assert on whether the callbacks were called when
+// expected
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import TodoTextInput from './TodoTextInput';
+
+class Header extends Component {
+	handleSave(text) {
+		if (text.length !== 0) {
+			this.props.addTodo(text);
+		}
+	}
+
+	render() {
+		return (
+			<header className="header">
+				<h1>todos</h1>
+				<TodoTextInput
+					newTodo={true}
+					onSave={this.handleSave.bind(this)}
+					placeholder="What needs to be done?"
+				/>
+			</header>
+		);
+	}
+}
+
+Header.propTypes = {
+	addTodo: PropTypes.func.isRequired
+};
+
+export default Header;
+// Test with enzyme like this
+// -> shallow rendering lets you instantiate a component and effectively get the result of its render method just a single
+// level deep instead of rendering components recursively to a DOM, useful for unit tests where you test a particular
+// component only and not its children
+// --> changing the children won't affect tests for parent component but testing a component and all of its children can
+// be accomplished with mount() method which allows for full DOM rendering
+import React from 'react';
+import Enzyme, { mount } from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+import Header from '../../components/Header';
+
+Enzyme.configure({ adapter: new Adapter() });
+
+function setup() {
+	const props = {
+		addTodo: jest.fn()
+	};
+
+	const enzymeWrapper = mount(<Header {...props} />);
+
+	return {
+		props,
+		enzymeWrapper
+	};
+}
+
+describe('components', () => {
+	describe('Header', () => {
+		it('should render self and subcomponents', () => {
+			const { enzymeWrapper } = setup();
+
+			expect(enzymeWrapper.find('header').hasClass('header')).toBe(true);
+
+			expect(enzymeWrapper.find('h1').text()).toBe('todos');
+
+			const todoInputProps = enzymeWrapper.find('TodoTextInput').props();
+			expect(todoInputProps.newTodo).toBe(true);
+			expect(todoInputProps.placeholder).toEqual('What needs to be done?');
+		});
+
+		it('should call addTodo if length of text is greater than 0', () => {
+      const { enzymeWrapper, props } = setup();
+      const input = enzymeWrapper.find('TodoTextInput');
+      input.props().onSave('');
+      expect(props.addTodo.mock.calls.length).toBe(0);
+      input.props().onSave('Use Redux');
+      expect(props.addTodo.mock.calls.length).toBe(1);
+    });
+	});
+});
+// If using Redux React and connect(), you're only importing the wrapper component returned by connect()
+// - you can wrap it in a <Provider> with a store created specifically for the unit test but other times
+// may want to test just the rendering of the component without a Redux store
+// -> recommend you to also export the undecorated component
+import { connect } from 'react-redux';
+
+// Use named export for unconnected component (for tests)
+export class App extends Component {}
+
+// Use default export for the connected component (for app)
+export default connect(mapStateToProps)(App);
+
+// Import both like this
+import ConnectedApp, { App } from './App';
+
+// For middleware functions that wrap the behavior of dispatch calls in Redux, we need to mock behavior of dispatch call
+const thunk = ({ dispatch, getState }) => next => action => {
+	if (typeof action === 'function') {
+		return action(dispatch, getState);
+	}
+
+	return next(action);
+}
+// - create fake getState, dispatch, and next functions with jest.fn()
+const create = () => {
+	const store = {
+		getState: jest.fn(() => ({})),
+		dispatch: jest.fn(),
+	};
+	const next = jest.fn();
+	const invoke = (action) => thunk(store)(next)(action);
+
+	return { store, next, invoke };
+}
+// Using Immutable.js for immutability and performance
+// - data encapsulated is never mutated but a new copy is always returned
+// - immutable objects like maps, lists, sets, records, etc. and methods to sort/filter/group/reverse/flatter/subset
+// - performance optimizations to large nested Redux state tree by cleverly sharing data structures under surface
+// and minimizing the need to copy data; enables chains of operations without creating unnecessary and costly cloned
+// intermediate data that will be thrown away
+// -> the intermediate data generated within Immutable.JS from a chained sequence of method calls that
+// is free to be mutated
+// - issues with being difficult to interoperate with other JS objects since immutable
+// -> need to use get()/getIn() methods with array of string properties, toJS() method that is slow
+// -> will be spread throughout your codebase including components and difficult to remove in the future
+// though you can uncouple your app logic from data structures
+// -> no destructuring or spread operators so much more verbose code
+// -> not suitable for small values that change often but suitable for large collections of data
+// -> difficult to debug as inspecting will show entire nested hierarchy of Immutable.JS specific properties
+// but you can use browser extension Immutable.js Object Formatter
+// -> breaks object references causing poor performance but it allows shallow equality checking
+// - helps with problems related to mutating state object from Redux reducer and seeing why components re-render for no reason
+// -> performance, rich API for data manipulation
+// - best practices with Immutable.JS
+// -> never mix plain JS objects with Immutable.js
+// -> make your entire Redux state tree an Immutable.js object
+// --> create tree using Immutable.js fromJS() function
+// --> use Immutable.js-aware version of the combineReducers function such as redux-immutable as Redux itself expects the state
+// tree to be a plain JS object
+// --> when adding JS objects to Immutable.js map or list using its update, merge, or set methods, ensure that object being added is
+// first converted to an Immutable object using fromJS()
+const newObj = { key: value };
+const newState = state.setIn(['prop1'], fromJS(newObj));
+// newObj is now an Immutable.js Map
+// -> use Immutable.JS everywhere (smart components, selectors, sagas/thunks, action creators, reducers) except your dumb components
+// -> limit your use of toJS() - expensive and negates purpose of using it
+// -> your selectors should return Immutable.js objects always
+// -> use Immutable.js objects with smart components = access the store via React Redux's connect function must use the
+// Immutable.js values returned by your selectors, memoize selectors using library such as reselect if necessary
+// -> never use toJS() in mapStateToProps as it returns new object every time causing the component to believe that the object
+// has changed every time the state tree changes and trigger an unnecessary re-render
+// -> never use Immutable.js in your dumb components as they should be pure, don't pass Immutable.js object as a prop
+// -> use higher order component to convert your smart component's immutable.js props to your dumb component's JS props
+// --> takes Immutable.js props from smart component, converts them using toJS() to plain JS props passed to dumb component
+// i.e. HOC
+import React from 'react'
+import { Iterable } from 'immutable'
+
+export const toJS = WrappedComponent => wrappedComponentProps => {
+  const KEY = 0
+  const VALUE = 1
+
+  const propsJS = Object.entries(
+    wrappedComponentProps
+  ).reduce((newProps, wrappedComponentProp) => {
+    newProps[wrappedComponentProp[KEY]] = Iterable.isIterable(
+      wrappedComponentProp[VALUE]
+    )
+      ? wrappedComponentProp[VALUE].toJS()
+      : wrappedComponentProp[VALUE]
+    return newProps
+  }, {})
+
+  return <WrappedComponent {...propsJS} />
+}
+// - for portability, maintainability and easier testing
+import { connect } from 'react-redux'
+
+import { toJS } from './to-js'
+import DumbComponent from './dumb.component'
+
+const mapStateToProps = state => {
+  return {
+    // obj is an Immutable object in Smart Component, but it’s converted to a plain
+    // JavaScript object by toJS, and so passed to DumbComponent as a pure JavaScript
+    // object. Because it’s still an Immutable.JS object here in mapStateToProps, though,
+    // there is no issue with errant re-renderings.
+    obj: getImmutableObjectFromStateTree(state)
+  }
+}
+export default connect(mapStateToProps)(toJS(DumbComponent))
+// -> use Immutable Object Formatter Chrome Extension to aid debugging
+
+// Code Structure
+// - Rails-style: separate folders for "actions", "constants", "reducers", "containers", "components"
+// - Domain-style: separate folders per feature or domain, possibly with sub-folders per file type
+// - "Ducks": similar to domain style but tying together actions and reducers often by defining them in same file
+// -> selected defined alongside reducers and exported and then reused elsewhere like in mapStateToProps functions
+// async action creators, sagas to colocate all the code that knows about the actual shape of state tree in reducer files
+
