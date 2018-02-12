@@ -4559,3 +4559,77 @@ export default connect(mapStateToProps)(toJS(DumbComponent))
 // -> selected defined alongside reducers and exported and then reused elsewhere like in mapStateToProps functions
 // async action creators, sagas to colocate all the code that knows about the actual shape of state tree in reducer files
 
+// Redux Saga 
+
+// Immutable.js
+// - immutable collections for JS for advanced memoization, change detection, no defensive copying
+// - persistent data with mutative API that dooesn't update data in place but yields new updated data
+// - persistent immutable data structures such as List, Stack, Map, OrderedMap, Set, OrderedSet, Record
+// - highly efficient on JS VMs by using structural sharing via hash maps tries and vector tries to minimize
+// need to copy or cache data
+// - provides lazy Seq, allowing efficient chaining of collection methods like map and filter without creating intermediate representations
+// - npm install immutable, has no dependencies
+const { Map } = require('immutable');
+const map1 = Map({ a: 1, b: 2, c: 3 });
+const map2 = map1.set('b', 50);
+map1.get('b') + " vs. " + map2.get('b'); // 2 vs. 50
+// - immutable data never changes and data can only ever be passed from above
+// -> treated as values rather than objects, used Immutable.is() or .equals() to determine value equality
+// instead of the === operator which determines object reference identity
+// - if object is immutable it can be "copied" by making another reference to it instead of copying the entire object
+const { Map } = require('immutable');
+const map1 = Map({ a: 1, b: 2, c: 3 });
+const clone = map1;
+// - methods that would mutate the collection like push, set, unshift, splice return a new collection
+// - can interoperate with JS by accepting plain JS arrays and objects anywhere a method expects a Collection
+// - Seq evaluates lazily and does not cache intermediate results
+const { Seq } = require('immutable');
+const myObject = { a: 1, b: 2, c: 3 };
+Seq(myObject).map(x => x * x).toObject();
+// - JS object properties are strings, Immutable Maps accept keys of any types
+// - can be converted back to plain JS arrays and objects shallowly with toArray and toObject()
+// or deeply with toJS(), also implement toJSON()
+const { Map, List } = require('immutable');
+const deep = Map({ a: 1, b: 2, c: List([3, 4, 5])});
+console.log(deep.toJS());
+JSON.stringify(deep);
+// - all Immutable.js collections are Iterable, which allows the to be used anywhere an Iterable is expected
+// such as when spreading into an Array
+const { List } = require('immutable');
+const aList = List([ 1, 2, 3 ]);
+const anArray = [ 0, ...aList, 4, 5 ];
+// - collections intended to be nested for deep trees of data like JSON
+const nested = fromJS({ a: { b: { c: [ 3, 4, 5 ] } } })
+// Map { a: Map { b: Map { c: List [ 3, 4, 5 ] } } }
+// - power tools such as mergeDeep, getIn, setIn, updateIn for List, Map and OrderedMap
+const { fromJS } = require('immutable')
+const nested = fromJS({ a: { b: { c: [ 3, 4, 5 ] } } })
+
+const nested2 = nested.mergeDeep({ a: { b: { d: 6 } } })
+// Map { a: Map { b: Map { c: List [ 3, 4, 5 ], d: 6 } } }
+
+console.log(nested2.getIn([ 'a', 'b', 'd' ])) // 6
+
+const nested3 = nested2.updateIn([ 'a', 'b', 'd' ], value => value + 1)
+console.log(nested3);
+// Map { a: Map { b: Map { c: List [ 3, 4, 5 ], d: 7 } } }
+
+const nested4 = nested3.updateIn([ 'a', 'b', 'c' ], list => list.push(6))
+// Map { a: Map { b: Map { c: List [ 3, 4, 5, 6 ], d: 7 } } }
+// - treated as pure data values, treated as value equal if they represent the same collection of values
+// vs. reference equal for JS objects/arrays
+// -> value equality may require considering each item in collection so O(N) time complexity
+// cs. references to memory compared which is O(1) time complexity
+// - return self on no-op optimization: avoids creating new objects for updates where no change in value occurred
+// - can create a temporary mutable (transient) copy of a collection and apply a batch of mutations
+//  in a performant manner by using withMutations
+const { List } = require('immutable')
+const list1 = List([ 1, 2, 3 ]);
+const list2 = list1.withMutations(function (list) {
+  list.push(4).push(5).push(6);
+});
+assert.equal(list1.size, 3);
+assert.equal(list2.size, 6);
+// - Seq describe a lazy operation, allowing them to chain use of all higher-order collection methods by
+// not creating intermediate collections
+// -> immutable, lazy; i.e. Range

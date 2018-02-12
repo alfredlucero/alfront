@@ -1,0 +1,87 @@
+Using BuildKite for Continuous Integration
+- Pipelines - top level containers for modelling and defining your workflows, template of steps you want to run
+-> used to run tests, deploy code, generating static sites, etc.
+-> define it in pipeline.yml to have access to more config options, allows you to version and review build pipelines along source code
+-> for BuildKite to automatically build pull requests and commits, must set up Github Webhook 
+i.e. sample .buildkite/pipeline.yml (make sure to add a step to read from repo: buildkite-agent pipeline upload)
+steps:
+  - label: Example Test
+    command: echo "Hello!"
+i.e. with script commands, wait steps, block steps, artifact uploading
+steps:
+  - label: ':hammer: Tests'
+    command: 'scripts/tests.sh'
+    env:
+      BUILDKITE_DOCKER_COMPOSE_CONTAINER: app
+
+  - wait
+
+  - label: ':package: Package'
+    command: 'scripts/build-binaries.sh'
+    artifact_paths: 'pkg/*'
+    env:
+      BUILDKITE_DOCKER_COMPOSE_CONTAINER: app
+
+  - wait
+
+  - label: ':debian: Publish'
+    command: 'scripts/build-debian-packages.sh'
+    artifact_paths: 'deb/**/*'
+    branches: 'master'
+    agents:
+      queue: 'deploy'
+
+  - block: ':shipit: Release'
+    branches: 'master'
+
+  - label: ':github: Release'
+    command: 'scripts/build-github-release.sh'
+    artifact_paths: 'releases/**/*'
+    branches: 'master'
+
+  - wait
+
+  - label: ':whale: Update images'
+    command: 'scripts/release-docker.sh'
+    branches: 'master'
+    agents:
+      queue: 'deploy'
+-> four different step types: command, wait, block, trigger 
+-> can specify a different file path by adding it as first argument here
+(can be useful when separating test and deployment steps into two completely separate pipelines both using same repo URL)
+buildkite-agent pipeline upload .buildkite/pipeline.yml (test)
+buildkite-agent pipeline upload .buildkite/pipeline.deploy.yml (deployment)
+-> can generate pipelines dynamically using scripts from your source code
+i.e. can generate a list of parallel steps based upon the test/* directories with .buildkite/pipeline.sh
+and ensure it is executable and then update your pipeline upload step to use the new script
+#!/bin/bash
+
+# exit immediately on failure, or if an undefined variable is used
+set -eu
+
+# begin the pipeline.yml file
+echo "steps:"
+
+# add a new command step to run the tests in each test directory
+for test_dir in test/*/; do
+  echo "  - command: \"run_tests "${test_dir}"\" 
+done
+# .buildkite/pipeline.sh | buildkite-agent pipeline upload
+-> can use branch patterns to ensure pipelines are only triggered when necessary
+1. pipeline-level branch filtering (by default pipeline will trigger builds for all branches)
+-- if commit doesn't match branch pattern no build will be created
+2. step-level (on individual steps that match pattern)
+-> can ignore a commit for changes like editing a Readme that do not require a Buildkite build
+by doing [skip ci] in the commit message
+-> can enable Teams for your organization to maintain access to pipelines for your users
+and set organization/team/user permissions
+-> can programmatically manage teams using GraphQL API or REST API with team's UUID and can
+restrict agents to specific teams with the BUILDKITE_BUILD_CREATOR_TEAMS environment variable
+i.e. making agent environment hook to prevent anyone from outside team from running build on agent
+set -euo pipefail
+
+if [[ ":$BUILDKITE_BUILD_CREATOR_TEAMS:" != *":ops:"* ]]; then
+  echo "You must be in the ops team to run a job on this agent"
+  exit 1
+fi
+
