@@ -4559,7 +4559,287 @@ export default connect(mapStateToProps)(toJS(DumbComponent))
 // -> selected defined alongside reducers and exported and then reused elsewhere like in mapStateToProps functions
 // async action creators, sagas to colocate all the code that knows about the actual shape of state tree in reducer files
 
+
 // Redux Saga 
+// - library to make application side effects like asynchronous data fetching, impure browser cache access)
+// easier to manage, simple to test, better at handling failures, more efficient
+// - saga = separate thread in your app that's solely responsible for side effects
+// - redux middleware which means this thread can be started, paused, and cancelled from main app with normal redux actions
+// - full redux app state and can dispatch redux actions as well
+// - uses Generators to make async flow easy to read, write, and test; no callback hell like redux thunk, actions stay pure, easier to test
+// - npm install --save redux-saga
+// i.e. sample button clicked that fetches data from remote server
+class UserComponent extends React.Component {
+	onSomeButtonClicked() {
+		const { userId, dispatch } = this.props;
+		dispatch({ type: 'USER_FETCH_REQUESTED', payload: { userId } });
+	}
+}
+// Sample saga to respond to it
+import { call, put, takeEvery, takeLatest } from 'redux-saga/effects';
+import Api from '...';
+
+// worker Saga: will be fired on USER_FETCH_REQUESTED actions
+function* fetchUser(action) {
+	try {
+		const user = yield call(Api.fetchUser, action.payload.userId);
+		yield put({ type: "USER_FETCH_SUCCEEDED", user: user });
+	} catch(e) {
+		yield put({ type: "USER_FETCH_FAILED", message: e.message });
+	}
+}
+// Starts fetchUser on each dispatched 'USER_FETCH_REQUESTED' action, allows concurrent fetches of user
+function* mySaga() {
+	yield takeEvery("USER_FETCH_REQUESTED", fetchUser);
+	// if you use takeLatest, does not allow concurrent fetches of user; if requested dispatched while a fetch is already
+	// pending, that pending fetch is cancelled and only the latest one will run
+}
+
+export default mySaga;
+
+import { createStore, applyMiddleware } from 'redux';
+import createSagaMiddleware from 'redux-saga';
+
+import reducer from './reducers';
+import mySaga from './sagas';
+
+const sagaMiddlware = createSagaMiddleware();
+// mount middleware to store
+const store = createStore(
+	reducer,
+	applyMiddleware(sagaMiddlware)
+);
+
+// run saga
+createSagaMiddleware.run(mySaga);
+
+// render application
+
+// In order to run Saga, we need to create a Saga middleware with list of Sagas to run
+// and must connect Saga middleware to Redux store
+// - Sagas implemented as Generator functions that yield objects to redux-saga middleware
+// - put = Effect = simple JS objects wich contain instructions to be fulfilled by middleware
+// - when a middleware retrieves an Effect yielded by a Saga, the Saga is paused until the Effect is fulfilled
+// - takeEvery - helper function to listen for dispatched actions and run some function each time
+// - need a rootSaga as single entry point to start all Sagas at once and the Generators will be started in parallel
+export default function* rootSaga() {
+	yield all([
+		helloSaga(),
+		watchIncrementAsync()
+	]);
+}
+
+// - testing the sagas
+export function* incrementAsync() {
+	// use call Effect
+	yield call(delay, 1000); // { CALL: { fn: delay, args: [1000] } }, calls given function with CALL
+	yield put({ type: 'INCREMENT' }); // { PUT: { type: 'INCREMENT' } }, dispatches an action to store with PUT
+}
+
+import test from 'tape';
+import { put, call } from 'redux-saga/effects';
+import { delay } from 'redux-saga';
+import { incrementAsync } from './sagas';
+
+test('incrementAsync Saga test', (assert) => {
+	// generator function that returns an iterator object and iterator's
+	// next method returns an object with following shape
+	// { done: boolean, value: any }
+	// -> done field indicates if the generator has terminated or if there are still more 'yield' expressions
+	const gen = incrementAsync();
+
+	assert.deepEqual(
+		gen.next().value,
+		call(delay, 1000),
+		'incrementAsync Saga must call delay(1000)'
+	);
+
+	assert.deepEqual(
+		gen.next().value,
+		put({ type: 'INCREMENT' }),
+		'incrementAsync Saga must dispatch an INCREMENT action'
+	);
+
+	assert.deepEqual(
+		gen.next(),
+		{ done: true, value: undefined },
+		'incrementAsync Saga must be done'
+	);
+
+	assert.end();
+});
+
+// Using Saga Helpers
+// - redux-saga provides helper effects wrapping internal functions to spawn tasks when some specific actions are dispatched to Store
+// - using takeEvery to allow multiple fetches/actions dispatched to be started concurrentlly
+// - takeLatest if you only want to get the response of the latest request fired
+// - put -> dispatch action to Store, call -> calls given function like if you want to make AJAX request
+// - if you have multiple sagas watching for different actions you can create multiple watchers with those helpers as if fork used to spawn them
+import { call, put } from 'redux-saga/effects';
+
+export function* fetchData(action) {
+	try {
+		const data = yield call(Api.fetchUser, action.payload.url);
+		yield put({ type: "FETCH_SUCCEEDED", data });
+	} catch (error) {
+		yield put({ type: "FETCH_FAILED", error });
+	}
+}
+
+import { takeEvery } from 'redux-saga/effects';
+
+function* watchFetchData() {
+	yield takeEvery("FETCH_REQUESTED", fetchData);
+}
+// - can have an Effect that allows us to start multiple sagas in background and use in parallel
+export default function* rootSaga() {
+	yield takeEvery("FETCH_USERS", fetchUsers);
+	yield takeEvery("CREATE_USERS", createUsers);
+}
+
+// Declarative Effects
+// - sagas implemented using generator functions, yield plain JS objects from generator = effects
+// - effects = object that contains some information to be interpreted by middleware, instructions to middleware
+// to perform some operation, use redux-saga/effects
+// - sagas can yield Effects in multiple forms like yielding a Promise
+// - in Generators, any expression to the right of yield is evaluated then the result is yielded to the caller
+// i.e. Api.fetch triggering Ajax request that returns a Promise
+import { takeEvery } from 'redux-saga/effects';
+import Api from './path/to/api';
+
+function* watchFetchProducts() {
+	yield takeEvery('PRODUCTS_REQUESTED', fetchProducts);
+}
+
+function* fetchProducts() {
+	const products = yield Api.fetch('/products');
+	console.log(products);
+}
+// - how do we test this?
+// -> mock out responses and check that we called Api.fetch with right arguments
+// -> using equal() to answer two most important questions every unit test must answer:
+// What is the actual output? What is the expected output?
+// -> instead of invoking async function directly, we can yield only a description of the function invocation
+// i.e. we'll simply yield and object which looks like
+// Effect -> call the function Api.fetch with ./products as argument
+const effect = {
+	CALL: {
+		fn: Api.fetch,
+		args: ['./products']
+	}
+};
+// -> yield plain Objects containing instructions and redux-saga executes thos and gives back result to Generator
+// so we only need to check that it yields the expected instruction by doing a simple deepEqual on yielded Object
+// -> we don't execute the fetch call immediately but call creates a description of the effect
+// -> call creates a plain object describing the function call to make it easier to test
+// -> we don't need to mock anything anymore
+function* fetchProducts() {
+	const products = yield call(Api.fetch, '/products');
+}
+
+import { call } from 'redux-saga/effects';
+import Api from '...';
+
+const iterator = fetchProducts();
+
+// Expects a call instruction
+assert.deepEqual(
+	iterator.next().value,
+	call(Api.fetch, '/products'),
+	"fetchProducts should yield an Effect call(Api.fetch, './products')"
+);
+// -> declarative calls to test all logic inside Saga by iterating over generator and doing deepEqual on values yielded successively
+// -> call also supports invoking object methods, can provide this context, can use apply
+// -> cps handles Node style functions - continuation passing style
+
+// Dispatching Actions
+// - using put to instruct middleware that we need to dispatch some action and let it perform real dispatch
+// so we can test by just inspecting the yielded Effect and making sure it contains correct instructions
+import { call, put } from 'redux-saga/effects';
+
+function* fetchProducts() {
+	const products = yield call(Api.fetch, '/products');
+	// create and yield a dispatch Effect
+	yield put({ type: 'PRODUCTS_RECEIVED', products });
+}
+// - test like so..
+import { call, put } from 'redux-saga/effects';
+
+
+const iterator = fetchProducts();
+
+// expects a call instruction
+assert.deepEqual(
+	iterator.next().value,
+	call(Api.fetch, '/products'),
+	"fetchProducts should yield an Effect call(Api.fetch, './products')"
+);
+
+// create a fake response
+const products = {};
+
+// expects a dispatch instruction
+assert.deepEqual(
+	// pass the fake response via Generator's next method and can mock data results here easily
+	// rather than mocking functions and spying calls
+	iterator.next(products).value,
+	put({ type: 'PRODUCTS_RECEIVED', products }),
+	"fetchProducts should yield an Effect put({ type: 'PRODUCTS_RECEIVED', products })"
+);
+
+// Error Handling
+// - can use try/catch syntax and use put for another action for failure
+import { call, put } from 'redux-saga/effects';
+
+function* fetchProducts() {
+	try {
+		const products = yield call(Api.fetch, '/products');
+		yield put({ type: 'PRODUCTS_RECEIVED', products });
+	} catch(error) {
+		yield put({ type: 'PRODUCTS_REQUEST_FAILED', error });
+	}
+}
+// -> to test failure cases we use the throw method of Generator
+import { call, put } from 'redux-saga/effects';
+
+const iterator = fetchProducts();
+
+// expects a call instruction
+assert.deepEqual(
+	iterator.next().value,
+	call(Api.fetch, '/products'),
+	"fetchProducts should yield an Effect call(Api.fetch, './products')"
+);
+// create fake error
+const error = {};
+// expects a dispatch instruction
+assert.deepEqual(
+	iterator.throw(error).value,
+	put({ type: 'PRODUCTS_REQUEST_FAILED', error }),
+	"fetchProducts should yield an Effect put({ type: 'PRODUCTS_REQUEST_FAILED', error })"
+);
+// -> rather than try/catch blocks, you can make API service return normal value with error flag on it
+//  and catch Promise rejections and map them to an object with an error field
+import { call, put } from 'redux-saga/effects';
+
+function fetchProductsApi() {
+	return Api.fetch('/products')
+		.then(response => ({ response }))
+		.catch(error => ({ error }));
+}
+
+function* fetchProducts() {
+	const { response, error } = yield call(fetchProductsApi);
+	if (response) {
+		yield put({ type: 'PRODUCTS_RECEIVED', products: response });
+	} else {
+		yield put({ type: 'PRODUCTS_REQUEST_FAILED', error });
+	}
+}
+
+// - triggering side effects from inside a Saga is always done by yielding some declarative Effect
+// (or yield Promise directly but tough to test)
+// - sequence yielded Effects, using call/put and takeEvery to have same thing as redux-thunk
 
 // Immutable.js
 // - immutable collections for JS for advanced memoization, change detection, no defensive copying
