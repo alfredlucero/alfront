@@ -37,6 +37,9 @@ http://tech.oyster.com/using-react-and-jquery-together/
 - React Router Guide
 https://reacttraining.com/react-router/web/guides/philosophy
 
+- React Router v4 Tutorial
+https://medium.com/@pshrmn/a-simple-react-router-v4-tutorial-7f23ff27adf
+
 - React/Redux Helpful Learning Resources
 https://redux.js.org/docs/introduction/LearningResources.html
 

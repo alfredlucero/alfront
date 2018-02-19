@@ -85,3 +85,180 @@ if [[ ":$BUILDKITE_BUILD_CREATOR_TEAMS:" != *":ops:"* ]]; then
   exit 1
 fi
 
+Command steps: runs one or more shell commands on an agent
+-> can run either a shell command like npm install or an executable file/script like build.sh
+Wait steps: waits for all previous steps to have successfully completed before allowing following jobs to continue
+-> - wait and then some commands after
+Block step: used to pause execution of build and wait on a team member to unblock it via the web or API
+-> i.e. https://github.com/buildkite/block-step-example
+Trigger step: creates a build on another pipeline, to separate your test and deploy pipelines or to create dependencies between pipelines
+-> have same author as parent build, user must be member of org and have verified email address; for Teams the user must have 'Build' permission on every pipeline
+steps:
+  - trigger: "another-pipeline"
+i.e.
+- trigger: "app-deploy"
+  label: ":rocket: Deploy"
+  branches: "master"
+  async: true
+  build:
+    message: "${BUILDKITE_MESSAGE}"
+    commit: "${BUILDKITE_COMMIT}"
+    branch: "${BUILDKITE_BRANCH}"
+
+Writing Build Scripts
+- running shell scripts checked in alongside code and pipeline.yml file; captures and reports log output and use exit status to mark each job and build as passed or failed
+- clean Bash prompt with no settings runs your scripts in BuildKite
+- e => exit immediately if any command returns non-zero exit status, u => if undefined variable is used, o pipefail => ensure Bash pipelines return non-zero status, x => expand and print each command before executing
+#!/bin/bash
+
+set -euo pipefail
+
+run_tests
+i.e.
+#!/bin/bash
+
+# Note that we don't enable the 'e' option, which would cause the script to 
+# immediately exit if 'run_tests' failed
+set -uo pipefail
+
+# Run the main command we're most interested in
+run_tests
+
+# Capture the exit status
+TESTS_EXIT_STATUS=$?
+
+# Run additional commands
+clean_up
+
+# Exit with the status of the original command
+exit $TESTS_EXIT_STATUS
+- can debug build script by viewing environment variables
+-> can echo $SOME_VAR or env | grep -i -E 'git|node' or set -x and then set +x before and after commands you want to debug
+-> Shellcheck shell script linter
+- Environment variables
+-> when the agent invokes your build scripts, it passes in a set of standard BuildKite environment variables along with any you defined in build config
+and you can use these in your build steps and agent hooks
+i.e. 
+BUILDKITE_REPO, BUILDKITE_COMMIT, BUILDKITE_MESSAGE, etc.
+-> can define your own with pipeline settings for values that are not secret, build pipeline configuration for values that are not secret
+-> can define environment or pre-command agent hook for values that are secret or agent-specific
+
+Using Build Artifacts
+- to store and retrieve files between different steps in a build pipeline
+-> "Artifact Uploading" pattern or use buildkie-agent artifact command so you can download artifact in subsequent build steps even if build step
+is running on different build server
+-> download artifacts created by a build job using buildkite-agent artifact download command
+
+Using Build Metadata
+- can set meta-data like buildkite-agent meta-data set "release-verson" "1.1"
+- or get data like buildkite-agent meta-data get "release-version"
+
+Parallel builds
+- to decrease your build's total running time, can set parallelism field for single build step to have parallel jobs
+steps:
+  - command: "test.sh"
+    label: "Tests %n"
+    parallelism: 5
+- can run multiple build jobs on a single machine as the agent runs each build in its own checkout directory
+- can use built-in Docker Compose supports which will run each job inside a set of completely isolated Docker containers
+- can use auto-scaling build agents like Elastic CI Stack for AWS
+
+Controlling Concurrency
+- like for deployments, app releases, infrastructure tasks
+- concurrency limits and concurrency groups
+- limits: define number of jobs that are allowed to be running at any one time, set per-step and only apply to jobs based on that step
+- groups: labels that can be used to group together BuildKite jobs when applying concurrency limits
+i.e. deploys run one at a time, if multiple builds created with this step, each deployment job queued up and run one at a time in order they were created
+- command: 'deploy.sh'
+  label: ':rocket: Deploy production'
+  branches: 'master'
+  agents:
+    deploy: true
+  concurrency: 1
+  concurrency_group: 'our-payment-gateway/deploy'
+
+Containerized Builds with Docker
+- built-in support for running your builds in Docker containers
+- allows each pipeline to define and document its testing environment, simplify build servers, and provides build isolation when parallelizing your build
+- use Docker Compose as it allows each pipeline to define its own docker-compose.yml with dependent containers and environment variables to be passed through
+i.e. can run docker-compose run app script/tests
+version: '2'
+services:
+  app:
+    build: .
+    volumes:
+      - .:/go/src/github.com/buildkite/agent
+      - /usr/bin/buildkite-agent:/usr/bin/buildkite-agent
+    environment:
+      - BUILDKITE_AGENT_ACCESS_TOKEN
+      - BUILDKITE_JOB_ID
+      - BUILDKITE_BUILD_ID
+      - BUILDKITE_BUILD_NUMBER
+      - GITHUB_RELEASE_ACCESS_TOKEN
+      - DOCKER_HUB_TRIGGER_TOKEN
+- need to add buildkite-agent to docker group; recommend docker-gc to clean up images
+- to support running builds for pipelines that only need a single container and Dockerfile to run, can use plain Docker
+
+Scheduled Builds
+- automatically create builds at specified intervals
+
+BuildKite agent
+- small, reliable and cross-platform build runner
+- polls buildkite.com for work, running build jobs, reporting back the status code and output log of job, uploading job's artifacts
+- hooks to extend built-in agent behavior like environment hook to export secret API keys as environment variables or command hook to run
+pipeline's steps inside a cusotm containerized environment, checkout, pre/post-artifact, pre-Exit
+-> hooks are bash scripts you can use to execute commands and export environment variables
+#!/bin/bash
+
+set -eu
+
+echo '--- :house_with_garden: Setting up the environment'
+
+export GITHUB_RELEASE_ACCESS_KEY='xxx'
+-> can set pipeline hooks inside .buildkite/hooks
+- queues to isolate set of jobs and/or agents 
+- using environment hooks for making secrets available to build scripts and can check which build steps have which secrets exposed by checking
+value of $BUILDKITE_COMMAND
+#!/bin/bash
+set -euo pipefail
+
+echo '--- :house_with_garden: Setting up the environment'
+
+if [[ "${BUILDKITE_COMMAND}" == "script/release" ]]; then
+  export RELEASE_KEY=`vault get release-key`
+fi
+- can use your own private AWS S3 bucket to store artifacts and set environment variables with environment agent hook
+export BUILDKITE_ARTIFACT_UPLOAD_DESTINATION="s3://name-of-s3-bucket/$BUILDKITE_JOB_ID"
+export BUILDKITE_S3_DEFAULT_REGION="us-west" # default: us-east-1
+-> need to have IAM policy to read and write objects in bucket
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:GetObjectAcl",
+                "s3:GetObjectVersion",
+                "s3:GetObjectVersionAcl",
+                "s3:ListBucket",
+                "s3:PutObject",
+                "s3:PutObjectAcl",
+                "s3:PutObjectVersionAcl"
+            ],
+            "Resource": [
+               "arn:aws:s3:::my-s3-bucket",
+               "arn:aws:s3:::my-s3-bucket/*"
+            ]
+        }
+    ]
+}
+-> can also export BUILDKITE_S3_ACCESS_KEY_ID and BUILDKITE_S3_SECRET_ACCESS_KEY containing Access key credentials for IAM user if running
+outside of AWS
+-> by default public-read permissions but can make private with export BUILDKITE_S3_ACL="private"
+
+Webhooks
+- monitor and respond to events within your BuildKite organization and allows you to integrate BuildKite into your systems
+-> HTTP headers like X-Buildkite-Event, X-Buildkite-Token; JSON encoded event data in request body
+-> can listen to agent/build/job/ping events
+-> integrations with tools such as AWS Lambda

@@ -2850,7 +2850,7 @@ ReactDOM.render(
 // -> can use react-axe (accessibility engine) to run accessibility tests and report to console
 // -> test screen readers such as NVDA in Firefox, VoiceOver in Safari, JAWS in IE
 
-// React Router Notes
+// React Router v4 Notes
 // - Before we had static routing and declared routes as part of app's initialization before any rendering like Rails, Express,
 // Ember, Angular, etc. - and so was React Router pre-v4
 // - Dynamic routing: takes place as app is rendering, not in config/convention outside of running app, almost everything is component
@@ -3401,6 +3401,56 @@ ReactDOM.render(
 	</Provider>,
 	document.getElementById('root')
 );
+
+// What does <Route> render?
+// - component = React component, returns new element through React.createElement
+// - render = function that returns a React element, useful for inline rendering and passing extra props to element
+// - children = function that returns a React element, always rendered regardless of whether or not the route's path matches current location
+<Route path='/page' component={Page} />
+
+const extraProps = { color: 'red' };
+<Route path='/page' render={(props) => (
+	<Page {...props} data={extraProps}/>
+)}/>
+
+<Route path='/page' children={(props) => (
+	props.match
+		? <Page {...props} />
+		: <EmptyPage {...props}/>
+)}/>
+// - match object has url, path, isExact, params properties when route's path matches
+// - for nested routes, can group routes that share a common prefix in same component to allow for simpler
+// parent routes
+// - /roster/:number -> stored in match.params.number
+// - <Link> component to prevent page reload and go to other routes/update URL without reloading page
+
+// Sample Authorized Route component
+class AuthorizedRoute extends React.Component {
+	componentWillMount() {
+		// network request to get logged in status and put stuff into Redux state
+		getLoggedUser();
+	};
+
+	render() {
+		const { component: Component, pending, logged, ...rest } = this.props;
+		return (
+			<Route {...rest} render={props => {
+				if (pending) return <div>Loading...</div>
+				return logged
+					? <Component {...this.props} />
+					: <Redirect to="/auth/login" />
+			}} />
+		);
+	}
+}
+
+const stateToProps = ({ loggedUserState }) => ({
+	pending: loggedUserState.pending,
+	logged: loggedUserState.logged
+});
+
+export default connect(stateToProps)(AuthorizedRoute);
+
 
 // Redux Documentation Notes 
 // - predictable state container for JS apps, live code editing combined with time traveling debugger
@@ -4913,3 +4963,80 @@ assert.equal(list2.size, 6);
 // - Seq describe a lazy operation, allowing them to chain use of all higher-order collection methods by
 // not creating intermediate collections
 // -> immutable, lazy; i.e. Range
+
+
+// Reselect
+// - memoized selector function composed of selectors that returns something you want in your component's props
+import { createSelector } from 'reselect';
+
+// selector
+const getBar = (state) => state.foo.bar;
+
+// reselect function, won't work if needed in multiple places
+export const getBarState = createSelector(
+	[ getBar ],
+	//  function called with selectors as arguments
+	(bar) => bar
+);
+
+// i.e. component file
+// -> in Redux, whenever an action is called, all mounted and connected components call their mapStateToProps function
+// and Reselect returns memoized result if nothing has changed
+import React from 'react';
+import { connect } from 'react-redux';
+import { getBarState } from '../selectors';
+
+const mapStateToProps = (state) => {
+	return {
+		// rather than state.foo.bar
+		bar: getBarState(state)
+	};
+};
+
+class Thing extends React.Component {
+
+}
+
+export default connect(mapStateToProps)(Thing);
+
+// -> in real world, likely need same part of state object in multiple components so you need to create a selector
+// function that can be used on multiple instances of same component at same time while being properly memoized
+// -> to properly memoize a selectorFunction, it cannot be written in same way and mapStateToProps must also change
+// -> need to create a new instance of your selector function every time it is needed for proper memoization on multiple components
+// and you can change selectorFunction to be anonymous function that returns selectorFunction
+import { createSelector } from 'reselect';
+
+// generic selector to find bar by props id
+const getBar = (state, props) => {
+	const id = props.id;
+	const barById = state.foo.bar.find((item, i) => item.id === id);
+	return barById;
+};
+
+// works if needed in multiple places
+export const makeGetBarState = () => createSelector(
+	[ getBar ],
+	(bar) => bar
+);
+
+import React from 'react'
+import { connect } from 'react-redux'
+import { makeGetBarState } from '../selectors'
+// remember, mapStateToProps can have the component's
+// props as the second argument
+// but now we need to modify this method to allow for a new
+// instance of our makeGetBarState function, which returns a 
+// memoized selector 
+const makeMapStateToProps = () => {
+ const getBarState = makeGetBarState()
+ const mapStateToProps = (state, props) => {
+   return {
+      bar: getBarState(state, props)
+   }
+  }
+ return mapStateToProps
+}
+class Thing extends React.Component {
+  ...
+}
+export default connect(makeMapStateToProps)(Thing)
