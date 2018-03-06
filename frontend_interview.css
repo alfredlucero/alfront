@@ -1,0 +1,297 @@
+/* 
+ * Frontend Interview Notes for All Things CSS 
+ * - Cascading Style Sheets: stylesheet language to describe presentation of document written in HTML or XML
+ * - describes how elements should be rendered, standardized across browsers according to W3C spec and developed in levels like CSS3
+ */
+
+/*
+ * I. CSS Box Model
+ * - browser's rendering engine represents each element in document as rectangular box according to CSS basic box model
+ * - every box composed of four parts defined by respective edges: content edge, padding edge, border edge, and margin edge
+ * - content area bounded by content edge contains things like text, image, or video player and dimensions are content width/height
+ * and it may have background color or background image
+ * -> if box-sizing is set to context-box (default), content area's size can be defined with width/min/max-width or height/min/max-height
+ * - padding area bounded by padding edge extends content area to include element's padding (padding-box width/height) and when content area
+ * has background, it extends into padding
+ * - border area bounded by border edge and extends padding area to include element's borders (border-box width/height)
+ * -> thickness of borders determined by border-width and shorthand border properties
+ * -> if box-sizing property set to border-box, border area's size can be explicitly defined with min/max width and min/max height
+ * - margin area bounded by margin edge extends border area to include empty area used to separate elment from its neighbors (margin-box width/height)
+ */
+
+/* 
+ * II. CSS Cascade
+ * - cascade: algorithm that defines how to combine property values originating from different sources
+ * - only CSS declarations (property/value pairs) participate in cascade, meaning that at-rules containing entities other than
+ * declarations such as a @font-face rule containing descriptors do not participate
+ * -> declarations in most at-rules like @media, @document or @supports participate but declarations in @keyframes don't and only at-rule as whole is selected
+ * - goal is to select CSS declarations to set the correct value for CSS properties
+ * -> browser has basic style sheet that gives a default style to any document = user-agent stylesheets
+ * -> web developers often use a CSS reset style sheet to force common propertie values to a known state as browsers may have many differences on their user-agent styles
+ * -> author of web page defines styles for document; reader may have custom stylesheet to tailor its experience
+ * - though stylesheets come from different origins, they overlap in scope
+ * - algorithm determines how to find value to apply for each property for each document element
+ * 1. filters all rules from different sources to keep only rules that apply to a given element like those rules whose selector matches
+ * given element and which are part of an appropriate media at-rule
+ * 2. sorts rules according to their importance (whether or not followed by !important) and by origin;
+ * cascade is in ascending order which means !important values from user-defined style sheet have precedence over normal values from user-agent style sheet
+ * i.e. user agent, user, author, CSS animations, author !important, user !important, user agent !important
+ * 3. in case of equality, the specificity of a value is considered to choose one or the other (how browsers decide which CSS property values are most relevant to an element
+ * and therefore applied, based on matching rules and number of each selector type in the matching selector)
+ * i.e. if equal specificity, last declaration found applied to element; specificity applied when same element targeted by multiple declarations
+ * directly targeted elements will always take precedence over rules which an element inherits from its ancestor
+ * -> can take advantage of specificity when global CSS file affects site, you inline styles on elements themselves
+ * -> 0: type selector (h1) and pseudo-elements (::before), 1: class selectors (.example), attributes selectors ([type="radio"]), pseudo-classes (:hover),
+ * and 2: ID selectors (#example)
+ * -> universal selector (*) and combinators (+, >, ~, ' ') and :not() with no effect on specificity
+ * -> inline styles added to an element always overwrite any styles in external stylesheets and has highest specificity
+ * - @keyframes never mix multiple CSS values together
+ */
+
+/*
+ * III. Basic Usage
+ * - can be included in HTML file like <link href="styles/style.css" rel="stylesheet" type="text/css"> between <head> tags
+ * or in <style> tags or inline with style attribute in HTML elements like style="...some styles"
+ * - create rules like for a selected group of elements with certain style declarations
+ * -> selector: selects the elements to be styled; declaration: single rule like color: blue; that specifies which of element's
+ * properties you want to style; rule set wrapper in curly braces, semicolons to separate each declaration
+ */
+.selector {
+  color: blue;
+}
+
+/*
+ * IV. CSS Selectors
+ * - element selector (or tag/type selector): selects all HTML elements of the specified type
+ * i.e. p selects all <p> tags
+ * - ID selector: selects element on page with specified ID (only allowd one element per ID)
+ * i.e. #my-id selects element with id="my-id"
+ * - Class selector: selects elements on page with specified class (mutiple class instances can appear on page)
+ * i.e. .my-class selects all ements with class="my-class"
+ * - Attribute selector: selects elements with specified attribute
+ * i.e. img[src] selects <img src="myimage.png"> but not <img> or selecting data-* attributes like [data-role=submit]
+ * - Pseudo-class selector: selects specified elements but only when in specified state like being hovered over
+ * i.e. a:hover selects <a> only when mouse pointer is hovering over link
+ * - Combinators
+ * -> not a combinator like group of selectors A, B - any element matching A and/or B
+ * -> descendant: A B - any element matching B that is a descendant of element matching A aka child or child of a child
+ * -> child selector: A > B - any element matching B that is direct child of an element matching A
+ * -> adjacent sibling: A + B - any element matching B that is the next sibling of an element matching A (next child of same parent)
+ * -> general sibling selector: A ~ B - any element matching B that is one of the next siblings of an element matching A (one of next children of same parent)
+ */
+main p {
+  font-size: 16px;
+}
+
+/*
+ * V. CSS Pseudo-classes and Pseudo-elements
+ * Pseudo-class: keyword added to a selector that specifies a special state of the selected elements, use single colon
+ * - i.e. :hover to change button color on user hover
+ * - can also style in relation to external factors like history of navigator with links i.e. :visited
+ * or status of content like :checked on form elements or nth-child like :first-child, :first-of-type
+ * - more examples like nth-child(), nth-of-type(), :active(), :focus(), etc.
+ * Pseudo-elements: can be used to style a specific part of an element, use double colon
+ * - i.e. p::first-line to change font of first line of paragraph, ::after, ::before, ::first-letter, ::placeholder, etc.
+ */
+div:hover {
+  background-color: #ffffff;
+}
+
+/*
+ * VI. CSS Layouts
+ * - multi-column layout module: extends the block layout mode to allow the easy definition of multiple columns of text
+ * -> can use column-count (sets number of columns to a particular number) and column-width (minimum desired column width)
+ * -> content automatically flowed from one column into the next as needed
+ * -> shorthand columns property; column heights must be balanced, can set height/max-height
+ * -> column-gap for space between columns, recommended 1em
+ * -> for graceful degradation: should use vendor prefixes for -moz, -webkit, and without prefix for backwards compatibility, will display as single column
+ * if not supported
+ * - inline layout for laying out text
+ * - table layout for laying out tables
+ * - positioned layout for positioning elements without much interaction with other elements
+ * - flexible box layout for laying out complex pages that can be resized smoothly (flexbox)
+ * -> designed as a one-dimensional layout and to provide space distribution between items and alignment capabilities
+ * -> two axes: main axis (defined by flex-direction) and cross axis (runs perpendicular)
+ * -> flex-direction: row, row-reverse, column, column-reverse; row = inline direction, column - block direction
+ * - grid layout for laying out elements relative to a fixed grid
+ */
+/* Multi-columns */
+#col {
+  -moz-column-count: 2;
+  -webkit-column-count: 2;
+  column-count: 2;
+}
+
+#wid {
+  -moz-column-width: 100px;
+  -webkit-column-width: 100px;
+  column-width: 100px;
+}
+
+#columns_4 {
+  -moz-columns: 4;
+  -webkit-columns: 4;
+  columns: 4;
+}
+
+/*
+ * VII. CSS Position
+ * - float CSS property: specifies that an elements should be replaed along the left or right side of its container, allowing
+ * text and inline elements to wrap around it; element removed from normal flow of web page but still part of document
+ * -> i.e. none, left, right, inline-start, inline-end; implies use of block layout
+ * -> clear: specifies whether an element can be next to floating elements that precede it or must be moved down (cleared) below them
+ * i.e. when applied to non-floating blocks, moves border edge of element down until below margin edge of all floats
+ * i.e. when applied to floating elements, moves margin edge of element below margin edge of all relevant floats (affects position of later floats since
+ * later floats cannot be positioned higher than earlier ones)
+ * - margin collapsing: top and bottom margins of blocks are sometimes combined (collapsed) into a single margin whose size is the largest of the individual margins
+ * -> occurs with adjacent siblings, parent and first/last child, empty blocks
+ * - z-index: specifies z-order of positioned element and its descendants; when elements overlap, z-order determines which one covers the other
+ * -> element with larger z-index generally covers an element with a lower one
+ * - position: relative, absolute, fixed, or sticky (anything but static)
+ * -> relative: top and bottom properties specify vertical offset from its normal position; left and right horizontal offset
+ * -> absolute: top, right, bottom, and left specify offsets from edges of element's containing block (ancestor to which the element is relatively positioned);
+ * adds margins to offset, removed from normal document flow and no space created for element in page layout
+ * -> fixed: relative to html document/window, removed from normal document flow, no space created for element in page layout
+ * -> sticky: relatively positioned until its containing block cross a specified threshold such as setting top to value other than auto within its flow root or the container it scrolls within
+ * -> absolutely positioned elements that have height and width set to auto are sized to fit their contents
+ */
+/* Dealing with floats: takes up space until filling the containing box and then wrap to next line
+  -> may need to force an item to move below any floated elements like headings on their own line so you need to use clear
+*/
+.left {
+  float: left;
+  background: pink;
+}
+
+.right {
+  float: right;
+  background: cyan;
+}
+/* if element only has floated elements, height collapses to nothing so you need to self-clear its children with a clearfix */
+#container::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+/* Using z-index */
+.dashed-box {
+  position: relative;
+  z-index: 1;
+}
+
+.top-box {
+  position: absolute;
+  z-index: 2;
+}
+
+/* 
+ * IX. CSS Animations 
+ * - animation property to animate CSS properties like color, background-color, height, width
+ * - needs to be defined with @keyframes at-rule; tells what should happen at specific moments
+ */
+.element {
+  animation: pulse 5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #595959;
+  }
+  100% {
+    background-color: #ffffff;
+  }
+}
+/*
+ * - 8 sub-properties of animation
+ * 1. animation-name: name of @keyframes at-rule
+ * 2. animation-duration: length of time it takes for animation to complete one cycle
+ * 3. animation-timing-function: establishes preset acceleration curves such as ease or linear
+ * 4. animation-delay: time between element being loaded and start of animation sequence
+ * 5. animation-direction: sets direction of animation after cycle; default resets on each cycle
+ * 6. animation-iteration-count: number of times animation should perform
+ * 7. animation-fill-mode: sets which valules applied before/after animation
+ * 8. animation-play-state: pause/play animation
+ * - can have multiple steps and can comma-separate shared properties in keyframes rule like 0%, 100% { ...some styles... }
+ * - can have multiple animations and comma-separate them on a selector
+ * - performance is a concern though one can animate transform: translate()/scale()/rotate() and opacity safely
+ * - typically animated properties are colors and numbers but one cannot animate things like background-image
+ * - may need vendor prefixes like -webkit-animation/-moz-animation/-o-animation for older browsers
+ */
+@keyframes stretch {
+  /* declare animation actions here */
+}
+
+.element {
+  animation-name: stretch;
+  animation-duration: 1.5s;
+  animation-timing-function: ease-out;
+  animation-delay: 0s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+  animation-fill-mode: none;
+  animation-play-state: running;
+}
+
+/*
+  is the same as:
+*/
+
+.element {
+  animation: stretch 1.5s ease-out 0s alternate infinite none running;
+}
+
+/*
+ * X. Dealing with Images
+ * 1. CSS Sprites: means of combining multiple images into a single image file for use on a website to help with performance
+ * - get image once, shift it around and only display parts of it to avoid overhead of having to fetch multiple images
+ * - several images can be loaded with single HTTP request; browsers limit number of concurrent requests a site can make and HTTP requests require
+ * handshaking; important for same reason one minifies and concatenates CSS and JS
+ * - once you have sprite can set background image and adjust background-position and dimensions to only show the piece of image that you want
+ * 2. Data URIs: can embed image directly into stylesheet and avoids additional HTTP requests for images
+ * - i.e. url(data:image/gif;base64,...); data:[<mime type>][;charset=<charset>][;base64],<encoded data>
+ * - don't work in IE 5-7 but supported in IE8, GZip compression may help with size of embedded code
+ * - may still be slower than just using binary source link like <img> tag with src attribute
+ * 3. Icon Fonts: also combine multiple images into single request
+ * 4. SVGs: image format for vector graphics (Scalable Vector Graphics)
+ * - why use this? small file sizes that compress well, scales to any size without losing clarity, looks great on retina displays, design control like interactivity and filters
+ * - can use it directly in <img> tag; works everywhere except IE8 and down
+ * - if not supported, can just change the src to a png/jpg file like <img src="image.svg" onerror="this.onerror=null; this.src='image.png'">
+ * - may be bloated as well in the document and inability to cache like data URI
+ */
+
+/*
+  * XI. CSS Preprocessors
+  * 1. Sass: takes preprocessed Sass file and save it as normal CSS file to use in wesite
+  * - variables like $font-stack: Helvetica, sans-serif;, nesting of CSS selectors, partials (contains little snippets of CSS that you can include in other Sass files) used
+  * with @import directive and named like _partial.scss, import (creates another HTTP request for each one but eventually serve a single CSS file to browser),
+  * mixins (groups of CSS declarations that you can reuse throughout your site like vendor prefixes), extend/inheritance to share a set of CSS properties from one selector to another,
+  * and operators
+  * 2. Less (Leaner Style Sheets): backwards-compatible language extension for CSS
+  * - variables like @nice-blue: #5B83AD;, mixins (including bunch of properties from one rule-set into another rule-set)
+  * i.e. #menu a { color: #111; .bordered; }, nesting of styles to mimic structure of HTML; nested at-rules and bubbling, arithmetic operations,
+  * using escaping to allow you to use any arbitrary string as property or variable value, functions, namespace and accessors, scopes for variables, comments,
+  * and importing like @import "library"
+  * 3. PostCSS: transform styles with JS plugins; can lint CSS, support variables and mixins, transpile future CSS syntax, inline images
+  * i.e. Autoprefixer, plugins to solve global CSS, future CSS, readability, images and fonts, linting
+  */
+
+/*
+ * XII. CSS Naming Conventions
+ * 1. Block, Element, Modifier (BEM): way to name your classes
+ * - .block {}, .block__element {} (helps to form block as a whole), .block--modifier (modifies element or block)
+ * - don't try to mimic the DOM tree and go so many levels deep otherwise it's too verbose with class names
+ * (nested HTML elements are a DOM tree, names of classes you write are BEM-tree)
+ * 2. Object Oriented CSS (OOCSS): keeping structure and skin separate, separating container and content
+ * - reusing visual classes like having general .button element and adding more styles later
+ * - rarely use location-dependent styles, don't cascade but go straight into object i.e. .list-item rather than ul li.list-item
+ * 3. Scalable and Modular Architecture for CSS (SMACSS): more styleguide than rigid framework
+ * - having base, layout, module, state, and theme rules; changing state
+ * 4. Atomic CSS (ACSS): only use reusable classes like .mt-20 (margin-top 20), .fl (float left), one declaration per selector
+ * - putting styling back to markup, can't affect layout anymore with media queries however but would have to send different markup for every device
+ * or would have to do something like JS responsive elements which adds classes to elements depending on viewport width
+ * - creating utility classes to sprinkle throughout
+ */
+
+/* 
+ * XIII. CSS Practice Layouts
+ */

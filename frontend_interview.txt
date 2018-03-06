@@ -1,0 +1,51 @@
+Algorithms, Data Structures and Big O Complexity:
+
+- Sorting (searching and binary search)
+
+- Divide and Conquer
+
+- Dynamic Programming and Memoization
+
+- Greedy 
+
+- Recursion (and backtracking)
+
+- Breadth first search
+
+- Depth first search
+
+- Dijkstra
+
+- A*
+
+- Data Structures (arrays, linked lists, stacks, queues, 
+hash sets, hash maps, hash tables, dictionary, trees, binary trees, heaps, graphs)
+
+High Level JavaScript:
+
+
+Web Security Issues:
+
+- XSS
+
+- XSRF
+
+- Using JWT
+
+Web Performance Issues:
+
+- Code splitting for smaller bundler sizes
+
+- Compressing and Minifying assets
+
+- Progressive Web Apps (using service workers to cache assets and have an offline experience)
+
+- Using a Content Delivery Network to cache assets at edge locations in different regions
+
+Local Storage:
+
+Cookies:
+
+REST API:
+
+

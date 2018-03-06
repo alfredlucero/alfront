@@ -1,0 +1,165 @@
+<!-- 
+  Frontend Interview Notes for All Things HTML
+  Source: https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML
+  - World Wide Web (WWW, W3): interconnected system of public webpages accessible through Internet, one of many applications on it
+  -> HTTP protocol that governs data transfer between server and client
+  -> client supplies unique universal identifier called URL (uniform resource location) or URI (uniform resource identifier)
+  -> HTML (hypertext markup language) to publish web documents
+  -> Linking or connecting sources through hyperlinks
+  - Block elements form a visible block on a page, appear on a new line and any content that goes after will also appear on a new line
+  i.e. p, div
+  - Inline elements those contained within block-level elements and surround only small parts of the document's content, not entire paragraphs or groupings
+  of content, will not cause a new line to appear in document i.e. a, em, strong, span
+  - Specify attributes: extra information about element which you don't want to appear in actual content
+  i.e. class, style, data-role, href, title, target
+  i.e. boolean attributes like disabled, checked
+  - <!DOCTYPE html> = shortrest string of characters that counts as valid doctype for HTML files
+  - <html> wraps all content on entire page, root element
+  - <head> acts as container for all stuff you want to include on HTML page that isn't content like keywords, page description for search results,
+    CSS to style content
+  - <meta charset="utf-8"> sets characterset your document should use to UTF-8 (most human written languages)
+  - HTML parser reduces whitespace to single space when rendering code; add whitespace for code readability
+  - special characters in HTL like &lt/gt/quot/apos/amp;
+  - <meta> data that describes data about document
+  i.e. <meta name="author" content="Alfred Lucero">
+-->
+<div>
+  <p>Block level <span>Inline elements</span></p>
+</div>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  
+</body>
+</html>
+
+<!-- 
+  HTML5 Semantics
+  Source: https://www.hongkiat.com/blog/html-5-semantics/
+  - Semantics: study of meaning and branch of logic and linguistics
+  -> when computers understand the structure of a document and roles of elements inside it
+  -> leads to more searchable content (better SEO), increases accessibility (ARIA) like for screen 
+  -> separate HTML elements have their distinguishable structural roles apparent to browser and developer
+  -> i.e. semantic elements before HTML5: <form>, <img>, <table>, <ol>, <ul>, <p>, <h1-6>
+  -> non-semantic elements (no special meaning, illusory hierarchical relationships but used to style groups of content): <div>, <span>
+  - Text Semantics: <strong>, <em>, <time> (human-readable date-times), <mark> (highlighted text)
+  - Document Outline: <section> (sections grouped around a specific theme), <article> (complete or self-contained compositions like blog post or widget),
+    <nav> (navigation blocks), <aside> (complementary content such as sidebars), <body>
+  -> every sectioning element (body, article, section, nav, and aside) can have its own <header> and <footer>
+  - Tips: outermost sectioning element is always <body>, sections in HTML5 can be nested, each section has its own heading hierarchy,
+    first heading element defines heading of given section (other ones relative to this)
+  -> <nav> and <aside> tags don't belong to main outline of HTML document and usually not rendered by assistive technologies
+  -> each section (body, section, article, aside, nav) can have their own <header> and <footer> tags
+  -> have a header for each section
+  - using Outliner tool of html5.org you can see how search engines see it and screen readers read it to visually impaired users; should be
+  semantic, well-structured and no nasty "Untitled" sections in it
+  - follow WAI-ARIA accessibility protocol
+-->
+<body>
+  <header>
+    <h1></h1>
+    <p></p>
+  </header>
+  
+  <nav>
+    <header>
+      <h2></h2>
+    </header>
+    <ul>
+      <li></li>
+      <li></li>
+      <li></li>
+    </ul>
+  </nav>
+  
+  <article>
+    <header>
+      <h1></h1>
+      <h2></h2>
+    </header>
+    
+    <section>
+      <h3></h3>
+      <p></p>
+
+      <h4></h4>
+      <p></p>
+    </section>
+    
+    <section>
+      <h3></h3>
+      <p></p>
+      <p></p>
+    </section>
+    
+    <footer>
+      <h4></h4>
+      <p></p>
+    </footer>
+  </article>
+
+  <aside>
+    <h2></h2>
+    
+    <section>
+      <h3></h3>
+    </section>
+    
+    <section>
+      <h3></h3>
+    </section>
+  </aside>
+
+  <footer>
+    <ul>
+      <li></li>
+      <li></li>
+    </ul>
+  </footer>
+</body>
+
+<!-- 
+  ARIA Web Standards and HTML Apps Accessibility
+  Source: https://www.hongkiat.com/blog/aria-web-standards/
+  - ARIA: Accessible Rich Internet Applications that users with disabilities can efficiently user
+  -> published by Web Accessibility Initiative (WAI), additional markup required, cross-platform
+  - helps to define the purpose of different elements with help of landmark roles and describe nature
+  with aria-prefixed attributes
+  -> two types: properties that describe features less likely to change throughout page lifecycle,
+  and states that provide information about things tha tmay frequently change due to user interaction
+  - landmark roles to identify large perceivable regions on web page that assistive tech users may want to quickly access
+  -> role="banner": content related to entire site i.e. main header of site for logo or site-wide information, use only once
+  -> role="main": main content of document, use only once i.e. <main role="main">
+  -> role="navigation": links and lists on site, navbar
+  -> role="complementary": additional content related to main content of site, needs to be on similar level in DOM hierarchy as role="main"
+  i.e. related posts, articles, comments
+  -> role="contentinfo": informs user agents about presence of region where different kinds of metadata like copyright info,
+  legal and privacy statements can be found i.e. used for footer of site
+  -> role="form": form waiting for user input; search forms should use role="search"
+  -> role="search": search functionality
+  -> role="application": declare region as web app rather than web doc, not recommended to include this in websites as it switches
+  from normal browsing mode to application browsing mode
+  - roles help with defining the meaning of HTML tags; states and properties provide user with extra information on how to interact with the
+  -> aria-prefixed attributes with syntax aria-* i.e. aria-required (permanent feature of input element and user must fill in, aria-checked for 
+  checkboxes frequently changing value due to user interaction
+  -> some may take token values (limited set of predefined values like aria-live), others may take strings, numbers, integers, ID refs, booleans
+  -> build relationships between elements with relationship attributes
+  i.e. aria-labelledby
+  -> synchronize states and properties with element's lifecycle
+  -> match visual and accessible interfaces i.e. selecting options in a form and using aria-selected
+  - don't overuse ARIA: when using semantic tags of HTML5 like <button> or <form>, modern web browsers add appropriate ARIA semantics by default
+    and makes no sense to separately set ARIA landmark roles i.e. no need to do <form role="form">,
+    no need to use HTML's native attributes along with appropriate ARIA attribute like hidden HTML attribute to a form input doesn't need aria-hidden
+-->
+<nav role="navigation"></nav>
+<main role="main" aria-labelledby="some-id">
+  <h1 id="some-id"></h1>
+</main>
+<option value="value" aria-selected="true"></option>

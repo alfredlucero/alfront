@@ -431,3 +431,168 @@ and specifies ARN for the IAM role, app can now access DynamodDB from between 15
 -> not idempotent which means counter will increment each time you call UpdateItem, retrying could risk updating counter twice (banking app needs conditional update rather than atomic counter for like site visitor count)
 - if you need to read multiple items you can use BatchGetItem API and a single BatchGetItem request can retrieve up to 1MB of data which can contain as many as 100 items and can retrieve from multiple tables
 
+Notes for https://serverless-stack.com:
+What is serverless?
+- before charged with keeping server up even when not serving any HTTP requests, applying security updates,
+scaling of resources
+- serverless lets us build applications where we hand cloud provider like AWS our code and runs it for us;
+we are charged for time it took for our code to execute and resources it consumed; runs in secured environment and may create
+more instances to handle spikes in requests
+- cloud provider handles requests and send us object with relevant info; requests treated as event and code is simply a function
+that takes this as input
+- AWS Lambda: write functions that repond to these events and when user makes a request, cloud provider creates a container and runs our
+function inside it (i.e. two concurrent requests => two separate containers respond to requests)
+// event provides information about event that triggered it like HTTP request, charged for every 100ms it uses and automatically
+// scales to respond to usage; runtime comes with 512MB of ephemeral disk space and 3008MB of memory
+exports.myHandler = function(event, context, callback) {
+  // Do stuff
+  // Error object and result object
+  callback(Error error, Object result);
+}
+- serverless apps favored over traditional server hosted apps due to low maintenance and cost and easy to scale
+-> paying per request and only concerned about your code
+1. create AWS account
+
+2. create an IAM user (Identity and Access Management) - enables you to manage users and user permissions in AWS
+i.e. need to create one or more users for someone who needs access to console or when new app needs to make API calls to AWS
+- we create one account for AWS CLI and serverless framework to connect to AWS API directly and not use management console
+- IAM - helps with security control access for AWS services, controlling who can use your AWS resources (authentication) and what resources
+they can use and in what ways (authorization)
+-> you are root user when you first create AWS account; IAM user for when you are not the only person working in your account and you don't want
+to give root credentials
+-> IAM user consists of name, password to sign into AWS Management Console and up to two access keys that can be used with API or CLI
+-> by default users can't access anything in your account but you grant permissions to user by creating policy and attaching policy to user to 
+restrict what they can and cannot access
+- IAM policy: rule or set of rules defining the operations allowed/denied to be performed on AWS resource
+i.e. managed policy (pre-defined ones like AmazonS3ReadOnlyAccess)
+inline policy = custom polciy created by hand
+adding user to group that has appropriate permission policies attached
+cloning permission of existing IAM user
+i.e. policy granting all operations to all S3 buckets
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "s3:*",
+    "Resource": "*"
+  }
+}
+-> policies depend on the resource ARN for Resource property: identifier for a resource in AWS;
+service actions - Action and condition context keys - Condition properties
+- sometimes AWS resources need access to other resources in account like Lambda function that queries DynamoDB to retrieve
+some data (and Lambda function should only make read queries)- we need IAM role to be secure: identity with permission policies
+that determine what the identity can and cannot do in AWS; doesn't have any credentials (password or access keys) associated with it
+-> IAM role can be taken by anyone who needs it so Lambda function assigned role to temporarily take on the permission; can be 
+applied to users as well and can be re-used to anybody else; can also have role tied to the ARN of user from different organization to
+allow the external user to assume the role as part of your organization like third party service acting on your AWS organization
+(Cross-Account IAM Role and add external as Trust Relationship)
+- IAM Group: collection of IAM users, specify permissions for collection of users i.e. admins group
+- ARN (Amazon Resource Names) uniquely identify AWS resources
+-> formats like this:
+arn:partition:service:region:account-id:resource
+arn:partition:service:region:account-id:resourcetype/resource
+arn:partition:service:region:account-id:resourcetype:resource
+i.e.
+<!-- IAM user name -->
+arn:aws:iam::123456789012:user/David
+<!-- Amazon RDS instance used for tagging -->
+arn:aws:rds:eu-west-1:123456789012:db:mysql-db
+<!-- Object in an Amazon S3 bucket -->
+arn:aws:s3:::my_corporate_bucket/exampleobject.png
+-> used for communication so you can reference specific resource when orchestrating a system that involves multiple AWS
+resources like API Gateway listening for RESTful APIs and invoking corresponding Lambda function based on API path and request method
+i.e. GET /hello_world => arn:aws:lambda:us-east-1:123456789012:function:lambda-hello-world
+-> used in IAM policy to define which resource like S3 bucket the access is granted for
+i.e.
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": ["s3:GetObject"],
+    "Resource": "arn:aws:s3:::Hello-bucket/*"
+}
+
+3. Configure AWS CLI
+- need pip and python -> do aws configure to set up with your Access Key ID and Secret Access Key from IAM user
+
+4. Creating a DynamoDB table
+- fully managed NoSQL database with great performance and scalability, each table contains multiple items and each
+item composed of one or more attributes
+- each table with primary key which cannot be changed once set
+-> primary key uniquely identifies each item in the table so no two items can have same key
+-> can have partition key or partition key and sort key (composite)
+-> use composite for better querying
+-> can select DynamoDD AutoScaling Service Linked Role
+-> default settings provisions 5 reads and writes but you can specify how much provisioned throughput capacity you want to reserve
+for reads and writes i.e. 1 RCU can read up to 8KB per second and one WCU can write up to 1KB per second
+
+5. Creating S3 Bucket for file uploads/attachments
+- S3: storage service through web services interfaces like REST
+-> can store any object on S3 like images, videos, files, etc.; objects organized into buckets and identified within each
+bucket by a unique, user-assigned key
+-> pick name and select region; bucket names are globally unique and region = physical geographical region where files are stored
+- since app will be served through custom domain and thus communicating across domains for uploads, S3 does not allow its resources to be accessed from a
+different domain; however cross-origin resource sharing (CORS) defines a way for client web applications that are loaded in one domain to
+interact with resources in different domain -> should enable CORS for S3 bucket
+i.e. should alter the AllowedOrigin to use your domain or list of domains when in production
+<CORSConfiguration>
+	<CORSRule>
+		<AllowedOrigin>*</AllowedOrigin>
+		<AllowedMethod>GET</AllowedMethod>
+		<AllowedMethod>PUT</AllowedMethod>
+		<AllowedMethod>POST</AllowedMethod>
+		<AllowedMethod>HEAD</AllowedMethod>
+		<MaxAgeSeconds>3000</MaxAgeSeconds>
+		<AllowedHeader>*</AllowedHeader>
+	</CORSRule>
+</CORSConfiguration>
+
+6. Create a Cognito User Pool
+- to handle user accounts and authentication with Amazon Cognito
+- Amazon Cognito User Pool to make it easy for developers to add sign-up and sign-in functionality to web and mobile
+applications; serves as your own identity provider to maintain user directory; supports user registration and sign-in and
+provisioning identity tokens for signed-in users
+- can make users sign up and login with email as username/username
+-> can set required attributes upon signup such as username, email, name; won't be able to change these requirements after pool is created
+-> need to set up App client (not with client secret because not supported by JS SDK), must enable sign-in API for server-based auth as it
+is required by AWS CLI when managing pool users via command line interface (to test creating user through command line interface)
+- create domain name as it will be used for sign-up and sign-in pages hosted by Cognito
+- Cognito User Pool will maintain a user directory for app and used to authenticate access to our API
+- can create a Cognito test user
+i.e. Signing up
+aws cognito-idp sign-up
+  --region <your-app-region>
+  --client-id <app-client-id>
+  --username <some-email>
+  --password <some-password>
+  --user-attributes Name=name,Value=Alfred Name=preferred_username,Value=alfredlucero
+i.e. Verifying account
+aws cognito-idp admin-confirm-sign-up
+  --region <your-app-region>
+  --user-pool-id <user-pool-id>
+  --username <some-email>
+
+7. Setting up Serverless framework
+- going to use AWS Lambda and Amazon API Gateway to create backend
+-> AWS Lambda = compute service that lets you run code without provisioning or managing servers and pay for compute time
+-> API Gateway = create, publish, maintain, monitor, and secure APIs
+-> can use Serverless framework to help configuring Lambda and Gateway; can deploy backend applications as independent functions
+that will be deployed to AWS Lambda and configures AWS Lambda to run code in response to HTTP requests using Amazon API Gateway
+- npm install serverless -g; serverless create --template aws-nodejs (creates an AWS Node.js service)
+-> creates handler.js (contains actual code for services/functions deployed to AWS Lambda) and serverless.yml (configuration on what AWS services Serverless will provision and how to configure them)
+- npm install aws-sdk --save-dev; to talk to AWS services
+- npm install uuid --save; to generate unique ids to store things in DynamoDB
+- by default AWS Lambda only supports specific of JS and not up to date Node.js engine
+-> we can enable ES6/7 by setting up Babel and Webpack to transpile and package our project
+-> need babel-core, babel-loader, babel-plugin-transform-runtime, babel-preset-env, babel-preset-stage-3, serverless-webpack (to trigger Webpack build when we run Serverless commands),
+webpack-node-externals (because we do not want Webpack to bundle our aws-sdk module since not compatible)
+
+8. Creating the API
+- can set region while connecting to DynamoDB
+- parse input from event.body that represents the HTTP request parameters
+- userId is a federated identity id that comes as part of request, set after user authenticated via User Pool
+- can create ids with uuid and set dateCreated; enable CORS; must update serverless.yml functions
+- can create mocks to mimic requests in a .json file and run things like:
+serverless invoke local --function create --path mocks/create-event.json
+-> if with multiple profiles for AWS SDK credentials can pick like (can configure multiple AWS profiles in Serverless):
+AWS_PROFILE=myProfile serverless invoke local --function create --path mocks/create-event.json

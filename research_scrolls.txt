@@ -260,6 +260,9 @@ https://github.com/Raathigesh/majestic/
 - Recipes (Testing different scenarios with Cypress)
 https://docs.cypress.io/examples/examples/recipes.html
 
+- Building Serverless Stack Application Tutorial
+https://serverless-stack.com
+
 
 
 General Frontend Web Resources I Found Useful:
