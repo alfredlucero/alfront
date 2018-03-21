@@ -150,6 +150,9 @@ https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 - A Complete Guide to CSS Grid
 https://css-tricks.com/snippets/css/complete-guide-grid/
 
+- Grid by Example (CSS Grid)
+https://gridbyexample.com/
+
 - CSS Grid Garden (Game to help you learn CSS Grid)
 http://cssgridgarden.com/
 
@@ -198,6 +201,30 @@ http://mojs.io/
 
 - Event Bubbling JavaScript Explained
 https://www.sitepoint.com/event-bubbling-javascript/
+
+- JavaScript From Callbacks to Async Await
+https://medium.freecodecamp.org/javascript-from-callbacks-to-async-await-1cc090ddad99
+
+- 123 Essential JavaScript Interview Questions
+https://github.com/ganqqwerty/123-Essential-JavaScript-Interview-Question
+
+- JS Interview Questions
+http://www.thatjsdude.com/interview/js2.html
+
+- 10 Interview Questions Every JavaScript Developer Should Know
+https://medium.com/javascript-scene/10-interview-questions-every-javascript-developer-should-know-6fa6bdf5ad95
+
+- 3 Questions To Watch Out For In A JavaScript Interview
+https://medium.freecodecamp.org/3-questions-to-watch-out-for-in-a-javascript-interview-725012834ccb
+
+- Throttling and Debouncing in JavaScript
+https://medium.com/a-developers-perspective/throttling-and-debouncing-in-javascript-b01cad5c8edf
+
+- JS The Right Way
+http://jstherightway.org/#getting-started
+
+- Idiomatic.js (How to write clean JavaScript)
+https://github.com/rwaldron/idiomatic.js
 
 
 
@@ -326,6 +353,9 @@ https://tympanus.net/Development/AnimatedCheckboxes/
 
 - An Overview of SVG Sprite Creation Techniques
 https://24ways.org/2014/an-overview-of-svg-sprite-creation-techniques/
+
+- Google Advanced Learning Path
+https://techdevguide.withgoogle.com/paths/advanced/how-to-read-existing-code/#!
 
 
 

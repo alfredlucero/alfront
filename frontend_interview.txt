@@ -1,51 +1,630 @@
-Algorithms, Data Structures and Big O Complexity:
+1. Interview Tips:
 
-- Sorting (searching and binary search)
+- Scoping the problem like this
+Come up with clarifying examples and expected outputs, clarify function signature
+Ask performance questions up front (space vs. time requirements)
+State assumptions up front
+How big is the size of the input?
+How big is the range of values?
+What kind of values are there? Are there negative numbers? Floating points? Will there be empty inputs?
+Are there duplicates within the input?
+What are some extreme cases of the input?
+How is the input stored? If you are given a dictionary of words, is it a list of strings or a trie?
+
+- Write edge cases and tests already for debugging after it is done
+
+- Have pseudocode to help guide you but ultimately show them real code
+
+- Work through from brute force to optimal solution, explaining time and space complexity and types of algorithms
+and data structures you would use along the way
+
+- Emphasis on solving it and then iterating upon it and compare solutions for time and space complexity tradeoffs
+
+- Say test cases with edge boundaries considered, think about optimizing big picture, ask questions if you don't know about API or how things work
+
+Follow up
+- How would you handle the problem if the whole input is too large to fit into memory? 
+How would you handle the input arriving as a stream? 
+The answer is usually a divide-and-conquer approach — perform distributed processing of the data and only read certain 
+chunks of the input from disk into memory, write the output back to disk and combine them later.
+
+2. Algorithms and Big O Complexity:
+
+Understanding big O notation
+  - language we use for talking about how long an algorithm takes to run (asymptotic analysis)
+  - express runtime in terms of how quickly it grows relative to the input as as the input gets arbitrarily large
+  i.e. O(1) constant time, like one step
+  function printFirstItem(arrayOfItems) {
+    console.log(arrayOfItems[0]);
+  }
+  i.e. O(N) linear time where n is the number of items in the array
+  function printAllItems(arrayOfItems) {
+    arrayOfItems.forEach(function(item) {
+      console.log(item);
+    });
+  }
+  i.e. O(N^2) quadratic time outer loop runs n time and our inner loop runs n times for each iteration of the outer loop
+  function printAllPossibleOrderedPairs(arrayOfItems) {
+    arrayOfItems.forEach(function(firstItem) {
+      arrayOfItems.forEach(function(secondItem) {
+        console.log(firstItem, secondItem);
+      });
+    });
+  }
+  - N can be the actual input or the size of the input
+  - throw out the constants i.e. O(2N) => O(N)
+  - drop less significant terms i.e. O(N^2 + N) => O(N)
+  - usually talking about the worst case
+  - optimizing for space complexity: using less memory, we look at the total size (relative to size of input) of any new variables we're allocating
+  - usually we're talking about additional space so we don't include space taken up by the inputs
+  - discuss tradeoffs between time and space complexity, readability and easier implementation can also play a factor and some constant performance boosts
+  can be important even though big O tells you to ignore constants as input gets arbitrarily large
+  i.e. O(1) space
+  function sayHiNTimes(n) {
+    for (var i = 0; i < n; i++) {
+      console.log('hi');
+    }
+  }
+  i.e. O(N) space
+  function arrayOfHiNTimes(n) {
+    var hiArray = [];
+    for (var i = 0; i < n; i++) {
+      hiArray[i] = 'hi';
+    }
+    return hiArray;
+  }
+
+
+Sorting
+- QuickSort
+-> General Algorithm
+-> Stable: no
+-> Time Complexity:
+  Best Case: O(Nlog(N))
+  Worst Case: O(N^2)
+  Average Case: O(Nlog(N))
+
+MergeSort
+-> divide and conquer algorithm, continuously divides array in to two halves, recurses on
+both the left subarray and right subarray and then merges the two sorted halves
+-> General Algorithm
+-> Stable: yes
+  Best Case: O(Nlog(N))
+  Worst Case: O(Nlog(N))
+  Average Case: O(Nlog(N))
+
+BucketSort
+-> distributes elements of an array in to a number of buckets, each buck is then sortred individually either using
+a different sorting algorithm or by recursively applying the bucket sorting algorithm
+-> Time Complexity:
+  Best Case: O(N + K)
+  Worst Case: O(N^2)
+  Average Case: O(N + K)
+
+HeapSort
+-> General Algorithm
+-> Time Complexity
+
+Insertion Sort
+
+Radix Sort
+-> like bucket sort, distributes elements of an array into a number of buckets; differs from bucket sort by 're-bucketing' the array
+after the initial pass as opposed to sorting each bucket and merging
+-> General Algorithm
+-> Time Complexity:
+  Best Case: O(NK)
+  Worst Case: O(NK)
+  Average Case: O(NK)
+
+Topological Sort
+-> linear ordering of a directed graph's nodes such that for every edge node from node u to node v, u comes before v in the ordering
+-> for Directed Acyclic Graph (DAG) is a linear ordering of vertices such that for every directed edge uv, vertex u comes before v in the ordering
+-> topological sort is not possible if the graph is not a DAG as there will be a cycle
+-> can be more than one topsorting for a graph
+-> first vertex in topological sorting is always a vertex with in-degree as 0 (vertex with no incoming edges)
+-> DFS: print vertex and recursively call DFS for adjacent vertices vs. topological sort: print vertex before its adjacent vertices
+-> use a temporary stack, don't print vertex immediately but call topological sort for all adjacent vertices
+and then push it to a stack (a vertex is only pushed to stack only when all of its adjacent vertices and their adjacent vertices and so on) are already in stack
+-> used for scheduling jobs, just DFS with extra stack
+-> general algorithm:
+  - need a boolean visited array, stack to hold all the vertices
+  topologicalSort() {
+    initialize stack
+    mark all vertices as not visited
+    sort starting from all vertices one by one as long as they are unvisited
+    // recursive function: mark the current node as visited
+    // recur for all vertices adjacent to this vertex that are not visited
+    // push current vertex to stack which stores results
+    print out stack results display topologically sorted vertices
+  }
+  DFS method:
+  L ← Empty list that will contain the sorted nodes
+  while there are unmarked nodes do
+      select an unmarked node n
+      visit(n) 
+  
+  function visit(node n)
+    if n has a permanent mark then return
+    if n has a temporary mark then stop (not a DAG)
+    mark n temporarily
+    for each node m with an edge from n to m do
+        visit(m)
+    mark n permanently
+    add n to head of L
+  
+  Kahn's Algorithm: find a list of start nodes which have no incoming edges and insert them into a set S;
+  at least one such node must exist in a non-empty acyclic graph
+  L ← Empty list that will contain the sorted elements
+  S ← Set of all nodes with no incoming edge
+  while S is non-empty do
+      remove a node n from S
+      add n to tail of L
+      for each node m with an edge e from n to m do
+          remove edge e from the graph
+          if m has no other incoming edges then
+              insert m into S
+  if graph has edges then
+      return error (graph has at least one cycle)
+  else 
+      return L (a topologically sorted order)
+
+-> Time Complexity: O(|V| + |E|)
 
 - Divide and Conquer
+
+- Binary Search
+-> General Algorithm
+-> Time Complexity: O(log(N)) if data is sorted
 
 - Dynamic Programming and Memoization
 
 - Greedy 
+-> make locally optimal choices at each step in the hope of eventually reaching the globally optimal solution
+-> need two properties:
+  optimal substructure: optimal solution to the problem contains optimal solutions to the given problem's subproblems
+  greedy property: optimal solution is reached by "greedily" choosing the locally optimal choice without ever considering previous choices
+i.e. Coin change: given target amount of V cents and list of denominations of coins, what is minimum number of coins we must use to represent V?
+-> continuously selecting largest coin denomination less than or equal to V, subtract that coin's value from V, and repeat
+i.e. Prim's Algorithm -> finds minimum spanning tree for a weighted undirected graph
+-> finds subset of edges that forms a tree that includes every node in graph
+-> O(|V|^2)
+i.e. Kruskal's Algorithm -> finds minimum spanning tree in a graph, graph does not have to be connected
+-> O(|E|log|V|)
 
 - Recursion (and backtracking)
 
 - Breadth first search
+-> General Algorithm
+  for graphs, there may be cycles so we may come to the same node again -> can use a boolean visited array 
+  function bfs(start) {
+    Mark all vertices as not visited (visited boolean array)
+    Create a queue for BFS
+    Mark the current node as visited and enqueue it
+    while the queue is not empty
+      dequeue a vertex from the queue and print it
+      get all adjacent vertices of the dequeued vertex s
+        if an adjacent vertex has not been visited
+          mark it as visited and enqueue it
+  }
+-> can use a queue (FIFO) structure to help
+-> graph traversal algorithm which explores the neighbor nodes first, before moving to the next level neighbors
+-> Time Complexity: O(|V| + |E|)
 
 - Depth first search
+-> General Algorithm
+    for graphs, there may be cycles so we may come to the same node again -> can use a boolean visited array 
+    function dfs(start) {
+      Mark all vertices as not visited (boolean array)
+      Push start vertex onto stack and set the visited[start] to be true
+      while vertex is not empty
+        pop vertex from top of the stack
+        get all adjacent vertices of popped vertex s
+          if an adjacent vertex has not been visited
+            mark it as visited and push onto stack
+    }
+-> can use a stack (LIFO) structure to help 
+-> graph traversal algorithm which explores as far as possible along each branch before backtracking
+-> Time Complexity: O(|V| + |E|)
 
 - Dijkstra
+-> General Algorithm
+-> algorithm to find shortest path between nodes in a graph
+-> Time Complexity: O(|V|^2)
+
+- Bellman-Ford Algorithm
+-> General Algorithm
+-> computes shortest paths from single source node to all other nodes in a weighted graphs, slower than Djikstra's but more
+versatile in handling graphs in which some of edge weights are negative numbers
+-> Time Complexity: O(|E|) vs. worst case O(|V||E|)
+
+- Floyd-Warshall Algorithm
+-> finding shortest paths in a weighted graph with positive or negative edge weights but no negative cycles
+-> single execution will find lengths (summed weights) of shortest paths between all pairs of nodes
+-> Time Complexity: O(|V|^3)
 
 - A*
+->
+-> Time Complexity:
 
-- Data Structures (arrays, linked lists, stacks, queues, 
-hash sets, hash maps, hash tables, dictionary, trees, binary trees, heaps, graphs)
+- KMP: Knuth Morris Pratt Algorithm (Pattern Searching)
+-> Problem: Given text and pattern, print out all occurrences of pattern in text
+-> Naive string matching: slide pattern over text one by one and check for a match; if a match is found then slide by 1 again
+to check for subsequent matches
+Algorithm:
+  loop from i=0 to i <= N - M
+    // for current index i, check for pattern match
+    loop through from j=0 to j < M
+      if txt[i+j] != pat[j]
+        break
+    if j == M
+      print out le pattern
+-> Improves upon naive string matching (O(m(n-m+1))) by having a window to compare the last character of pattern with last character of current text
+to decide whether the string matches or not, allows us to skip matching other earlier characteristic
+-> Idea: uses degenerating property (patterns having same sub-patterns appearing more than once in pattern)
+-> whenever we detect a mismatch after some matches, we already know some of the characters in the text of the next window
+-> needs preprocessing in say an integer array that tells us the count of the characters to be skipped - called lps, same size m of pattern to help us skip characters while matching
+-> lps indicates longest proper prefix which is also a suffix of pattern, will be used to not match character that we know will not match anyways
+-> Algorithm:
+-> keep matching characters and incrementing i and j while pat[j] and txt[i] match
+-> when we see a mismatch, don't need to match lps[j-1] characters with txt[i-j...i-1], change only the j value to be lps[j-1]
+-> if we match more and j === m (size of pattern), print pattern and reset j to lps[j-1] (moving window forward)
+-> to compute LPS: 
+We initialize lps[0] and len as 0. 
+If pat[len] and pat[i] match, we increment len by 1 and assign the incremented value to lps[i] and increment i
+If pat[i] and pat[len] do not match and len is not 0, we update len to lps[len-1] and do not increment i
+If pat[i] and pat[len] do not match and len is 0, we update lps[i] = 0 and increment i
+-> given LPS array:
+set i index to 0 for text and j index to 0 for pattern
+while i is less than string length N
+  if pat[j] and txt[i] match, increment i and j
+  if j equals the length of pattern M, print the pattern and set j to lps[j-1]
+  else if there is a mismatch after j matches (i < N and pat[i] != txt[j])
+    if j does not equal zero
+      do not match earlier characters and set j to lps[j-1]
+    else 
+      increment i
+-> Time Complexity: O(N)
+
+- Bitmasks
+-> technique used to perform operations at the bit level, leads to faster runtime complexity and helps limit memory usage
+-> test kth bit - s & (1 << k)
+-> set kth bit - s |= (1 << k)
+-> turn off kth bit - s &= ~(1 << k)
+-> toggle kth bit - s ^= (1 << k)
+-> multiply by 2^n - s << n
+-> divide by 2^n - s >> n
+-> intersection: s & t
+-> union: s | t
+-> set subtraction: s & ~t
+-> extract lowest set bit: s & (-s)
+-> extract lowest unset bit: ~s & (s + 1)
+-> swap values: x ^= y; y ^= x; x ^= y;
+
+3. Data Structures and Big O Complexity
+- Arrays:
+-> Time Complexity:
+  Access: O(1)
+  Search: O(N)
+  Insert: depends but O(N) if between two elements to shift everything over
+  Remove: depends but O(N) if from middle to shift everything over
+
+- Linked List: linear collection of data elements called nodes each pointing to the next node by means of a pointer
+-> group of nodes which represent a sequence
+-> singly-linked list - each node points to next node and last node points to null
+-> doubly-linked list - each node has two pointers, prev and next, last node's next pointer points to null
+-> circular-linked list - each node points to next node and last node points back to first node
+-> Time Complexity:
+  Access: O(N)
+  Search: O(N)
+  Insert: O(1)
+  Remove: O(1)
+
+- Stack: collection of elements with two principle operations, push (add to collection) and pop (removes most recently added element)
+-> Last in, first out (LIFO)
+-> Time Complexity:
+  Access: O(N)
+  Search: O(N)
+  Insert: O(1)
+  Remove: O(1)
+
+- Queue: collection of elements with two principle operations, enqueue (inserts an element into queue) and dequeue (removes element from queue)
+-> First in, first out (FIFO)
+-> Time Complexity:
+  Access: O(N)
+  Search: O(N)
+  Insert: O(1)
+  Remove: O(1)
+
+- Tree: undirected, connected, acyclic graph
+
+- Binary Tree: tree in which each node has at most two children referred to as left and right child
+-> Full Tree: tree in which every node has either 0 or 2 children
+-> Perfect Binary Tree: all interior nodes have two children and all leaves have the same depth
+-> Complete Tree: every level except possibly the last is full and all nodes in the last level are as far left as possible
+
+- Binary Search Tree (BST): value in each node must be greater than or equal to any value stored in left subtree and less than or equal to any value stored in the
+right subtree
+-> Time Complexity:
+  Access: O(log(N))
+  Search: O(log(N))
+  Insert: O(log(N))
+  Remove: O(log(N))
+
+- Trie: radix or prefix tree, search tree used to store a dynamic set or associative array where the keys are usually strings
+-> no node in the tree stores the key associated with that node but the position in tree defines the key with which it is associated
+-> all descendants of a node have a common prefix of string associated with that node and root is associated with empty string
+
+- Fenwick Tree: binary indexed tree, implemented as implicit data structure using an array
+-> given an index in array representing a vertex, the index of a vertex's parent or child is calculated through bitwise operations on the binary representation of its index
+-> each element of array contains pre-calculated sum of a range of values and by combining sum with additional ranges encountered during an upward traversal to the root,
+the prefix sum is calculated
+-> parent(i) = i-i & (-i)
+-> Time Complexity:
+  Range Sum: O(log(N))
+  Update: O(log(N))
+
+- Segment Tree: storing intervals or segments, allows querying which of the stored segments contain a given point
+-> Time Complexity:
+  Range Query: O(log(N))
+  Update: O(log(N))
+
+- Heap: specialized tree that satisfies heap property
+-> if A is a parent node of B, then the key (value) of node A is ordered with respect to key of node B with same ordering applying across
+entire heap
+-> "max heap" or "min heap"
+-> "max heap": the keys of parent nodes are always greater than or equal to those of children and the highest key is in the root node
+-> "min heap": keys of parent nodes are less than or equal to those of the children and the lowest key is in the root node
+-> Time Complexity:
+  Access Max/Min: O(1)
+  Insert: O(log(N))
+  Remove Max/Min: O(log(N))
+
+- Hashing: map data of an arbitrary size to the data of a fixed size
+-> values returned by a hash function are called hash values/codes/hashes; if two keys map to the same value, a collision occurs
+-> HashMap - maps keys to values, uses a hash function to compute an index into an array of buckets or slots from which the desired value can be found
+-> collision resolution
+-> separate chaining - each bucket is independent and contains a list of entries for each index;
+the time to find the bucket (constant time) plus the time to iterate through the list
+-> open addressing - when a new entry is inserted, teh buckets are examined, starting with the hashed-to-slot and proceeeding in some sequence until an unoccupied slot is found;
+refers to the fact that the location of an item is not always determined by its hash value
+
+- Graphs represented as objects and pointers, adjacency matrix, adjacency list
+-> ordered pair of G = (V, E) comprising set V of vertices or nodes together with a set E of edges or arcs which are 2-element subsets of V (edge is associated with two vertices and that
+association takes the form of the unordered pair comprising those two vertices)
+-> undirected graph: graph in which adjacency relation is symmetric, there exists edge from node u to v and also from v to u
+-> directed graph: graph in which adjacency relation is not symmetric, there exists and edge from node u to v but it does not imply that there exists an edge from node v to u 
+-> representing as edge lists: using an array of two vertex numbers containing the numbers that the edge is incident upon
+space is O(E) i.e. [ [0,1], [0,6], [0,8], [1,4], [1,6], [1,9], [2,4], [2,6], [3,4], [3,5],
+[3,8], [4,5], [4,9], [7,8], [7,9] ]
+  can find a certain edge with linear search in O(|E|) time or if it is sorted lexicographically can be O(log|E|) with binary search
+-> adjacency matrix: for a graph with |V| vertices, an adjacency matrix is a |V|x|V| matrix of 0s and 1s, where the entry in row i and column j 
+is 1 if and only if the edge (i,j) is in the graph
+  if you want edge weights, can put it in (i,j) and represent no edges with null
+  can find out whether an edge is present in constant time by just looking at graph[i][j]
+  two disadvantanges: 
+    1. O(V^2) space even if graph is sparse with relatively few edges
+    2. if you want to find out which vertices are adjacent to a given vertex i, you have to look at
+    all |V| entries in row i, even if only a small number of vertices are adjacent to vertex i
+  for an undirected graph, the adjacency matrix is symmetric: row i, column j is 1 if and only if
+  row j and column i is 1; for directed graph the adjacency matrix need not be symmetric
+-> adjacency list: combines adjaceny matrix and edge lists
+  for each vertex i, store an array of vertices adjacent to it
+  typically have an array of |V| adjacency lists, one adjacency list per vertex
+  vertex numbers in lists not required to be in any order but helps when in increasing order
+  can get to each vertex's adjacency list in constant time
+  to find out whether an edge (i,j) is present in graph, we go to i's adjacency list and then look
+    for j in i's adjacency list => O(d) where d is the degree of vertex i which could be as high
+    as |V| - 1 vertices (adjacent to all other vertices) or as low as 0 (if isolated with no incident edges)
+i.e. [ [1, 6, 8],
+  [0, 4, 6, 9],
+  [4, 6],
+  [4, 5, 8],
+  [1, 2, 3, 5, 9],
+  [3, 4],
+  [0, 1, 2],
+  [8, 9],
+  [0, 3, 7],
+  [1, 4, 7] ]
+  If the graph is weighted, then each item in each adjacency list is either a two-item array or an object, 
+    giving the vertex number and the edge weight.
+  To do something to vertex i's adjacent vertices, can easily do a for loop
+    var vertex = graph[i];
+    for (var j = 0; j < vertex.length; j++) {
+        doStuff(vertex[j]);
+    }
+  How much space? |V| adjacency lists, up to |V|-1 vertices in those lists; for an undirected graph,
+    the adjacency lists contain 2|E| elements cause each edge appears twice in adjacency lists (i,j) and (j,i)
+    for a directed graph, the adjacency lists contain a total of |E| elements, one element per directed edg
 
 High Level JavaScript:
+-> cross-platform, object-oriented scripting language, works inside host environment like browser
+-> client-side JS to control browser and Document Object Model (DOM)
+-> server-side JS to manage server like Node.js, communicate with database
+-> no distinction between types of objects, inheritance through prototype mechanism, properties and methods added
+to any object dynamically
+-> variable data types are not declared (dynamic typing, loosely typed), cannot automatically write to hard disk
+vs. Java
+-> class-based, objects divided into classes and instances with all inheritance through class hierarchy
+-> classes and instances cannot have properties or methods added dynamically
+-> variable data types must be declared (static typing, strongly typed), can automatically write to disk
 
+-> functional programming: first-class functions, higher-order functions, passing functions as arguments and values,
+taking advantage of currying/partial application of functions, can make things more pure (without side effects)
+-> prototypal inheritance: OLOO (objects linked to other objects) for mixins, using Object.assign(), delegation, concatenative inheritance,
+instance is created by cloning an existing object that serves as a prototype; often instantiated using a factory function or Object.create() which
+can benefit from selective inheritance from many different objects
+vs. classical inheritance: constructor function instantiates an instance via the "new" keyword, inherits properties from parent class
+
+-> using IIFE/closures around entire contents of file for private namespace and avoid clashes between JS modules and libraries
+and allows for easily referenceable alias for a global variable
+(function($) { })(jQuery);
+
+-> "use strict" to voluntarily enfore stricter parsing and error handling on code at runtime, prevents accidental globals, eliminates this coercion,
+disallows duplicate paramater values, makes eval() safer, throws errors on invalid usage of delete (to remove properties from objects)
+
+-> NaN not equal to itself, typeof null is object, 
+function isInteger(x) { return Math.round(x) === x; }
+
+-> event loop, single-thread, web app, in Node.js server and browser
+
+-> functional paradigm: function evaluation to manage program state, immutable data, avoidance of changing program state
+by using higher-level functional abstractions i.e. forEach() loop
+vs. imperative: transparency forced by lower-level command/instruction statements i.e. for loop
+
+-> Shim
+   Polyfill
+
+-> what is "this"?
+at time of execution of every function, JS engine sets property to function called "this" which refers to the current
+execution context; always refer to an object and depends on how function is called
+1. in global context or outside a function "this" refers to window object
+2. inside IIFE and you "use strict", this is undefined unless you pass window into IIFE
+3. while executing function in context of an object, object becomes value of this
+4. inside setTImeout function, value of this is window object
+5. if you use a constructor by using new keyword to create an object, the value of this will refer to newly created object
+6. can set value of this to any arbitrary object by passing the object as first parameter to bind, call, apply
+7. for DOM event handler, value of this would be the element that fired the event
+
+Progressive Enhancement:
+
+Gradual Degradation:
 
 Web Security Issues:
 
-- XSS
+- XSS (Cross-site Scripting): doesn't need an authenticated session and can be exploited when the vulnerable website
+doesn't do the basics of validating or escaping input;
+-> can send inputs via request parameters or client side input fields (cookies, form fields, url params)
+-> can be written back to screen, persisted in database or executed remotely
+-> to run untrusted code upon rendering
 
-- XSRF
+- XSRF (Cross-site Request Forgery): happens in authenticated sessions when server trusts user/browser
+-> can place a malicious link embedded in another link or a zero byte image with bad src;
+-> if you have multiple tabs open and you click the malicious links, attacks can happen in background as if you clicked from the other tab
+because your session is still active in browser and browser has session id
+-> to prevent this: another server supplies unique token generated and appended in requests and is not known to browser like session id
+and additional validation at server for the CSRF token to be sure attacker manipulated link doesn't work
+-> to hijack authentication, causes web app to process an attacker-specified request within context of victim's authenticated session
+-> i.e. loading img with bad src and passes along authentication with the request 
 
 - Using JWT
 
-Web Performance Issues:
+HTTP Headers:
+- allow the client and server to pass additional information with the request or the response
+- request header consists of case-insensitive name followed by a colon ':'; custom proprietary headers can be added using 'X-' prefix
+but deprecated in June 2012
+- headers grouped according to contexts
+-> general header: apply to both requests and responses with no relation to data eventually transmitted in body
+-> request header: contains more information about resource to be fetched or about client itself
+-> response header: additional information about response like its location or about the server itself
+-> entity header: more information about body of entity like its content length or MIME-type
+- can be grouped according to how proxies handle them
+-> end-to-end headers: headers must be transmitted to final recipient of the message like the server for a reuqest or client for a response
+and intermediate proxies must retransmit end-to-end headers unmodified and caches must store them
+-> hop-by-hop headers: meaningful only for a single transport-level connection and must not be retransmitted by proxies or cached
+like Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization, Transfer-Encoding, Upgrade
+- Authentication: WWW-Authenticate, Authorization (contains credentials to authenticate a user agent with server), Proxy-Authenticate, Proxy-Authorization
+- Caching: Age (time in seconds object has been in proxy cache), Cache-Control (specifies directives for cachine mechanisms in both requests and responses),
+Expires (response considered stale after this), Pragma (implementation-specific header), Warning (possible problems)
+- Client Hints: Accept-CH, Content-DPR, DPR, Downlink, Save-Data, Viewport-Width, Width
+- Conditionals: Last-Modified (validator to compare several versions of same resource), less accurate than ETag but easier to calculate in some environments and
+conditional requests like If-Modified-Since and If-Unmodified-Since use this to change behavior of request, ETag - unique string identifying version of resource and
+conditional requests using If-Match and If-None-Match use this to change behavior of request
+If-Match, If-None-Match, If-Modified-Since, If-Unmodified-Since
+- Connection Management: Connection (controls whether network connection stays open after current transaction finishes), Keep-Alive (controls how long a persistent connection should stay open)
+- Content negotiation: Accept (informs server about types of data that can be sent back, it is MIME-type), Accept-Charset (charset client can understand), Accept-Encoding (encoding algorithm to server like compression
+that can be used on resource sent back), Accept-Language (language server sends back)
+- Controls: Expect, Max-Forwards
+- Cookies: Cookie (contains stored HTTP cookies previously sent by server with Set-Cookie header), Set-Cookie (send cookies from server to user agent)
+- CORS: Access-Control-Allow-Origin (indicates whether response can be shared), Access-Control-Allow-Credentials (indicates whether response to request can be exposed when credentials flag is true),
+Access-Control-Allow-Headers (used in response to preflight request to indicate which HTTP headers can be used when making actual request), Access-Control-Max-Age (how long results of preflight request can be cached),
+Origin (where fetch originates from)
+- Do Not Track: DNT, Tk
+- Downloads: Content-Disposition (response header if resource transmitted should be displayed inline) or should be handled like a download and browser should present a 'Save As' window
+- Message body information: Content-Length (size of entity-body), Content-Type (media type of resource i.e. json), Content-ENcoding, Content-Language, Content-Location
+- Proxies: Forwarded, X-Forwarded-For/Host/Proto, Via
+- Redirects: Location (URL to redirect page to)
+- Request Context: From (internet email address for human user who controls requesting user agent), Host (specifies domain name of server for virtual hosting and optionally the TCP port number on which the server is listening),
+Referer (address of previous web page from which a link to the currently requested page was followed), Referrer-Policy, User-Agent(characteristic string that allows network protocol peers to identify the application
+type, operating system, software vendor or software version of the requesting software user agent)
+- Response Context: Allow (lists the set of HTTP request methods supported by a resource), Server: (software used by origin server to handle request)
+- Range requests: Accept-Ranges, Range, If-Range, Content-Range
+- Security: Content-Security-Policy (CSP) - controls resources the user agent is allowed to load for a given page, Expect-CT (opt in to enforce Certificate Transparency requirements to prevent use of misissued certificates for that site from
+going unnoticed), Public-Key-Pins (HPKP) - associates specific cryptographic public key with certain web server to decrease the risk of MITM attacks with forged certificates,
+Strict-Transport-Security (HSTS) - force communication using HTTPS instead of HTTP, Upgrade-Insecure-Requests, X-Content-Type-Options - disables MIME sniffing and forces browser to use the type given in Content-Type,
+X-Frame-Options(XFO) - indicates whether browser should be allowed to render a page in <frame>/<iframe>/<object>, X-XSS-Protection - enables cross-site scripting filtering
 
-- Code splitting for smaller bundler sizes
+Cross-Origin Resource Sharing (CORS):
+- mechanism that uses additional HTTP headers to let a user agent gain permission to access selected resources from a server on a different origin (domain) than the site currently in use
+- user agent makes a cross-origin HTTP request when it requests a resource from a different domain, protocol, or port than the one from which the current document originated
+i.e. HTML page served from http://domain-a.com makes <img> src request to http://domain-b.com/image.jpg, loading up images and scripts from separate domains like content delivery networks (CDN)
+- XMLHttpRequest and Fetch API follow same-origin policy => web app using those APIs can only request HTTP resources from the same domain the application was loaded from unless CORS headers are used
+- CORS mechanism supports secure cross-domain requests and data transfers between browsers and web servers
 
-- Compressing and Minifying assets
+Web Performance Gains:
+- Compress diligently (GZip, Brotli)
+- Cache effectively through HTTP and Service Workers
+- Minify and optimize
+- Preresolve DNS for critical origins
+- Preload critical resources
+- Respect data plans
+- Stream HTML responses
+- Make fewer HTTP requests
+- Have a font loading strategy
+-> font-display: optional (if you can't do it fast have a fallback)
+-> minimize font download by limiting range of characters you're loading
+-> minimize FOIT (flash of invisible text) by using <link rel="preload">
+- Send less JS through code splitting for smaller bundler sizes
+- Lazy-load non-critical resources
+- Route-based chunking
+-> CommonChunksPlugin (Webpack)
+-> Dynamic import()
+- Optimize vendor libraries
+-> NODE_ENV=production
+- Fewer Moment.js locales (ContextReplacementPlugin())
+- Transpile less code (babel-preset-env + modules: false, useBuiltins: true, Browserlist)
+- Library sharding
+- PRPL pattern
+-> Push the minimal code for the initial route (request and push/preload critical scripts)
+-> Render route and get interactive
+-> Pre-cache using Service Workers to cache remaining resources
+-> Lazy-load async (split) routes before navigating to other routes
+- Tree-shaking (Webpack, Rollup) to remove dead code
+- Serve modern browsers ES2015 (babel-preset-env)
+- Scope hoisting (Webpack)
+-> modules get wrapped into functions isolating their scope while imports get transpiled into variables holding result of 
+Webpack require function, wrapped modules go to an array at end of our bundle
+-> each import translates into an extra function call and a property access to modules array
+-> scope hoisting to detect where these import chaining can be flattened and converted into one inlined function without compromising our code
+-> this saves an extra function call and access to the modules array so code runs faster
+-> need to use ModuleConcatenationPlugin
+- don't ship dev code to prod
 
 - Progressive Web Apps (using service workers to cache assets and have an offline experience)
 
-- Using a Content Delivery Network to cache assets at edge locations in different regions
+- Using a Content Delivery Network to cache assets at edge locations in different regions i.e. AWS CloudFront
 
 Local Storage:
+
+-
+
+- Caveats with Private Browsing Mode:
+  Safari returns null for any item set using localStorage.setItem either before or during the private browsing session. 
+  In essence, neither sessionStorage or localStorage are available in private brosing mode
+
+  Chrome and Opera return items set previous to private ("incognito") browsing, but once private browsing commences, 
+  treats localStorage like sessionStorage (only items set on the localStorage by that session will be returned) but like localStorage for other private windows and tabs
+
+  Firefox, like Chrome will not retrieve items set on locaStorage prior to a private session starting, but in private browsing treats localStorage like sessionStoroage for non private windows and tabs, but like localStorage for other private windows and tabs
+
+Session Storage:
+
 
 Cookies:
 
 REST API:
+REST stands for Representational State Transfer, an architectural style that has largely been adopted as a best practice for building web and mobile applications. 
+RESTful services are designed to be lightweight, easy to maintain, and scaleable. 
+They are typically based on the HTTP protocol, make explicit use of HTTP methods (GET, POST, PUT, DELETE), are stateless, use intuitive URIs,
+and transfer XML/JSON data between the server and the client.
 
 

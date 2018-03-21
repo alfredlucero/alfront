@@ -3,6 +3,68 @@
  */
 
 /*
+ * Objects
+ * - can be created in the following ways: function based, object literal, using JavaScript new word
+ * - reference type like Object, Array, Function, Date, null, Error (any value other than primitives are reference type)
+ * - typeof returns object for null though
+ * - can use instanceof operator (value instanceof constructor) to detect an object of specific reference type
+ * - object-based inheritance aka prototypal inheritance = one object inherits from another object without invoking a constructor function
+ * - type-based inheritance works with constructor function instead of object - calling constructor function of object from which you want to inherit
+ * - prevent modification of object in JS through prevent extensions (no new properties or methods added but existing ones can change),
+ * seal (prevents existing properties and methods from being deleted in addition to no new properties/methods); 
+ * freeze (prevents existing properties from being modified - all properties and methods read only)
+ * -> can also mess with object configurable, enumerated, etc. properties
+ */
+// i.e. Function based
+function Employee(firstName, lastName) {
+  this.firstName = firstName;
+  this.lastName = lastName;
+}
+var employee1 = new Employee("Alfred", "Lucero");
+// i.e. Object literal
+var employee = {
+  firstName: "Alfred",
+  lastName: "Lucero",
+};
+// i.e. using new keyword
+var newEmployee = new Object();
+newEmployee.firstName = "Alfred";
+newEmployee.lastName = "Lucero";
+
+// using typeof
+console.log(typeof []); // object
+console.log(typeof null); // object
+
+// using instanceof
+if (employee1 instanceof Employee) {
+  console.log("employee1 is an instance of Employee");
+}
+
+// object-based inheritance with Object.create(), can override same properties/methods on current object
+var inheritedEmployee = Object.create(employee);
+
+// type-based inheritance using constructor function of object you want to inherit from
+function Person(name, age, salary) {
+  this.name = name;
+  this.age = age;
+  this.salary = salary;
+  this.incrementSalary = function(byValue) {
+    this.salary = this.salary + byValue;
+  };
+}
+function Employee(company) {
+  this.company = company;
+}
+
+// Prototypal Inheritance
+Employee.prototype = new Person("Nishant", 24, 5000);
+
+var empCompany = new Employee("Google");
+
+console.log(empCompany instanceof Person); // true
+console.log(empCompany instanceof Employee); // true
+
+/*
  * Scoping, Hoisting, this, var/let/const
  */
 // var:
@@ -90,6 +152,55 @@ function f() {
 
 var g = f.bind({ a: "azerty" });
 console.log(g()); // azerty
+// - arrow functions "this" retains the value of the enclosing lexical context's this
+var globalObject = this;
+var foo = () => this;
+console.log(foo() === globalObject); // true
+// - as an object method: its this is set to object the method is called on
+var o = {
+  prop: 37,
+  f: function() {
+    return this.prop;
+  },
+};
+
+console.log(o.f()); // 37
+// - for methods defined somewhere on object's prototype chain, if the method is on an object's prototype chain,
+// this refers to the objet the method was called on as if the method were on the object (same with getter/setter)
+// - when a function is used as a constructor with the new keyword, its this is bound to the new object being constructed
+
+function C() {
+  this.a = 37;
+}
+
+var o = new C();
+console.log(o.a); // 37
+
+function C2() {
+  this.a = 37; // dead code as the this gets discarded for a:38 object
+  return { a: 38 };
+}
+
+o = new C2();
+console.log(o.a); // 38
+// - as a DOM event handler, this is set to the element the event fired from
+// When called as a listener, turns the related element blue
+function bluify(e) {
+  // Always true
+  console.log(this === e.currentTarget);
+  // true when currentTarget and target are the same object
+  console.log(this === e.target);
+  this.style.backgroundColor = "#A5D9F3";
+}
+
+// Get a list of every element in the document
+var elements = document.getElementsByTagName("*");
+
+// Add bluify as a click listener so when the
+// element is clicked on, it turns blue
+for (var i = 0; i < elements.length; i++) {
+  elements[i].addEventListener("click", bluify, false);
+}
 
 /*
  * Prototypal Inheritance
@@ -185,6 +296,21 @@ console.log(square.hasOwnProperty("height")); // false
 // -> should only extend built-in prototype to backport features of newer JS engines like Array.forEach
 
 /*
+ * JSON
+ * - JavaScript Object Notation: syntax for serializing objects, arrays, numbers, strings, booleans, and null
+ * - for objects and arrays: property names must be double-quoted strings, trailing commas forbidden
+ * - for numbers, leading zeros prohibited, decimal point must be followed by at least one digit
+ * - for strings, limited set of characters may be escaped, certain ones prohibited
+ * - not supported in older browsers so you need a polyfill
+ */
+var json = '{"result":true, "count":42}';
+obj = JSON.parse(json);
+
+console.log(obj.count); // expected output: 42
+
+console.log(JSON.stringify({ x: 5, y: 6 })); // expected output: "{"x":5,"y":6}"
+
+/*
  * XHR Requests and HTTP headers
  */
 // XMLHttpRequest (XHR): objects to interact with servers
@@ -201,10 +327,268 @@ oReq.open("GET", "/some/endpoint");
 oReq.responseType = "arraybuffer";
 oReq.send();
 
-// HTTP Headers:
+// Another example with xhr
+function request(url) {
+  const xhr = new XMLHttpRequest();
+  xhr.timeout = 2000;
+  xhr.onreadystatechange = function(e) {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        // Code here for when server answer is successful
+      } else {
+        // Code here for when server answer is not successful
+      }
+    }
+  };
+  xhr.ontimeout = function() {
+    // Well, it took too long to do some code here to handle that
+  };
+  xhr.open("get", url, true);
+  xhr.send();
+}
+
+// Using XHR and callbacks
+// - can save a reference of a function in a variable and use them as arguments of another function to execute later
+// - problem with callbacks = maintenance and readability, callback hell
+function request(url, callback) {
+  const xhr = new XMLHttpRequest();
+  xhr.timeout = 2000;
+  xhr.onreadystatechange = function(e) {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        // Sending error first as parameter is common practice in Node.js
+        callback(null, xhr.response);
+      } else {
+        callback(xhr.status, null);
+      }
+    }
+  };
+  xhr.ontimeout = function() {
+    console.log("Timed out");
+  };
+  xhr.open("get", url, true);
+  xhr.send();
+}
+
+// Usage with callback, can also wrap with try catch
+request(userGet, function handleUsersList(error, users) {
+  if (error) {
+    throw error;
+  }
+  const list = JSON.parse(users).items;
+
+  list.forEach(function(user) {
+    request(user.repos_url, function handleReposList(err, repos) {
+      if (err) {
+        throw err;
+      }
+      // Handle repos list
+    });
+  });
+});
+
+// XHR and Promises
+// - Promises to make code more readable and see clear order of execution
+// - 3 states: pending, resolved, rejected
+const myPromise = new Promise(function(resolve, reject) {
+  if (codeIsFine) {
+    resolve("fine");
+  } else {
+    reject("error");
+  }
+});
+myPromise
+  .then(function whenOk(response) {
+    console.log(response);
+    return response;
+  })
+  .catch(function whenNotOk(err) {
+    console.error(err);
+  });
+
+function request(url) {
+  return new Promise(function(resolve, reject) {
+    const xhr = new XMLHttpRequest();
+    xhr.timeout = 2000;
+    xhr.onreadystatechange = function(e) {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          resolve(xhr.response);
+        } else {
+          reject(xhr.status);
+        }
+      }
+    };
+    xhr.ontimeout = function() {
+      reject("timeout");
+    };
+    xhr.open("get", url, true);
+    xhr.send();
+  });
+}
+
+// Usage
+const myPromise = request(userGet);
+myPromise
+  .then(function handleUsersList(users) {
+    const list = JSON.parse(users).items;
+    return Promise.all(
+      list.map(function(user) {
+        return request(user.repos_url);
+      })
+    );
+  })
+  .then(function handleReposList(repos) {
+    console.log(repos);
+  })
+  .catch(function handleErrors(error) {
+    console.log(
+      "when a reject is executed it will come here ignoring the then statement ",
+      error
+    );
+  });
+// Can also separate callbacks like this for readability
+// userRequest.then(handleUsersList).then(repoRequest).then(handleReposList).cath(handleErrors);
+
+// XHR and Generators
+// - generators allow us to have async code looking like sync
+// - yield stops the function execution until a .next() is made for that function and is similar to .then promise
+// that only executes when resolved comes back
+function* foo() {
+  yield 1;
+  const args = yield 2;
+  console.log(args);
+}
+var fooIterator = foo();
+console.log(fooIterator.next().value); // 1
+console.log(fooIterator.next().value); // 2
+
+fooIterator.next("aParam"); // will log the console.log inside generator 'aParam'
+
+// Rather than executing request out of gate, we want a callback to handle the response
+function request(url) {
+  return function(callback) {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function(e) {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          callback(null, xhr.response);
+        } else {
+          callback(xhr.status, null);
+        }
+      }
+    };
+    xhr.ontimeout = function() {
+      console.log("timeout");
+    };
+    xhr.open("get", url, true);
+    xhr.send();
+  };
+}
+
+// Usage:
+function* list() {
+  const userGet = "/users";
+  const users = yield request(userGet);
+
+  yield;
+
+  for (let i = 0; i <= users.length; i++) {
+    yield request(users[i].repos_url);
+  }
+}
+
+try {
+  const iterator = list();
+  iterator.next().value(function handleUsersList(err, users) {
+    if (err) {
+      throw err;
+    }
+    const list = JSON.parse(users).items;
+
+    // Send list of users for the iterator
+    iterator.next(list);
+
+    list.forEach(function(user) {
+      iterator.next().value(function userRepos(error, repos) {
+        if (error) {
+          throw error;
+        }
+        // Handle each individual user repo here
+        console.log(user, JSON.parse(repos));
+      });
+    });
+  });
+} catch (e) {
+  console.error(e);
+}
+
+// XHR and Async/Await
+// - like mix of generators with promises, tell code which functions are sync and what part of code will await for
+// that promise to finish
+// - not supported by older browsers/back-end, need Node 8, can use compiler like babel
+async function sumTwentyAfterTwoSeconds(value) {
+  const remainder = afterTwoSeconds(20);
+  return value + (await remainder);
+}
+
+function afterTwoSeconds(value) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(value);
+    }, 2000);
+  });
+}
+
+sumTwentyAfterTwoSeconds(10).then(result =>
+  console.log("After 2 seconds", result)
+);
+
+function request(url) {
+  return new Promise(function(resolve, reject) {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function(e) {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          resolve(xhr.response);
+        } else {
+          reject(xhr.status);
+        }
+      }
+    };
+    xhr.ontimeout = function() {
+      reject("timeout");
+    };
+    xhr.open("get", url, true);
+    xhr.send();
+  });
+}
+
+// Usage
+async function list() {
+  const userGet = "/users";
+  const users = await request(userGet);
+  const usersList = JSON.parse(users).items;
+
+  usersList.forEach(async function(user) {
+    const repos = await request(user.repos_url);
+
+    handleRepoList(user, repos);
+  });
+}
+
+function handleRepoList(user, repos) {
+  const userReposo = JSON.parse(repos);
+  console.log(user, userRepos);
+}
+
+// Call it this way
+list().catch(e => console.error(e));
 
 /*
  * Closures
+ * - function definined inside another function (parent function) and has access to the variable which is declared and defined in parent function scope
+ * - has access to variable in three scopes: own scope, parent function scope, global namespace
  */
 // Closures: combination of a function and lexical environment within which that function was declared
 // - inner functions have access to variables of outer functions
@@ -244,6 +628,8 @@ var size12 = makeSizer(12);
 
 // - can emulate private methods: can only be called by other methods in same class in languages like Java
 // -> private methods to manage global namespace and not clutter up public interface of code
+// -> drawback of private methods in general is that they may be memory inefficient because a new copy of method would be
+// created for each instance
 // i.e. using the module pattern: defining public functions that can access private functions and variables
 var counter = (function() {
   var privateCounter = 0;
@@ -422,6 +808,21 @@ animal1.displayType();
 // -> can delete non-inherited properties by using delete operator
 // - objects are a reference type so two distinct objects are never equal even if they have same properties
 // and only comparing same object reference with itself yields true
+
+/*
+ * Functions
+ * - using anonymous functions if no name needed and only used in one place, declared inline and can access variables in parent scope,
+ * passing anonymous function as parameter to calling function
+ */
+var btn = document.getElementById("myBtn");
+btn.addEventListener("click", function() {
+  alert("button clicked!");
+});
+function processCallback(callback) {
+  if (typeof callback === "function") {
+    callback();
+  }
+}
 
 /*
  * Strings
@@ -1353,6 +1754,75 @@ function dataOf(txt) {
   return data;
 }
 
+// Browser/DOM events and Event Handling
+
+/*
+ * Event Loop and Concurrency Model
+ * - function calls form a stack of frames with its arguments and local variables
+ * -> finished function frames are popped out of the stack until it is empty
+ * - heap: objects allocated here in large mostly unstructured region of memory
+ * - runtime uses a message queue, which is a list of messages to be processed
+ * -> each message has an associated function which gets called in order to handle the message
+ * -> runtime starts handling messages on queue starting with oldest one, corresponding function is called with message as
+ * input parameter which creates a new stack frame for that function's use
+ * -> processing of functions continues until stack is empty and then the event loop will process the next message in queue if there is one
+ * - each message is processed completely before any other message is processed though it can prevent
+ * other events to happen until "Script is taking too long...", "run-to-completion"
+ * - messages added anytime an event occurs and there is an event listener attached to it; if no listener, event is lost
+ * i.e. setTimeout with message to add to queue and time value (minimum time not guaranteed time)
+ * - setTimeout with 0 doesn't mean will fire off after 0ms, execution depends on the number of waiting taks in the queue
+ * - web worker or cross-origin iframe has its own stack, heap, and message queue
+ * -> two distinct runtimes can communicate through sending messages via postMessage method and it adds a message to the other runtime if the latter listens
+ * to message events
+ * - never blocks, handling I/O via events and callbacks so when waiting for response from XHR request it can still process input
+ * -> though alert or synchronous XHR are blocking
+ */
+// Event loop is implemented like this
+// waits synchronously for a message to arrive if there is none currently
+while (queue.waitForMessage()) {
+  queue.processNextMessage();
+}
+
+/*
+ * Memory Management
+ * - allocate memory you need, use allocated memory (read/write), release allocated memory when not needed anymore
+ * - general problem of automatically finding whether some memory is not needed anymore is undecidable
+ * - garbage collection: relies on notion of reference i.e. object with reference to prototype and property values
+ * -> naive garbage collection algorithm with reference counting (not needed if 0 references); limitations with cycles like when 
+ * two objects created and reference one another and go out of scope, they will never be freed
+ * i.e. IE6 and 7 reference-counting garbage collectors for DOM objects, can have memory leaks due to cycle references
+ * -> mark-and-sweep algorithm: object is unreachable; assumes knowledge of set of objects called roots (root is global object)
+ * garbage collector will start from roots and find all objects that are referenced from these roots, then all objects referenced from these, etc.
+ * it will then find all reachable objects and collect all non-reachable objects; "object has zero references" leads to object being unreachable
+ * --> cycles not a problem anymore because say after a function call returns, the cycle reference object is not referenced anymore by something reachable
+ * from the global object and will be found unreachable by the garbage collection -> used by most browsers
+ * --> limitation: objects need to be made explicitly unreachable
+ */
+var n = 123; // allocates memory for a number
+var s = "azerty"; // allocates memory for a string
+
+var o = {
+  a: 1,
+  b: null,
+}; // allocates memory for an object and contained values
+
+// (like object) allocates memory for the array and
+// contained values
+var a = [1, null, "abra"];
+
+function f(a) {
+  return a + 2;
+} // allocates a function (which is a callable object)
+
+// function expressions also allocate an object
+someElement.addEventListener(
+  "click",
+  function() {
+    someElement.style.backgroundColor = "blue";
+  },
+  false
+);
+
 /*
  * Interview Practice Questions
  */
@@ -1453,11 +1923,187 @@ all([asyncTimeout(100), asyncError("Error in async promise")]).catch(error => {
 
 /*
  * Debouncing
+ * - browser events can fire many times within short timespan like resizing window or scrolling a page
+ * i.e. may fire thousands of times upon scrolling down page if event listener on window scroll event
+ * i.e. key pressing, rapid click events
+ * - debouncing helps to limit the time that needs to pass by until a function is called again
+ * -> group several function calls into one and execute it only once after some time elapsed
  */
+// Wrapping this around an event will execute only after a certain amount of time has elapsed
+function debounce(fn, delay) {
+  // Maintain a timer
+  let timer = null;
+
+  // Closure function that has access to timer
+  return function() {
+    // Get scope and parameters of function via 'this' and 'arguments'
+    let context = this;
+    let args = arguments;
+
+    // If an event is called, clear the timer and start over
+    clearTimeout(timer);
+    timer = setTimeout(function() {
+      fn.apply(context, args);
+    }, delay);
+  };
+}
+
+// Usage:
+function foo() {
+  console.log("You are scrolling");
+}
+// Wrap our function in a debounce to fire once 2 seconds have gone by
+let elem = document.getElementById("container");
+elem.addEventListener("scroll", debounce(foo, 2000));
+
+/*
+ * Throttling
+ * - instead of waiting for some time to pass by before calling a function, throttling just
+ * spreads the function calls across a longer time interval
+ * i.e. if event occurs 10 times within 100ms, one can spread out each of functionc alls to be executed once every 2 seconds instead of all
+ * firing within 100ms
+ * - limiting the amount a function is executed over a time period
+ */
+// This throttle allows only one function call within limit and only first function call
+// is waiting to be throttled
+const throttle = (func, limit) => {
+  let inThrottle;
+  return function() {
+    const args = arguments;
+    const context = this;
+    // Function will not be executed until throttle period has passed
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+};
+// How about dealing with last incovation as if it's in limit period it will be ignored?
+// - throttle is like a chaining debounce, each time the debounce waiting period is reduced accordingly
+const throttle = (func, limit) => {
+  let lastFunc;
+  let lastRan; // Timestamp of last invocation
+  return function() {
+    const context = this;
+    const args = arguments;
+    if (!lastRan) {
+      func.apply(context, args);
+      lastRan = Date.now();
+    } else {
+      clearTimeout(lastFunc);
+      // Update timeout with last function invocation and run it only after limit has passed
+      lastFunc = setTimeout(function() {
+        if (Date.now() - lastRan >= limit) {
+          func.apply(context, args);
+          lastRan = Date.now();
+        }
+      }, limit - (Date.now() - lastRan));
+    }
+  };
+};
+
+/*
+  AsyncMap
+  - given array of asynchronous functions and callback function to perform an action when all functions of array
+  finished executing
+  -> results of async functions in proper order, each of functions within input array will take its own callback
+  -> simulates a synchronous mapping function even though functions executed asynchronously
+  - using IIFE to maintain variable's private state by giving it a new scope while still having access to variables from outer scope
+  - asynchronous processing model: processor starts to process instructions' operations and hands those operations an instructions of how to return result when complete;
+  then, the processor continues to the next instruction without waiting for the prior instruction's operations to complete
+  once operations complete, can use provided instructions to callback to processor with result to avoid getting blocked by costly operations
+*/
+// Imperative Solution
+var asyncMap = function(jobs, cb) {
+  var results = [];
+  var finished = 0;
+
+  for (var i = 0; i < jobs.length; i++) {
+    (function(i) {
+      var job = jobs[i];
+      // Each job triggers its callback to return the value of its work which is then stored
+      // in results
+      job(function(val) {
+        results[i] = val;
+        finished++;
+        if (finished === jobs.length) {
+          cb(results);
+        }
+      });
+    })(i);
+  }
+};
+// Functional way
+var asyncMap = function(jobs, cb) {
+  var results = [];
+  var finished = jobs.length;
+
+  jobs.forEach(function(job, i) {
+    job(function(result) {
+      results[i] = result;
+      finished--;
+      if (finished === 0) {
+        cb(results);
+      }
+    });
+  });
+};
+
+// Usage
+var job1 = function(cb) {
+  setTimeout(function() {
+    cb("one");
+  }, 100);
+};
+
+var job2 = function(cb) {
+  setTimeout(function() {
+    cb("two");
+  }, 100);
+};
+
+var callback = function(results) {
+  console.log(results);
+};
+
+asyncMap([job1, job2], callback);
 
 /*
  * Deep merging objects (arrays and normal objects)
  */
+// First shallow merge (take two objects and add all own property of second object into first object)
+// will overwrite values if they share same properties
+function sMerge(toObj, fromObj) {
+  return Object.assign(toObj, fromObj);
+}
+// or without ES6
+function sMerge(toObj, fromObj) {
+  // Make sure both parameters are objects
+  if (typeof toObj === "object" && typeof fromObj === "object") {
+    for (var pro in fromObj) {
+      // Assign only own properties not inherited properties fromObj to toObj
+      if (fromObj.hasOwnProperty(pro)) {
+        // Assign property and value
+        toObj[pro] = fromObj[pro];
+      }
+    }
+  } else {
+    throw new Error("Merge function can apply only on object");
+  }
+}
+
+/*
+ * Creating a non-enumerable property with Object.defineProperty();
+ */
+var person = {
+  name: "Alfred",
+};
+Object.defineProperty(person, "phone", {
+  value: "XXX-XXX-XXXX",
+  enumerable: false,
+});
+Object.keys(person);
 
 /*
  * Search autocompletion/suggestions on typing
@@ -1536,5 +2182,581 @@ Trie.prototype.startsWith = function(prefix) {
 };
 
 /*
+ * Currying like mul(2)(3)(4)
+ * - function is instance of Object type, can have properties and link back to constructor method
+ * - first class object, can be stored as variable, can be passed as parameter to another function
+ * - function can be returned from function
+ */
+const mul = x => y => z => x * y * z;
+
+// Currying = partial invocation of a function; first few arguments of a function is pre-processed and function is returned
+// - returning function can add more arguments to curried function
+// - creating a closure that returns a function
+function addBase(base) {
+  return function(num) {
+    return base + num;
+  };
+}
+// Adding a curry method to the protoype of Function
+Function.prototype.curry = function() {
+  if (arguments.length < 1) {
+    return this; // Nothing to curry, return the function
+  }
+  var self = this;
+  var args = toArray(arguments);
+  return function() {
+    return self.apply(this, args.concat(toArray(arguments)));
+  };
+};
+function toArray(args) {
+  return Array.prototype.slice.call(args);
+}
+// Usage
+var converter = function(factor, symbol, input) {
+  return input * factor + symbol;
+};
+var milesToKm = converter.curry(1.62, "km");
+milesToKm(3);
+var kgToLb = converter.curry(2.2, "lb");
+kgToLb(3);
+
+/*
+ * Supporting either function syntax: sum(2, 3) or sum(2)(3)
+ * - JS does not require the number of arguments to match number of arguments in function definition
+ * (less arguments leads to undefined in missing arguments)
+ */
+function sum(x) {
+  if (y !== undefined) {
+    return x + y;
+  } else {
+    return function(y) {
+      return x + y;
+    };
+  }
+}
+
+/*
+ * Common scoping/closure errors
+ */
+// Will only console log 5 in each button click because shares same lexical environment
+for (var i = 0; i < 5; i++) {
+  var btn = document.createElement("button");
+  btn.appendChild(document.createTextNode("Button " + i));
+  btn.addEventListener(
+    "click",
+    (function(i) {
+      return function() {
+        console.log(i);
+      };
+    })(i)
+  );
+  document.body.appendChild(btn);
+}
+// To fix it by wrapping in IIFE
+for (var i = 0; i < 5; i++) {
+  var btn = document.createElement("button");
+  btn.appendChild(document.createTextNode("Button " + i));
+  (function(i) {
+    btn.addEventListener("click", function() {
+      console.log(i);
+    });
+  })(i);
+  document.body.appendChild(btn);
+}
+// Using forEach to have separate lexical environment with different i values
+["a", "b", "c", "d", "e"].forEach(function(value, i) {
+  var btn = document.createElement("button");
+  btn.appendChild(document.createTextNode("Button " + i));
+  btn.addEventListener("click", function() {
+    console.log(i);
+  });
+  document.body.appendChild(btn);
+});
+// Or just do block scoping with let
+for (let i = 0; i < 5; i++) {
+  var btn = document.createElement("button");
+  btn.appendChild(document.createTextNode("Button " + i));
+  btn.addEventListener("click", function() {
+    console.log(i);
+  });
+  document.body.appendChild(btn);
+}
+
+// Closure = when inner function has access to variables outside of its scope, for privacy and function factories
+// Function that will loop through a list of integers and print index of each element after a 3 second delay
+const arr = [10, 12, 15, 21];
+for (var i = 0; i < arr.length; i++) {
+  // Pass in the variable i so that each function has access to the correct index
+  setTimeout(
+    (function(localI) {
+      return function() {
+        console.log("The index of this number is: " + localI);
+      };
+    })(i),
+    3000
+  );
+}
+// or with let block scoping
+const arr = [10, 12, 15, 21];
+for (let i = 0; i < arr.length; i++) {
+  // Creates a new binding with let index everytime function is called
+  setTimeout(function() {
+    console.log("The index of this number is: " + i);
+  }, 3000);
+}
+
+/*
+ * Preventing stack overflow by using setTimeout
+ * - timeout function pushed to event queue and function exits right away and leaves call stack clear
+ */
+var list = readHugeList();
+
+var nextListItem = function() {
+  var item = list.pop();
+
+  if (item) {
+    // process the list item...
+    setTimeout(nextListItem, 0);
+  }
+};
+
+/*
+ * Given a DOM element on the page, visit element itself and all of its descendants (not just immediate children),
+ * For each element visited, function should pass that element to a provided callback function
+ */
+function traverseElementDescendants(ele, callback) {
+  callback(ele);
+  const list = ele.children;
+  // DFS recursive way
+  for (let i = 0; i < list.length; i++) {
+    traverseElementDescendants(list[i], callback);
+  }
+}
+
+/*
+ * Cloning an object
+ */
+// Object.assign() only does a shallow copy, not a deep copy; nested objects aren't copied but
+// still refer to same nested objects as original
+let obj = {
+  a: 1,
+  b: 2,
+  c: {
+    age: 30,
+  },
+};
+let objClone = Object.assign({}, obj);
+obj.c.age = 45;
+console.log(objClone.c.age); // 45 too
+
+// Another shallow copy way
+function shallowClone(object) {
+  var newObject = {};
+  for (var key in object) {
+    newObject[key] = object[key];
+  }
+  return newObject;
+}
+
+// Deep cloning an object - simple not totally correct version as it goes through keys in object prototype
+// and does not handle different types of objects i.e. Arrays, Dates, RegExp, Function, DOM elements
+function deepClone(object) {
+  var newObject = {};
+  for (var key in object) {
+    if (typeof object[key] === "object") {
+      newObject[key] = deepClone(object[key]);
+    } else {
+      newObject[key] = object[key];
+    }
+  }
+  return newObject;
+}
+
+// Handling most cases of the different objects
+// In order to deep clone objects, you need to handle Arrays, Objects, Dates, RegExp, functions, null, etc.
+function clone(src, deep) {
+  var toString = Object.prototype.toString;
+  if (!src && typeof src != "object") {
+    // Any non-object (Boolean, String, Number), null, undefined, NaN
+    return src;
+  }
+
+  // Honor native/custom clone methods
+  if (src.clone && toString.call(src.clone) == "[object Function]") {
+    return src.clone(deep);
+  }
+
+  // DOM elements
+  if (src.nodeType && toString.call(src.cloneNode) == "[object Function]") {
+    return src.cloneNode(deep);
+  }
+
+  // Date
+  if (toString.call(src) == "[object Date]") {
+    return new Date(src.getTime());
+  }
+
+  // RegExp
+  if (toString.call(src) == "[object RegExp]") {
+    return new RegExp(src);
+  }
+
+  // Function
+  if (toString.call(src) == "[object Function]") {
+    //Wrap in another method to make sure == is not true;
+    //Note: Huge performance issue due to closures, comment this :)
+    return function() {
+      src.apply(this, arguments);
+    };
+  }
+
+  var ret, index;
+  //Array
+  if (toString.call(src) == "[object Array]") {
+    //[].slice(0) would soft clone
+    ret = src.slice();
+    if (deep) {
+      index = ret.length;
+      while (index--) {
+        ret[index] = clone(ret[index], true);
+      }
+    }
+  } else {
+    //Object
+    ret = src.constructor ? new src.constructor() : {};
+    for (var prop in src) {
+      ret[prop] = deep ? clone(src[prop], true) : src[prop];
+    }
+  }
+  return ret;
+}
+
+/*
+ * Palindrome String
+ */
+function isPalindrome(str) {
+  str = str.replace(/\s/g, "").toLowerCase();
+  return (
+    str ===
+    str
+      .split("")
+      .reverse()
+      .join("")
+  );
+}
+
+/*
+ * Detecting undefined object property in JavaScript
+ */
+if (typeof someProperty === "undefined") {
+  console.log("Undefined found");
+}
+
+/*
+ * Seeing if an object is an array
+ */
+// using native toString() method to produce a standard string in all browsers
+function isArray(value) {
+  return Object.prototype.toString.call(value) === "[object Array]";
+}
+// using ES5 Array.isArray
+function isArrayV2(value) {
+  // ES5 feature detection
+  if (typeof Array.isArray === "function") {
+    return Array.isArray(value);
+  } else {
+    return Object.prototype.toString.call(value) === "[object Array]";
+  }
+}
+// Seeing if string literal or object
+function isString(str) {
+  return typeof str === "string" || str instanceof String;
+}
+
+/*
+ * Checking whether a key exists in a JavaScript object or not
+ */
+// To detect own and inherited property (in prototype chain) of object
+console.log("name" in personObject);
+// To detect own property of object
+console.log(personObject.hasOwnProperty("name"));
+
+/*
+ * Associate Array - calculating length of it
+ */
+var counterArray = {
+  A: 3,
+  B: 4,
+};
+counterArray["C"] = 1;
+
+Object.keys(counterArray).length; // 3
+
+/*
+ * Log function to add prefix message before every console.log
+ */
+function appLog() {
+  var args = Array.prototype.slice.call(arguments);
+  args.unshift("Your app name");
+  console.log.apply(console, args);
+}
+console.log(appLog("Some error message")); // Your app name Some error message
+
+/*
+  Using arbitrary value of this using bind, call, apply
+  - bind lets you borrow a method and set value of this without calling the function
+  - shimming bind function in older browser, returns back function with proper this context
+*/
+Function.prototype.bind =
+  Function.prototype.bind ||
+  function(context) {
+    var self = this;
+    return function() {
+      return self.apply(context, arguments);
+    };
+  };
+
+/*
+  Function to tell whether 2 is passed as parameter or not
+*/
+function isTwoPassed() {
+  var args = Array.prototype.slice.call(arguments);
+  return args.indexOf(2) !== -1;
+}
+
+/*
+  Using Math.max to find max value in array => use apply
+*/
+function getMax(arr) {
+  Math.max.apply(null, arr);
+}
+
+/*
+  Cache function execution - memoization, caching calculated value of function
+  - when you call function with same argument, cached value will be serve
+*/
+function cacheFn(fn) {
+  var cache = {};
+
+  return function(arg) {
+    // Return cached result if passed with same arguments
+    if (cache[arg]) {
+      return cache[arg];
+    } else {
+      cache[arg] = fn(arg);
+      return cache[arg];
+    }
+  };
+}
+// What if passing more than one argument?
+// - need to generate key for cache object with all parameters concatenated
+function cacheArrFn(fn) {
+  var cache = {};
+  return function() {
+    var args = arguments;
+    var key = [].slice.call(args).join("");
+    if (cache[key]) {
+      return cache[key];
+    } else {
+      cache[key] = fn.apply(this, args);
+      return cache[key];
+    }
+  };
+}
+
+/*
+  jQuery Style Chaining - chaining with callback
+*/
+var obj = {
+  first: function() {
+    console.log("first");
+    return obj;
+  },
+  second: function() {
+    console.log("second");
+    return obj;
+  },
+  third: function() {
+    console.log("third");
+    return obj;
+  },
+};
+// Usage
+obj
+  .first()
+  .second()
+  .third();
+
+/*
+  Animation: moveLeft
+  - use setInterval to place element to left position by some pixels in every 10ms,
+  - setInterval returns a timeId; after reaching desired location, you have to clear time interval so function will not be
+  called again and again in every 10ms
+*/
+function moveLeft(elem, distance) {
+  var left = 0;
+  var timeId = setInterval(frame, 10);
+
+  function frame() {
+    left++;
+    elem.style.left = left + "px";
+
+    if (left === distance) {
+      clearInterval(timeId);
+    }
+  }
+}
+
+/*
+  Event Delegation
+  - i.e. simple todo list, want an action to occur when a user clicks one of the list items
+  Markup:
+  <ul id="todo-app">
+    <li class="item">Walk the doge</li>
+    <li class="item">Pay le bills</li>
+    <li class="item">Make dindin</li>
+    <li class="item">Code for dayz</li>
+  </ul>
+*/
+// Attaching event listener to every single item individually, not efficient as it will create 10,000
+// event listeners and attach each to DOM for 10,000 items -> want to reduce code duplication, number of elements may be dynamic
+// - each carries data about an event listener and its properties that affects memory usage
+// - ask for what maximum number of elements is
+document.addEventListener("DOMContentLoaded", function() {
+  let app = document.getElementById("todo-app");
+  let items = app.getElementsByClassName("item");
+
+  // Attach event listener to each item
+  for (let item of items) {
+    item.addEventListener("click", function() {
+      alert("You clicked on item: " + item.innerHTML);
+    });
+  }
+});
+
+// Efficient event delegation: attach one event listener to whole container and then access each item when it's actually clicked
+// e.target = target of event, e.currentTarget = target element that event listener is attached to
+document.addEventListener("DOMContentLoaded", function() {
+  let app = document.getElementById("todo-app");
+  // Attach event listener to whole container
+  app.addEventListener("click", function(e) {
+    if (e.target && e.target.nodeName === "LI") {
+      let item = e.target;
+      alert("You clicked on item: " + item.innerHTML);
+    }
+    // Can also stop event propagation up the DOM with e.stopPropagation
+  });
+});
+
+// Another Event Delegation Sample
+// - doesn't matter how many children parent has, one event listener
+var theParent = document.querySelector("#theDude");
+theParent.addEventListener("click", doSomething, false);
+
+function doSomething(e) {
+  if (e.target !== e.currentTarget) {
+    var clickedItem = e.target.id;
+    alert("Hello " + clickedItem);
+  }
+  e.stopPropagation();
+}
+
+/*
  * Depth-First Search (LIFO - stacks) and Breadth First Search (FIFO - queues)
  */
+// DFS Traversal of Tree
+function TreeNode() {
+  this.val = null;
+  this.children = [];
+}
+
+function treeDFS(root) {
+  if (!root) {
+    return;
+  }
+  const stack = [root];
+  while (stack.length > 0) {
+    const cur = stack.pop();
+
+    if (cur.children.length === 0) {
+      continue;
+    }
+
+    // Must add in children in reverse direction to retain LIFO structure
+    for (let idx = cur.children.length - 1; idx >= 0; idx--) {
+      stack.push(cur.children[idx]);
+    }
+  }
+}
+
+// BFS Traversal of Tree
+function treeBFS(root) {
+  if (!root) {
+    return;
+  }
+  const queue = [root];
+  while (queue.length > 0) {
+    const cur = queue.shift();
+
+    if (cur.children.length === 0) {
+      continue;
+    }
+
+    // We add children from left to right as they should appear first in FIFO
+    for (let idx = 0; idx < cur.children.length; idx++) {
+      queue.push(cur.children[idx]);
+    }
+  }
+}
+
+/*
+ * Singleton Pattern
+ * - great way to wrap code into a logical unit that can be accessed through a single variable
+ * - used when only once instance of an object is needed throughout the lifetime of an application
+ * - can be used for namespacing to reduce number of global variables
+ * - object that is used to create namespace and group together a related set of methods and attributes (encapsulation)
+ * and if we allow to initiate it then it can be initiated only once
+ * i.e. object literal
+ * - two parts: object itself containing members (methods and attributes) within it and global variable used to access it
+ * so it can be accessed anywhere in the page
+ */
+// Namespacing and prevent accidentally overwriting variable with singleton object
+var MyNameSpace = {
+  findUserName: function(id) {},
+};
+var findUserName = $("#user_list"); // do not conflict
+console.log(MyNameSpace.findUserName());
+// Lazy instantiation for singleton pattern
+var MyNameSpace = {};
+MyNameSpace.Singleton = (function() {
+  // Private attribute that holds single instance in closure
+  var singletonInstance;
+
+  function constructor() {
+    // Private members
+    var privateVar1 = "Alfred";
+    var privateVar2 = [1, 2, 3];
+
+    function privateMethod1() {}
+
+    return {
+      attribute1: "Alfred",
+      publicMethod: function() {
+        alert("Alfred");
+      },
+    };
+  }
+
+  return {
+    // public method (global access point to Singleton object)
+    getInstance: function() {
+      // If instance already exists then return
+      if (!singletonInstance) {
+        singletonInstance = constructor();
+      }
+      return singletonInstance;
+    },
+  };
+})();
+// Getting access of publicMethod
+console.log(MyNameSpace.Singleton.getInstance().publicMethod());

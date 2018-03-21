@@ -134,6 +134,327 @@ div:hover {
   columns: 4;
 }
 
+/* 
+  Flexbox Model 
+  - two axes: main and cross axis; main axis defined by flex-direction property, cross axis runs perpendicular to it
+  -> row/row-reverse = along inline direction; column/column-reverse = along block direction
+  -> if flex-direction = row, cross axis runs along columns; if main axis is column, cross axis runs along rows
+  - makes no assumption about writing mode of document i.e. thinking in start and end of axis vs. left and right to account for different languages
+  - area of document laid out using flexbox = flex container i.e. display: flex; and children become flex items
+  -> items display in a row (flex-direction row by default), items start from start edge of main axis, items do not stretch on main dimension
+  but can shrink
+  -> items will stretch to fill size of cross axis; flex basis set to auto, flex-wrap set to nowrap
+  -> items lined up in a row with size of content as size in main axis, will overflow if more items than can fit in container, all items
+  will stretch along cross axis to fill its full size
+  - if you want flex items to wrap onto multiple lines, consider each line as a new flex container and any space distribution will happen across
+  that line without reference to the lines either side
+  -> use flex-wrap: wrap (nowrap by default in which items may shrink to fit or overflow otherwise)
+  - flex-flow shorthand combines both flex-direction and flex-wrap
+  - properties applied to flex items like flex-grow, flex-shrink, and flex-basis
+  - concept of available space; flexbox will put space after last item if it doesn't take up whole line
+  -> flex-basis: defines the size of item in terms of space it leaves as available space (default auto which checks
+  that the items have a size; if no size the content's size is used as flex-basis
+  -> flex-grow: set to positive integer, flex items can grow along main axis from their flex-basis, causing item to stretch
+  and take up any available space on that axis or a proportion of available space if other items allowed to grow
+  i.e. all items with flex-grow of 1 then available space in flex container equally shared between items and stretch to fill container on main axis
+  i.e. can distribute space in proportion flex-grow 2 vs. 2 flex grow 1 equals 100px, 50px, 50px out of 200px container
+  -> flex-shrink: controls how space is taken away in main axis
+  i.e. if not enough space in container to lay out our items and set to positive integer, item can be smaller than flex-basis
+  - using shorthand flex (combines flex-grow, flex-shrink, flex-basis)
+  -> flex-grow with positive value means it can grow, flex-shrink with positive value can shrink only if total values overflow main axis,
+  flex-basis = value the items using as base value to grow and shrink from (limited by max|min-width, width is fallback when it's missing)
+  flex-basis = size of flex items before they are placed into a flex container, not a guaranteed size however
+  -> flex: initial (0 1 auto = 0 - won't grow larger than basis; 1 - can shrink rather than overflow; auto = items will either use any size set
+  or they'll get their size from content size) | auto (flex 1 1 auto = items can grow and shrink) | none (0 0 auto)
+  - Alignment, justification, and distribution of free space between items
+  -> align-items: align items on cross axis (default is stretch to fill flex container height) -> flex-start, flex-end, center
+  -> justify-content: align items on main axis, the direction in which flex-direction has set flow (default is flex-start) -> flex-start/end, center, space-around, space-between, space-evenly
+  -> align-self: controls alignment of individual flex item on cross axis
+  -> align-content: "packing flex lines", controls space between flex lines on cross axis
+  - cross browser compatibility concerns with IE 10 - display: flexbox and -ms- prefix, UC Browser display: box and -webkit- prefix, IE 11 with display:flex bugs
+  -> can have fallbacks to overwrite one layout method with another
+  -> float and clear do not create floating or clearance of flex item and do not take it out of flow (flex overrides float so you can test by removing flex)
+  -> display: inline-block is blockified after applying flex and can't preserve white space between items
+  -> display: table-cell for anonymous boxes to represent items so you don't need to wrap each item in wraper to represent HTML table row (flex overrides this too)
+  - feature queries to detect flexbox support - IE 11 does not support feature queries though
+  i.e. @supports (display: flex) { ... code for supporting browsers } 
+*/
+.box {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.box-flow {
+  display: flex;
+  flex-flow: row wrap;
+}
+/* Using flex shorthand i.e. all equal width on main axis 
+  - for three equally-sized items even if they start out at different sizes => flex: 1 1 0;
+  -> can then set up ratios of sizes of items using 1 1 0 or 2 1 0 (for one item is 2x bigger than other)
+  -> items can't grow with no positive free space and won't shrink unless negative free space
+  -> in 1D method like flexbox we only control row or column but with 2D layout like grid we control both at same time
+  -> use flexbox for space distribution row by row, each flex line acts like a new container
+  -> can just control inflexible flex items using percentages i.e. flex: 0 0 33.33%; like float layouts
+  -> can use flexbox for fallback for grid layout (once it becomes grid item, flex properties on child elements will be ignored)
+  -> flex items can be allowed to wrap but once they do, each line becomes a flex container of its own
+  -> when space is distributed, flexbox does not look at placement of items in other rows and tries to line things up with each other (last row will have item take whole width)
+  -> grid => can control layout in both rows and columns i.e. grid-template-columns: repeat(auto-fill, minmax(200px, auto)); - last row will have 1 column taking up part width, not whole width
+  -> grid great for trying to line up items with the items above them 
+*/
+.box {
+  display: flex;
+}
+
+.one {
+  flex: 1 1 auto;
+}
+
+.two {
+  flex: 1 1 auto;
+}
+
+.three {
+  flex: 1 1 auto;
+}
+/* i.e. Proper vertical and horizontal alignment */
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.box div {
+  width: 100px;
+  height: 100px;
+}
+/* Using auto margins for main axis alignment like for navigation bar with items
+  aligned to right, some to left, and space in middle
+  - auto margins take up all of the space that they can in their axis
+*/
+.box {
+  display: flex;
+}
+.push {
+  margin-left: auto;
+}
+/* i.e. Space distributed between links in navigation */
+nav ul {
+  display: flex;
+  justify-content: space-between;
+}
+/* i.e. Pushing the footer down in a card even without much content */
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
+.card .content {
+  flex: 1 1 auto;
+}
+/* i.e. for media objects like image or element on one side and text to right */
+.media {
+  display: flex;
+  align-items: flex-start;
+}
+.media .content {
+  flex: 1;
+  padding: 10px;
+}
+.image img {
+  max-width: 100px;
+}
+/* i.e. Form controls like <input> element paired with <button>, input field grows, button doesn't grow */
+.wrapper {
+  display: flex;
+}
+
+.wrapper input[type="text"] {
+  flex: 1 1 auto;
+}
+
+/* 
+  CSS Grid Layout
+  - excels at dividing page into major regions or defining relationship in terms of size, position, layer between parts of a control built from HTML primitives
+  - align elements into columns and rows like tables, grid container's child elements could position themselves so they actually overlap and layer
+  - two-dimensional; grid = intersecting set of horizontal and vertical lines (one set defining columns and the other rows)
+  - can create a grid with fixed track sizes using pixels or flexible sizes with percentages or with the new fr unit
+  - can place items into precise location on grid using line numbers, names or by targeting an area of the grid
+  - creation of additional tracks to hold content i.e. adding as many columns that will fit into container
+  - alignment control, control of overlapping content with z-index property
+  - grid container = display: grid or display: inline-grid on an element -> all direct children of that element will become grid items
+  -> can see grid lines with FireFox Grid Inspector
+  - define rows and columns with grid-template-columns and grid-template-rows = grid tracks, the space between any two lines on the grid
+  -> tracks can be define using any length unit
+  -> fr unit represents a fraction of available space in grid container
+  -> can use repeat() function to repeat all or a section of track listing
+  -> explicit grid consists of rows and columns defined by grid-template-columns and grid-template-rows
+  -> creates implicit grids if place something outside or if more tracks are needed due to amount of content
+  -> set size for tracks created in implicit grid with grid-auto-rows and grid-auto-columns i.e. grid-auto-rows: 200px; (200px tall rows)
+  -> minmax() function - set rows to be a minimun and maximum of height, auto means size will stretch to give space for tallest item in a cell in this row
+  - grid gives us numbered lines to use when positioning items i.e. three column, two row grid we have 4 column lines and 3 row lines
+  -> positioning based on line number with grid-column-start/end and grid-row-start/end
+  - grid cell is the smallest unit on a grid like a table cell
+  - grid area = items spanning one or more cells both by row or by column, must be rectangular
+  - gutters or alleys between grid cells can be created with grid-column-gap and grid-row-gap or shorthand grid-gap
+  -> any space used by gaps accounted for before space is assigned to flexible length fr tracks and act for sizing purposes
+  but cannot place anything into a gap
+  -> grid-gap: grid-row-gap grid-column-gap shorthand
+  - a grid item can become a grid container, nested grid has no relationship to the parent
+  -> subgrid lets us create nested grids that use the track definition of the parent grid, not yet implemented
+  - layering items with z-index: grid items can occupy the same cell
+  -> can control order in which items stack up by using z-index property (lower index is below)
+  - flexbox: do I only need to control the layout by row or column?
+    -> works from content out like to space out content evenly in a container, alignment control
+  vs. grid: do I need to control layout by row and column?
+    -> from layout in, used to align items across rows and columns
+  - repeat(auto-fill, 200px) => keeps on filling as many 200px column tracks as will fit the container
+  -> repeat(auto-fill, minmax(200px, 1fr)) => flexible tracks aligned by rows and columns
+  - grid container as containing block, need to add position property to container with value of relative
+  -> can set child as absolute and it will take its containing block as grid container or if item has a grid position, the area of grid
+  it was placed into - grid-area, grid container as position:relative
+  -> removing position: relative from wrapper positions from the viewport instead
+  - display: contents - box normally creates disappears and boxes of child elements appear as if they have risen up a level so
+  children of grid item can become grid items
+  -> helps nested items act as if they are part of the grid, pre-subgrids
+  - grid lines indexed from 1, depends on writing mode of document
+  - if you give items no placement information, they will position themselves on grid, one in each grid cell
+  - block or column axis and inline or row axis
+  -> align-self, align-items to control alignment on block axis -> auto, start, end, center, stretch, baseline
+  -> justify-items, justify-self for inline/row axis
+  -> order property to change how items auto-place, grid-auto-flow: dense to take items visually out of DOM order
+  -> go for visual not logical re-ordering, shouldn't change document source in order to get layout we want
+  - support in Firefox, Chrome, Opera, Safari, Edge unprefixed other than Internet Explorer
+  - can enhance element in design with grid that could otherwise display using older method
+  -> overwriting of legacy methods with grid layout works suprisingly well
+  -> floats no longer apply but can use in non-supporting browser, grid item takes precedence
+  -> can use feature queries @supports (display: grid) { ... }
+  -> display: inline-block and vertical-align does not apply to grid items and ignored once item becomes grid item
+*/
+/* Creating a grid with three 200px-wide column tracks */
+.wrapper-fixed-width {
+  display: grid;
+  grid-template-columns: 200px 200px 200px;
+}
+/* Creating three equal width tracks that grow and shrink according to available space */
+.wrapper-equal-width {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+/* same as this using repeat */
+.wrapper-repeat {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+/* Mixing fixed with fractional units - 500px column and then remaining width split 1fr (33%) and 2fr (67%) */
+.wrapper {
+  display: grid;
+  grid-template-columns: 500px 1fr 2fr;
+}
+/* Repeat with track patterns - 10 tracks (1fr followed by 2fr track */
+.wrapper {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr 2fr);
+}
+/* Gutters/gaps */
+.gutter {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column-gap: 10px;
+  grid-row-gap: 1em;
+}
+/* Overlapping items - can have white space in designs without having to push things around with margins */
+.overlap {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 100px;
+}
+
+.box1 {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 1;
+  grid-row-end: 3;
+}
+
+.box2 {
+  grid-column-start: 1;
+  grid-row-start: 2;
+  grid-row-end: 4;
+}
+/* Line-based placement
+  - can use span x to specify number of tracks you would like area to span
+  - beware of auto-placement rules
+*/
+.line-placement {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: 1;
+  grid-row-end: 4;
+}
+/* Grid-shorthand, grid defaults to spanning one track */
+.shorthand {
+  grid-column: 1 / 2;
+  grid-row: 1 / 4;
+}
+/* Grid-area: grid-row-start grid-column-start grid-row-end grid-column-end 
+  - four flow-relatve directions: block-start, block-end, inline-start, inline-end for writing modes
+  - block-start inline-start block-end inline-end
+*/
+.area {
+  grid-area: 1 / 1 / 4 / 2;
+}
+/* Grid-template-area: to define an area, give it a name and specify location of area
+  i.e. header, footer, sidebar, main content
+  - can leave cell empty using full stop character '.'
+  - span multiple cells by repeating name of grid-area multiple times with white space between them
+  - must be rectangular and show a complete grid
+  - can use media queries to define grid, position of items -> define names outside media queries
+  - shorthand to reset things to initial values that you do not or cannot set in shorthand
+  - grid-template
+*/
+.header {
+  grid-area: hd;
+}
+.footer {
+  grid-area: ft;
+}
+.content {
+  grid-area: main;
+}
+.sidebar {
+  grid-area: sd;
+}
+.layout {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-auto-rows: minmax(100px, auto);
+  grid-template-areas:
+    "hd hd hd hd   hd   hd   hd   hd   hd"
+    "sd sd sd main main main main main main"
+    "ft ft ft ft   ft   ft   ft   ft   ft";
+}
+/* Media objects: 1fr image, 3fr text */
+.media {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-template-areas: "img content";
+  margin-bottom: 1em;
+  max-width: 400px;
+  background-color: #fff;
+  border-radius: 2px;
+  border: 2px solid #eee;
+}
+
+.media .image {
+  grid-area: img;
+  background-color: #eee;
+}
+
+.media .text {
+  grid-area: content;
+  padding: 10px;
+}
+
 /*
  * VII. CSS Position
  * - float CSS property: specifies that an elements should be replaed along the left or right side of its container, allowing
@@ -292,6 +613,192 @@ div:hover {
  * - creating utility classes to sprinkle throughout
  */
 
-/* 
- * XIII. CSS Practice Layouts
+/*
+ * XIII. CSS Performance/Quality Considerations
+ * - minify CSS file, don't inline large data URIs, don't inline CSS attributes to avoid code duplication
+ * - deep nesting of selectors can affect performance
+ * -> styles resolved during renderer's layout pass; selectors resolved right to left, exiting when it has been detected the selector doesn't match
+ * -> i.e. ul.user-list li span a:hover; every a tag must be inspected to see if resides inside a span and a list = lots of DOM walking
+ * - no image spriting/compressions
+ * - can organize scales variables for things like color, z-index, font-size, type scale; use simple mixins
+ * -> mixins for grouping browser-specific code or as powerful ways to contain functionality
+ * -> mixins not a good way to add additional styles to an element as you will be sending duplicate styles over the wire
+ * -> can encapsulate vendor prefixes i.e. .transition(@transition) { -webkit-transition: @transition, -moz-transition, -ms-transition, -o-transition, transition }
+ * - prefer components over page level styles, consistent naming convention
+ * - structure HTML to load critical, above-the-fold content first
  */
+
+/* 
+ * XIV. CSS Practice Layouts
+ */
+
+/* 
+ * Media Queries
+ */
+@media (min-width: 700px) {
+  .wrapper {
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-areas:
+      "hd hd hd hd   hd   hd   hd   hd   hd"
+      "sd sd sd main main main main main main"
+      "sd sd sd  ft  ft   ft   ft   ft   ft";
+  }
+}
+
+@media (min-width: 1280px) {
+  .wrapper {
+    grid-template-areas:
+      "hd hd hd   hd   hd   hd   hd   hd hd"
+      "sd sd main main main main main ft ft";
+  }
+}
+
+/*
+ * Vertically and horizontally centering with flexbox
+ */
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.box div {
+  width: 100px;
+  height: 100px;
+}
+
+/*
+ * Establishing responsive layout with CSS Grid (header, side nav, body, footer at bottom)
+ * - single column in mobile
+ * - adding sidebar at breakpoint i.e. tablet
+ * - 3-column layout for wider laptop/desktop screens
+ Markup:
+ div.wrapper
+  header.main-head
+  nav.main-nav
+    ul
+      li a
+      li a
+      li a
+  article.content
+    h1
+    p
+  aside.side
+  div.ad
+  footer.main-footer
+ */
+/* Mobile layout single column */
+.main-head {
+  grid-area: header;
+}
+.content {
+  grid-area: content;
+}
+.main-nav {
+  grid-area: nav;
+}
+.side {
+  grid-area: sidebar;
+}
+.ad {
+  grid-area: ad;
+}
+.main-footer {
+  grid-area: footer;
+}
+.wrapper {
+  display: grid;
+  grid-gap: 20px;
+  grid-template-areas:
+    "header"
+    "nav"
+    "content"
+    "sidebar"
+    "ad"
+    "footer";
+}
+/* Two columns for 500px */
+@media (min-width: 500px) {
+  .wrapper {
+    grid-template-columns: 1fr 3fr;
+    grid-template-areas:
+      "header  header"
+      "nav     nav"
+      "sidebar content"
+      "ad      footer";
+  }
+  nav ul {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+/* 3 columns for 700px */
+@media (min-width: 700px) {
+  .wrapper {
+    grid-template-columns: 1fr 4fr 1fr;
+    grid-template-areas:
+      "header header  header"
+      "nav    content sidebar"
+      "nav    content ad"
+      "footer footer  footer";
+  }
+  nav ul {
+    flex-direction: column;
+  }
+}
+
+/* Flexible 12-column layout or X-column flexible grid */
+.wrapper {
+  display: grid;
+  grid-template-columns: repeat(12, col-start 1fr);
+  grid-gap: 20px;
+}
+
+.wrapper > * {
+  grid-column: col-start / span 12;
+}
+
+@media (min-width: 500px) {
+  .side {
+    grid-column: col-start / span 3;
+    grid-row: 3;
+  }
+  .ad {
+    grid-column: col-start / span 3;
+    grid-row: 4;
+  }
+  .content,
+  .main-footer {
+    grid-column: col-start 4 / span 9;
+  }
+  nav ul {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+/* Product Listing/Gallery/Cards with Auto-placement in CSS Grid */
+.listing {
+  list-style: none;
+  margin: 2em;
+  display: grid;
+  grid-gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.listing li {
+  border: 1px solid #eee;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.listing .cta {
+  margin-top: auto;
+  border-top: 1px solid #eee;
+  padding: 10px;
+  text-align: center;
+}
+
+.listing .body {
+  padding: 10px;
+}
