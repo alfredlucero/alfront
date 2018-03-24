@@ -1122,6 +1122,71 @@ const fibbers = new Fibber();
 console.log(fibbers.computeFibo(6));
 
 /*
+ * LocalStorage
+ * - window.localStorage, stores data across browser sessions, no expiration time for data
+ */
+const myLocalStorage = window.localStorage;
+
+myLocalStorage.setItem("myDoge", "Juno");
+const junoDoge = myLocalStorage.getItem("myDoge");
+
+myLocalStorage.removeItem("myDoge");
+
+/*
+ * SessionStorage
+ * - window.sessionStorage, stores data but gets cleared when page session ends
+ * - page session lasts as long as browser is open and survives over page reloads and restores
+ * - opening page in a new tab or window will cause a new session to be initiated
+ */
+const mySessionStorage = window.sessionStorage;
+
+mySessionStorage.setItem("myDoge", "Juno");
+const junoDoge = mySessionStorage.getItem("myDoge");
+
+mySessionStorage.removeItem("key");
+mySessionStorage.clear();
+
+/*
+ * Cookies
+ * - can get and set cookies associated with current document
+ * - for user privacy, one should invalidate cookie data after a certain timeout and won't rely on browser clearing session cookies
+ * - ;expires;secure;max-age
+ * - use encodeURIComponent() to ensure string doesn't have any commas, semicolons, or white space
+ * - Path attribute does not protect against unauthorized reading of cookie from a different path, can be bypassed using DOM with hidden iframe element with
+ * path of cookie and accessing iframe's contentDocument.cookie
+ * -> must use different domain/subdomain due to same origin policy
+ */
+// String containing a semicolon-separated list of all cookies i.e. key=value pairs
+const allCookies = document.cookie;
+// Reset cookie
+function resetOnce() {
+  document.cookie =
+    "doSomethingOnlyOnce=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+}
+// Check a cookie existence
+if (document.cookie.split(";").indexOf("reader=") >= 0) {
+  console.log('The cookie "reader" exists');
+}
+// Check a cookie has specific value
+if (document.cookie.split(";").indexOf("reader=1") >= 0) {
+  console.log('The cookie "reader" has "1" for value');
+}
+
+/*
+ * IndexedDB
+ * - low-level API for client-side storage of significant amounts of structured data, including files/blobs
+ * - can work with database-esque object store in browser, can store typed information, define primary keys, indexing, transactions to prevent data integrity issues
+ * - for app to run offline, can use IndexedDB along with Cache API (part of Service Workers)
+ * - for high-performance searches of data; Web Storage for smaller amounts of data and this is for larger amounts of data
+ * - transactional database system like SQL-based RDBMS; JS-baded object-oriented database
+ * -> need to specify database schema, open connection to database and retrieve/update data within a series of transactions
+ * - operations done asynchronously
+ * - web data storage space and what to delete when limit is reached differs between 
+ * - examples: https://hacks.mozilla.org/2012/02/storing-images-and-files-in-indexeddb/
+ */
+const IDBOpenDBRequest = indexedDB.open(name);
+
+/*
  * Regular Expressions
  * - patterns used to match character combinations in strings, also objects in JS
  * -> patterns used with exec and test methods of RegExp and with match, replace, search, and split methods
@@ -1828,6 +1893,29 @@ someElement.addEventListener(
  */
 
 /*
+ * Pass-by-reference or pass-by-value language?
+ * - passed by value but when a variable refers to an object (including arrays)
+ * the value is a reference to the object
+ * - changing value of variable never changes underlying primitive or object, it just points the variable to a new primitive
+ * or object
+ * - changing a property of an object referenced by a variable does change the underlying object
+ */
+function changeStuff(a, b, c) {
+  a = a * 10;
+  b.item = "changed";
+  c = { item: "changed" };
+}
+
+var num = 10;
+var obj1 = { item: "unchanged" };
+var obj2 = { item: "unchanged" };
+
+changeStuff(num, obj1, obj2);
+console.log(num); // 10
+console.log(obj1.item); // changed
+console.log(obj2.item); // unchanged
+
+/*
  * Handling array of async callbacks (vanilla JS without Promises), similar to $.whenAll
  */
 function asyncTimeout(duration) {
@@ -2363,6 +2451,7 @@ function shallowClone(object) {
 function deepClone(object) {
   var newObject = {};
   for (var key in object) {
+    // Can also do && source[property] !== null since null considered object
     if (typeof object[key] === "object") {
       newObject[key] = deepClone(object[key]);
     } else {
@@ -2760,3 +2849,105 @@ MyNameSpace.Singleton = (function() {
 })();
 // Getting access of publicMethod
 console.log(MyNameSpace.Singleton.getInstance().publicMethod());
+
+/*
+ * MergeSort Implementation
+ * Time Complexity: O(Nlog(N))
+ * Space Complexity: O(N)
+ * - better for linked lists
+ */
+
+/*
+ * QuickSort Implementation
+ * Time Complexity: O(N^2) worst case for sorted arrays, O(Nlog(N)) best/average case
+ * Space Complexity: O(1) in-place
+ * - better for arrays, can randomize to avoid sorted worst case
+ */
+var swap = function(arr, i, j) {};
+
+var partition = function(arr, low, high) {
+  // Use last element as pivot element
+  const pivot = arr[high];
+
+  // Index of smaller elements than pivot
+  let smallerIndex = low - 1;
+
+  // Traverse from low index up to but not including the pivot element
+  // and swap elements if current element is smaller than pivot element
+  // Smaller/equal elements will be to left to pivot, greater to right
+  for (let j = low; j <= high - 1; j++) {
+    if (arr[j] <= pivot) {
+      smallerIndex++;
+      swap(arr, j, smallerIndex);
+    }
+  }
+
+  // Move pivot to proper sorted spot
+  swap(arr, smallerIndex + 1, high);
+  return smallerIndex + 1;
+};
+
+var quickSort = function(arr, low, high) {
+  while (low < high) {
+    // pi is the proper partition index in which arr[pi] is in proper sorted place
+    const pi = partition(arr, low, high);
+
+    // Partition left
+    quickSort(arr, low, pi - 1);
+    // Partition right
+    quickSort(arr, pi + 1, high);
+  }
+};
+
+/*
+ * Finding K-th Max/Min in an array using QuickSelect
+ * - similar to quick sort algorithm but only finding kth pivot
+ * - O(N^2) solution is easy but we want to find O(Nlog(N)) worst case
+ * - given unsorted array
+ */
+const source = [9, 2, 7, 11, 1, 3, 14, 22];
+
+const swap = function(arr, i, j) {
+  const temp = arr[i];
+  arr[i] = arr[j];
+  arr[j] = temp;
+};
+
+let kthMax = function(arr, low, high, k) {
+  // greaterIndex stores index of elements greater than pivot element
+  let greaterIndex = low;
+  if (low >= high) {
+    return arr[greaterIndex];
+  }
+
+  const pivot = arr[high];
+  for (let i = low; i < high; i++) {
+    // If an element is greater than chosen pivot (i.e. last element)
+    // Swap it with greaterIndex element and increment greaterIndex pointer
+    // All elements greater than pivot will be to left, all elements smaller than or equal
+    // to the pivot element will be on the right
+    if (arr[i] > arr[high]) {
+      swap(arr, greaterIndex, i);
+      greaterIndex++;
+    }
+  }
+
+  // We have found the sorted position for pivot element
+  // Swap it to that position place
+  swap(arr, greaterIndex, high);
+
+  // Only try to sort the part in which kth index lies
+  //
+  if (k === greaterIndex) {
+    return arr[greaterIndex];
+  } else if (greaterIndex > k) {
+    // Check left side since there are more than k elements greater than pivot
+    return kthMax(arr, low, greaterIndex - 1, k);
+  } else {
+    // Check right side since there are less than k elements greater than pivot
+    return kthMax(arr, greaterIndex + 1, high, k);
+  }
+};
+
+// 2 => 3rd max which is 11
+console.log(kthMax(0, source.length - 1, 2));

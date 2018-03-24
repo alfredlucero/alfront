@@ -17,6 +17,13 @@
  * -> thickness of borders determined by border-width and shorthand border properties
  * -> if box-sizing property set to border-box, border area's size can be explicitly defined with min/max width and min/max height
  * - margin area bounded by margin edge extends border area to include empty area used to separate elment from its neighbors (margin-box width/height)
+ * - all HTML elements considered as boxes and wraps around every HTML element: margins, borders, padding, actual content
+ * -> width = width + padding-left + padding-right + border-left + border-right
+ * -> height = height + padding-top + padding-bottom + border-top + border-bottom
+ * -> margin is taken outside of border and it affects containers' width/height but doesn't affect element
+ * -> if you don't declare a width and box has static or relative positioning, the width will remain 100% in width and padding and border will push inwards instead of outwards
+ * but if you explicitly set width of box to be 100%, the padding will push the box outward as normal
+ * -> absolute box's width is only as wide as it needs to be to hold content
  */
 
 /* 
@@ -46,6 +53,12 @@
  * -> universal selector (*) and combinators (+, >, ~, ' ') and :not() with no effect on specificity
  * -> inline styles added to an element always overwrite any styles in external stylesheets and has highest specificity
  * - @keyframes never mix multiple CSS values together
+ * - Specificity Matrix: if multiple CSS selectors are targeting the same element to assign same property/properties, selector with highest specificity value will win
+ * -> inline styles (style="" in document) = a
+ * -> count number of #ID attributes in selector = b
+ * -> count number of class, attributes, pseudo-classes (.classes, [attributes], :hover, :focus, etc.) in selector = c
+ * -> count number of element names (div, p, :before, :after, etc.) in selector = d
+ * -> concatenating three number a-b-c-d in number system with large base (different browsers use different bases)
  */
 
 /*

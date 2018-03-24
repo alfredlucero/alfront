@@ -202,11 +202,20 @@ http://mojs.io/
 - Event Bubbling JavaScript Explained
 https://www.sitepoint.com/event-bubbling-javascript/
 
+- Google Web Fundamentals
+https://developers.google.com/web/fundamentals/
+
 - JavaScript From Callbacks to Async Await
 https://medium.freecodecamp.org/javascript-from-callbacks-to-async-await-1cc090ddad99
 
+- Preparing for a Front-End Web Development Interview in 2017
+http://davidshariff.com/blog/preparing-for-a-front-end-web-development-interview-in-2017/
+
 - 123 Essential JavaScript Interview Questions
 https://github.com/ganqqwerty/123-Essential-JavaScript-Interview-Question
+
+- 30 Interview Questions and Answers (Frontend Engineer)
+https://medium.com/@sapy/7-interview-questions-and-answers-frontend-engineer-8b19f10697a4
 
 - JS Interview Questions
 http://www.thatjsdude.com/interview/js2.html

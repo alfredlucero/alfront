@@ -157,9 +157,39 @@
   - don't overuse ARIA: when using semantic tags of HTML5 like <button> or <form>, modern web browsers add appropriate ARIA semantics by default
     and makes no sense to separately set ARIA landmark roles i.e. no need to do <form role="form">,
     no need to use HTML's native attributes along with appropriate ARIA attribute like hidden HTML attribute to a form input doesn't need aria-hidden
+  - POUR: perceivable, operable, understandable, robust; need to account for visual, motor, hearing, cognitive impairments and those with assistive technology
+  like screen readers
+  - try using only keyboard input to navigate, keeping proper focus on elements with right semantics, try tabbing through page to see if it makes sense
+  - hide offscren content with display: none or visibility: hidden or you rearrange elements' physical positions in DOM so they're in logical order
+  - proper tabindex, text alternatives for images
+  - aria to modify existing element semantics or add semantics to elements where no native semantics exist, collection roles= indicators for UI pattern
+  - aria-labelledby, aria-owns (treated as child of current element or to rearrange existing child elements into different order i.e. submenu), aria-active-descendant
+  - aria-describedby, aria-hidden="true", aria-live lets developers mark a part of the page as "live" in sense that updates should be communicated to users immediately regardless of 
+  page position rather than if they just happen to explore that part of page
+  - start with keyboard and don't forget offscren content, try with screen reader, review headings and landmarks, review controls
+  - use aXe or WAVE browser extensions to pick up on failing contrast ratios or missing ARIA attributes
+  - Lighthouse = measure performance of progressive web app, axe-core library to power set of accessibility tests
 -->
 <nav role="navigation"></nav>
 <main role="main" aria-labelledby="some-id">
   <h1 id="some-id"></h1>
 </main>
 <option value="value" aria-selected="true"></option>
+
+<!-- 
+  Responsive Web Design
+  - set the viewport through meta tag to control width and scaling of browser's viewport
+  initial-scale=1, width=device-width
+  - CSS media queries to apply different styling for small and large screens
+  -> use min-width or min-device width, use relative sizes for elements to avoid breaking layout
+  - turn on Device Mode in DevTools to play around with media queries and breakpoints/resizing
+  - patterns: 
+    -> mostly fluid = fluid grid, on large/medium screens same size but adjusting margins, on smaller screens columns stacked vertically so
+    there is only one breakpoint between small screens and large screens
+    -> column drop = for full-width multi-column layouts, stacks columns vertically as windwo width becomes too narrow for content
+    -> layout shifter = multiple breakpoints across several screen widths, most responsive, content moves about instead of reflowing and dropping below other columns
+ -->
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+
+ <link rel="stylesheet" media="(max-width: 640px)" href="max-640px.css">
+ <link rel="stylesheet" media="(min-width: 640px)" href="min-640px.css">
