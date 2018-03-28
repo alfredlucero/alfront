@@ -34,7 +34,7 @@
  * -> declarations in most at-rules like @media, @document or @supports participate but declarations in @keyframes don't and only at-rule as whole is selected
  * - goal is to select CSS declarations to set the correct value for CSS properties
  * -> browser has basic style sheet that gives a default style to any document = user-agent stylesheets
- * -> web developers often use a CSS reset style sheet to force common propertie values to a known state as browsers may have many differences on their user-agent styles
+ * -> web developers often use a CSS reset style sheet to force common property values to a known state as browsers may have many differences on their user-agent styles
  * -> author of web page defines styles for document; reader may have custom stylesheet to tailor its experience
  * - though stylesheets come from different origins, they overlap in scope
  * - algorithm determines how to find value to apply for each property for each document element
@@ -48,7 +48,7 @@
  * i.e. if equal specificity, last declaration found applied to element; specificity applied when same element targeted by multiple declarations
  * directly targeted elements will always take precedence over rules which an element inherits from its ancestor
  * -> can take advantage of specificity when global CSS file affects site, you inline styles on elements themselves
- * -> 0: type selector (h1) and pseudo-elements (::before), 1: class selectors (.example), attributes selectors ([type="radio"]), pseudo-classes (:hover),
+ * -> 0: type selector (h1) and pseudo-elements (::before, ::after, ::selection, ::first-line), 1: class selectors (.example), attributes selectors ([type="radio"]), pseudo-classes (:hover),
  * and 2: ID selectors (#example)
  * -> universal selector (*) and combinators (+, >, ~, ' ') and :not() with no effect on specificity
  * -> inline styles added to an element always overwrite any styles in external stylesheets and has highest specificity
@@ -77,10 +77,10 @@
  * IV. CSS Selectors
  * - element selector (or tag/type selector): selects all HTML elements of the specified type
  * i.e. p selects all <p> tags
- * - ID selector: selects element on page with specified ID (only allowd one element per ID)
+ * - ID selector: selects element on page with specified ID (only allowed one element per ID)
  * i.e. #my-id selects element with id="my-id"
  * - Class selector: selects elements on page with specified class (mutiple class instances can appear on page)
- * i.e. .my-class selects all ements with class="my-class"
+ * i.e. .my-class selects all elements with class="my-class"
  * - Attribute selector: selects elements with specified attribute
  * i.e. img[src] selects <img src="myimage.png"> but not <img> or selecting data-* attributes like [data-role=submit]
  * - Pseudo-class selector: selects specified elements but only when in specified state like being hovered over
@@ -287,7 +287,7 @@ nav ul {
 
 /* 
   CSS Grid Layout
-  - excels at dividing page into major regions or defining relationship in terms of size, position, layer between parts of a control built from HTML primitives
+  - excels at dividing page into major regions or defining relationship in terms of size, position, layout between parts of a control built from HTML primitives
   - align elements into columns and rows like tables, grid container's child elements could position themselves so they actually overlap and layer
   - two-dimensional; grid = intersecting set of horizontal and vertical lines (one set defining columns and the other rows)
   - can create a grid with fixed track sizes using pixels or flexible sizes with percentages or with the new fr unit
@@ -470,7 +470,7 @@ nav ul {
 
 /*
  * VII. CSS Position
- * - float CSS property: specifies that an elements should be replaed along the left or right side of its container, allowing
+ * - float CSS property: specifies that an elements should be placed along the left or right side of its container, allowing
  * text and inline elements to wrap around it; element removed from normal flow of web page but still part of document
  * -> i.e. none, left, right, inline-start, inline-end; implies use of block layout
  * -> clear: specifies whether an element can be next to floating elements that precede it or must be moved down (cleared) below them
@@ -485,7 +485,8 @@ nav ul {
  * -> relative: top and bottom properties specify vertical offset from its normal position; left and right horizontal offset
  * -> absolute: top, right, bottom, and left specify offsets from edges of element's containing block (ancestor to which the element is relatively positioned);
  * adds margins to offset, removed from normal document flow and no space created for element in page layout
- * -> fixed: relative to html document/window, removed from normal document flow, no space created for element in page layout
+ * relative to nearest parent with relative or absolute positioning; defaults to <html> itself
+ * -> fixed: relative to html document/window (viewport), removed from normal document flow, no space created for element in page layout
  * -> sticky: relatively positioned until its containing block cross a specified threshold such as setting top to value other than auto within its flow root or the container it scrolls within
  * -> absolutely positioned elements that have height and width set to auto are sized to fit their contents
  */

@@ -207,7 +207,7 @@ for (var i = 0; i < elements.length; i++) {
  */
 // - All objects in JavaScript inherit from at least one other object = prototype and inherited properties can be
 // found in prototype object of constructor
-// - Classes are still protoype-based and just syntactic sugar
+// - Classes are still prototype-based and just syntactic sugar
 // - only have objects and each has a private property that holds a link to another object called its prototype
 // -> prototype has a prototype of its own until an object is reached with null; null has no prototype and acts as final link
 // in prototype chain
@@ -586,6 +586,30 @@ function handleRepoList(user, repos) {
 list().catch(e => console.error(e));
 
 /*
+ * Timers
+ * - window.setTimeout and window.setInterval
+ * - can clear timers/intervals
+ */
+function simpleMessage() {
+  alert("This is just a simple alert");
+}
+
+// set time out
+window.setTimeout(simpleMessage, 5000);
+
+// if you wanted to clear the timer.
+var timer = window.setTimeout(simpleMessage, 5000);
+window.clearTimeout(timer);
+
+// set interval. will repeat every  5000ms
+window.setInterval(simpleMessage, 5000);
+
+// if you wanted to clear the intervals.
+
+var intervalHandler = window.setInterval(simpleMessage, 5000);
+window.clearInterval(intervalHandle);
+
+/*
  * Closures
  * - function definined inside another function (parent function) and has access to the variable which is declared and defined in parent function scope
  * - has access to variable in three scopes: own scope, parent function scope, global namespace
@@ -826,31 +850,320 @@ function processCallback(callback) {
 
 /*
  * Strings
+ * - string literals like '' or use String global object like String(thing), template literals like ``
+ * - holding text characters, using indexOf, length, substring()
+ * - compare strings with < or >
+ * - string literals and strings from String calls in non-constructor context without using new keyword are primitive stirngs
+ * though it already converts primitives to String objects to use the object methods (typeof may be "string" or "object")
+ * - includes, endsWith, indexOf, lastIndexOf, match(regex), repeat, replace, search, slice, split(into an array of strings),
+ * substring(start, upToButNotIncludingEnd), toLowerCase, toString, toUpperCase, trim - whitespace at beginning and end of string
  */
+"cat".charAt(1); // returns 'a'
+// Using the bracket notation and attempting to delete or assign a value to these properties will not succeed as they are
+// neither writable nor configurable
+"cat"[1]; // returns 'a'
+// Using Unicode value to create stirng
+String.fromCharCode(65, 66, 67); // "ABC"
+// Getting the UTF-16 code unit value at given index
+"a".charCodeAt(0);
+// Using substring
+const anyString = "Mozilla";
+console.log(anyString.substring(0, 1)); // 'M'
+console.log(anyString.substring(4)); // 'lla'
 
 /*
  * Arrays
+ * - list-like objects, neither length nor types fixed, cannot use strings as element indexes only integers
+ * - mutator methods: fill, pop, push, reverse, shift, sort, splice, unshift
+ * - accessor methods (don't modify array and return some representation of array): concat, includes, indexOf, join (into string), lastIndexOf,
+ * slice, toString
+ * - iteration methods: entries, every, filter, find (returns found value in array), findIndex, forEach, keys, map, reduce, reduceRight, values
  */
+const fruits = ["apples", "bananas"];
+console.log(fruits[0]);
+fruits.forEach(function(item, index, array) {
+  console.log(item, index);
+});
+// Add to end
+fruits.push("oranges");
+// Remove from end
+const last = fruits.pop();
+// Remove from front of an array
+const first = fruits.shift();
+// Add to front of an array
+const newLength = fruits.unshift("strawberries");
+// Finding index of item in array
+const pos = fruits.indexOf("bananas");
+// Remove an item by index position
+const removedItem = fruits.splice(pos, 1);
+// Copy an array
+const shallowCopy = fruits.slice();
+// Using Array.from to convert array-like or iterale object to an array
+Array.from("foo"); // ['f', 'o', 'o']
+Array.from([1, 2, 3], x => x + x); // [2,4,6]
+// using reduce: to apply a function against an accumulator and each element in array from left to right to reduce to single value
+const array1 = [1, 2, 3, 4];
+const reducer = (accumulator, currentValue) => accumulator + currentValue;
+
+console.log(array1.reduce(reducer)); // 10
+console.log(array1.reduce(reducer, 5)); // 15
+// Array.isArray() to tell if an array
+Array.isArray([1, 2, 4]); // true
 
 /*
  * Maps
+ * - holds key-value pairs, any value (both objects and primitive values) may be used as either a key or value
+ * - iterates its elements in insertion order in for...of loop [key,value]
+ * - keys of object are strings/symbols but they can be any value for Map, size property, Iterable so easier to iterate than Object in which
+ * you need the keys and Object has a prototype
+ * - clear, delete(key), entries, forEach, get(key), has(key), keys(), set(key, value), values()
+ * - can turn 2D key-value array into map
  */
+const myMap = new Map();
+
+myMap.set("someKey", "someValue");
+myMap.size; // 1
+myMap.get("someKey"); // 'someValue'
+myMap.has("someKey"); // true
+
+for (var [key, value] of myMap) {
+  console.log(key + " = " + value);
+}
+
+myMap.forEach(function(value, key) {
+  console.log(key + " = " + value);
+});
 
 /*
  * Sets
+ * - lets you store unique values of any type whether primitive values or object references
+ * - can iterate through elements in insertion order, value in set may only occur once
+ * - more like unordered hashset
+ * - clear, entries, keys
  */
+const mySet = new Set();
+
+mySet.add(1);
+mySet.add(5);
+mySet.has(1); // true;
+mySet.delete(5); // removes 5 from set
+mySet.has(5); // false;
+mySet.size; // 1
+
+for (let item of mySet) {
+  console.log(item);
+}
+
+mySet.forEach(function(value) {
+  console.log(value);
+});
+
+const myArr = Array.from(mySet);
+
+// Intersection
+const intersection = new Set([...set1].filter(x => set2.has(x)));
+
+// Difference
+const difference = new Set([...set1].filter(x => !set2.has(x)));
+
+// Adding basic set operations
+Set.prototype.isSuperset = function(subset) {
+  for (var elem of subset) {
+    if (!this.has(elem)) {
+      return false;
+    }
+  }
+  return true;
+};
+
+Set.prototype.union = function(setB) {
+  var union = new Set(this);
+  for (var elem of setB) {
+    union.add(elem);
+  }
+  return union;
+};
+
+Set.prototype.intersection = function(setB) {
+  var intersection = new Set();
+  for (var elem of setB) {
+    if (this.has(elem)) {
+      intersection.add(elem);
+    }
+  }
+  return intersection;
+};
+
+Set.prototype.difference = function(setB) {
+  var difference = new Set(this);
+  for (var elem of setB) {
+    difference.delete(elem);
+  }
+  return difference;
+};
+
+// Can transform Array into set
+const mySet2 = new Set(myArray); // each unique item in array
+const mySetStr = new Set(text); // each unique character
 
 /*
  * Symbols
+ * - every symbol value returned from Symbol() is unique, may be used as identifier for object properties, primitive data type
+ * - typeof symbol = "symbol", toString() = Symbol(arg)
+ * - not enumerable in for...in iterations, Object.getOwnPropertyNames will not return symbol object properties, ignored by JSON.stringify
+ * - Symbol.iterator = method returning default iterator for an object used by for...of
  */
+const sym1 = Symbol("foo");
+const sym2 = Symbol("foo");
+
+sym1 === sym2; // false
 
 /*
  * Generators
+ * - function* declaration
+ * - generators are functions which can be exited and later re-entered; context bindings saved across re-entrances
+ * - helps with async programming when combined with Promises (yield a promise)
+ * - calling generator function doesn't execute body immediately; iterator object for function is returned instead
+ * -> call iterator's next() method, function body executed until first yield expression which specifies value to be returned from iterator
+ * or with yield* delegates to another generator function
+ * - next() returns object with value property containing yielded value and done property to indicate whether generator has yielded its last value as boolean
+ * -> calling next() with argument will resume generator function execution, replacing yield expression where executionw as paused with the argument from next()
+ * -> return statement in generator when executed will make generator finished with done:true; or error thrown
+ * -> subsequent next calls after finishing will just return object {value: undefined, done: true}
  */
+function* idMaker() {
+  var index = 0;
+  while (index < index + 1) {
+    yield index++;
+  }
+}
+
+var gen = idMaker();
+console.log(gen.next().value); // 0
+console.log(gen.next().value); // 1
 
 /*
  * Promises
+ * - callbacks deprive us of return/throw and program's entire flow based on side effects (one function calling another one), deprive us of stack
+ * - avoid promise pyramid of doom, just like callback hell -> better to compose promises and each function only called when previous promise resolved and called with that
+ * promise's output
+ * - avoid forEach/for/while loop but rather use Promise.all() - rejected when any sub-promises rejected, otherwise returns array of results
+ * - remember to add a .catch() to capture any thrown errors
+ * - avoid deferred = object representing work that is not yet done for async code and a promise is an object representing a value that is not yet know
+ * - Promise object represents eventual completion or failure of an asynchronous operation and its resulting value, returned object to which
+ * you attach callbacks instead of passing callbacks into a function
+ * - callbacks added with .then even after success or failure of async operations will be called, callbacks won't be called before completion of current run of JS event loop,
+ * can chain them, functions passed to then will never be called synchronously even with already-resolved promise (put on microtask queue which means it will reunt
+ * layer when queue is emptied at end of current run of JS event loop)
+ * - proxy for value not necessarily known when promise is created, associate handlers with an asynchronous action's eventual success value or failure reason
+ * - in one of these states: pending (neither fulfilled nor rejected), fulfilled (successfully), rejected (failed)
+ * -> when rejected or fulfilled, asssociated handlers queued up by promise's then method are called
+ * - Promise.resolve() and Promise.reject() = shortcuts to manually create already resolved or rejected promise respectively
+ * - Promise.all() and Promise.race() to run async operations in parallel
  */
+// Sample Promise: in executor function, resolve called when async task completes successfully and returns results of task as value
+const myPromise = new Promise((resolve, reject) => {
+  // do something async which calls either:
+  // resolve(someValue); - fulfilled
+  // reject(new Error('some reason')); - rejected
+});
+// To provide function with promise functionality, simply have it return a promise
+function myAsyncFunction(url) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.onload = () => resolve(xhr.responseText);
+    xhr.onerror = () => reject(xhr.statusText);
+    xhr.send();
+  });
+}
+// Another timeout promise, setTimeout to simulate async code
+let timeoutPromise = new Promise((resolve, reject) => {
+  setTimeout(function() {
+    resolve("Success!");
+  }, 250);
+});
+// Gets success passed in resolve function
+timeoutPromise.then(successMessage => {
+  console.log("Yay! " + successMessage);
+});
+// Returning results so callbacks catch result of previous promise
+doSomething()
+  .then(result => doSomethingElse(result))
+  .then(newResult => doThirdThing(newResult))
+  .then(finalResult => {
+    console.log(`Got the final result: ${finalResult}`);
+  })
+  .catch(failureCallback);
+// Wrapping problematic functions at lowest level and never call them directly
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+wait(10000)
+  .then(() => saySomething("10 seconds"))
+  .catch(failureCallback);
+// Revealing constructor pattern
+new Promise(function(resolve, reject) {
+  fs.readFile("myfile.txt", function(err, file) {
+    if (err) {
+      return reject(err);
+    }
+    resolve(file);
+  });
+}).then(/* ... */);
+// Composing Promises
+remotedb
+  .addDocs(docs)
+  .then(function(resultOfAllDocs) {
+    return localdb.put("");
+  })
+  .then(function(resultOfPut) {
+    return localdb.get("");
+  })
+  .then(function(resultOfGet) {
+    return localdb.put("");
+  })
+  .catch(function(err) {
+    console.log(err);
+  });
+
+// Once in here you can return another promise, return a synchronous value or undefined, throw a synchronous error
+somePromise().then(function() {
+  // I'm inside a then() function!
+});
+
+// Promises to wrap synchronous code as asynchronous code
+new Promise(function(resolve, reject) {
+  resolve(someSynchronousValue);
+}).then(/* ... */);
+// vs.
+Promise.resolve(someSynchronousValue).then(/* ... */);
+// i.e. wrapping promise-returning API methods
+function somePromiseAPI() {
+  return Promise.resolve()
+    .then(function() {
+      doSomethingThatMayThrow();
+      return "foo";
+    })
+    .then(/* ... */);
+}
+// Promise.reject()
+Promise.reject(new Error("some awful error"));
+// Promise.catch() is actually just sugar for this
+somePromise().then(null, function(err) {
+  // ...
+});
+
+// Executing promises sequentially after the other with promise factories
+function executeSequentially(promiseFactories) {
+  var result = Promise.resolve();
+  promiseFactories.forEach(function(promiseFactory) {
+    result = result.then(promiseFactory);
+  });
+  return result;
+}
+// Promise factory is function that returns a promise
+function myPromiseFactory() {
+  return somethingThatCreatesAPromise();
+}
 
 /*
  * fetch and async + await
@@ -994,7 +1307,7 @@ async function getProcessedData(url) {
 /*
  * Classes
  * - syntactic sugar over JS's prototype-based inheritance
- * - function declarations are hoised but class declarations are 
+ * - function declarations are hoisted but class declarations aren't
  * - static keyword: without instantiating their class and cannot be called through a class instance,
  * used to create utility functions
  * - can use extends keyword in class declarations/expressions to create a class as a child of another class
@@ -1178,7 +1491,7 @@ if (document.cookie.split(";").indexOf("reader=1") >= 0) {
  * - can work with database-esque object store in browser, can store typed information, define primary keys, indexing, transactions to prevent data integrity issues
  * - for app to run offline, can use IndexedDB along with Cache API (part of Service Workers)
  * - for high-performance searches of data; Web Storage for smaller amounts of data and this is for larger amounts of data
- * - transactional database system like SQL-based RDBMS; JS-baded object-oriented database
+ * - transactional database system like SQL-based RDBMS; JS-based object-oriented database
  * -> need to specify database schema, open connection to database and retrieve/update data within a series of transactions
  * - operations done asynchronously
  * - web data storage space and what to delete when limit is reached differs between 
@@ -1238,6 +1551,8 @@ const failStr = "abc";
 const reSample = /[A-Z]/g;
 console.log(str.search(reSample)); // returns 4;
 console.log(str.search(failStr)); // returns -1;
+
+/[\w]+/g.test("word");
 
 /*
  * Currying: reducing functions of more than one argument to functions of one argument
@@ -1301,7 +1616,211 @@ curryedAdd(5)(6) === 11;
  * -> window.onload
  * -> window.dump()
  * -> window.scrollTo()
+ * - selecting/finding nodes using document.querySelector and document.getElementsByTagName in older browsers
+ * - traversal up and down: Node.parentNode, Node.firstChild, Node.lastChild, Node.childNodes
+ * - traversal left and right: Node.previousSibling, Node.nextSibling
+ * - each element has read-only properties referencing the family which are live: myElement.children, myElement.firstElementChild,
+ * lastElementChild, previousElementSibling, nextElementSibling
+ * -> Element interface inherits from Node interface so we also have access to these: childNodes, firstChild, lastChild, previousSibling, nextSibling,
+ * parentNode, parentElement -> can be any kind of node like text nodes
+ * i.e. can check type of given node like myElement.firstChild.nodeType === 3 for text node
+ * or myElement.firstChild.nodeType instanceOf Text
  */
+// Accessing DOM elements
+// Returns a reference to the element by its ID
+// - live
+document.getElementById("someid");
+
+// Returns an array-like object of all child elements which have all of the given class names.
+// - live
+document.getElementsByClassName("someclass");
+
+// Returns an HTMLCollection of elements with the given tag name.
+// - live so dynamically updating DOM will affect it
+document.getElementsByTagName("LI");
+
+// Returns the first element within the document that matches the specified group of selectors.
+// - not live so when we dynamically add an element, the collection won't update
+document.querySelector(".someclass");
+
+// Returns a list of the elements within the document (using depth-first pre-order traversal of the document's nodes)
+// that match the specified group of selectors.
+// - not live, returns a NodeList and not an Array so we must convert to array first
+document.querySelectorAll("div.note, div.alert");
+
+// Grab children/parent nodes
+// Get child nodes
+const stored = document.getElementById("someid");
+const children = stored.childNodes;
+
+// Get parent node
+const parent = children.parentNode;
+
+// Create new DOM Elements
+// Create new elements
+var newHeading = document.createElement("h1");
+var newParagraph = document.createElement("p");
+
+// Using .getAttribute(), .setAttribute(), .removeAttribute() directly modify HTML attributes as opposed
+// to DOM properties of an element and cause a browser redraw
+// Get an attribute value
+const value = myElement.value;
+// Set an attribute as an element property
+myElement.value = "foo";
+
+// Create text nodes for new elements
+var h1Text = document.createTextNode("This is a nice header text!");
+var pText = document.createTextNode("This is a nice paragraph text!");
+
+// Attach new text nodes to new elements
+newHeading.appendChild(h1Text);
+newParagraph.appendChild(pText);
+// Elements are now created and ready to be added to the DOM.
+
+// Add elements to the DOM
+// grab element on page you want to add stuff to
+var firstHeading = document.getElementById("firstHeading");
+
+// Add both new elements to the page as children to the element we stored in firstHeading.
+firstHeading.appendChild(newHeading);
+firstHeading.appendChild(newParagraph);
+
+// Can also insert before like so
+
+// Get parent node of firstHeading
+var parent = firstHeading.parentNode;
+
+// Insert newHeading before FirstHeading
+parent.insertBefore(newHeading, firstHeading);
+
+// Add Elements to the DOM cont.
+var box2 = document.getElementById("box2");
+box2.insertAdjacentHTML("beforebegin", "<div><p>This gets inserted.</p></div>");
+
+// beforebegin - The HTML would be placed immediately before the element, as a sibling.
+// afterbegin - The HTML would be placed inside the element, before its first child.
+// beforeend - The HTML would be placed inside the element, after its last child.
+// afterend - The HTML would be placed immediately after the element, as a sibling.
+
+// Removing children from a parent element
+myParentElement.removeChild(myElement);
+// or
+myElement.parentNode.removeChild(myElement);
+
+// Create a clone
+const myElementClone = myElement.cloneNode(); // if set to true it will do a deep copy of it and its children
+myParentElement.appendChild(myElementClone);
+
+// Add/Remove/Toggle/Check Classes
+// Grab element on page you want to use
+var firstHeading = document.getElementById("firstHeading");
+
+// Will remove foo if it is a class of firstHeading
+firstHeading.classList.remove("foo");
+
+// Will add the class 'anotherClass' if one does not already exist
+firstHeading.classList.add("anotherclass");
+
+// Add or remove multiple classes
+firstHeading.classList.add("foo", "bar");
+firstHeading.classList.remove("foo", "bar");
+
+// If visible class is set remove it, otherwise add it
+firstHeading.classList.toggle("visible");
+
+// Will return true if it has class of 'foo' or false if it does not
+firstHeading.classList.contains("foo");
+
+// Adding CSS styles (camel-cased)
+myElement.style.marginLeft = "2em";
+
+// DocumentFragments: virtual node to place children elements on without root and to create structure
+// - faster as once tree of DOM nodes ready to hit page, can place fragment into its parent
+// - faster than repeated single DOM node injection and allows devs to perform DOM node operations like adding events on new elements
+// instead of mass-injection via innerHTML
+var frag = document.createDocumentFragment();
+// Create numerous list items, add to fragment
+for (var x = 0; x < 10; x++) {
+  var li = document.createElement("li");
+  li.innerHTML = "List item " + x;
+  frag.appendChild(li);
+}
+// Mass-add the fragment nodes to the list
+listNode.appendChild(frag);
+
+// Event Listeners
+// Better than adding property of element like .onclick cause you cannot add additional listeners and will just be overwritten
+// - event.type, event.target (element on which event was triggered)
+// - event.preventDefault(): prevent browser's default behavior like following a link or prevent submission of a form if client-side validation fails
+// - event.stopPropagation(): prevent event from bubbling up the DOM
+const myForm = document.forms[0];
+const myInputElements = myForm.querySelectorAll("input");
+
+Array.from(myInputElements).forEach(el => {
+  el.addEventListener("change", function(event) {
+    console.log(event.target.value);
+  });
+});
+// Event Delegation: having one event listener on parent to react to all children events
+// - accounts for dynamically inserted children as well without having to bind new listeners to each child (less memory)
+myForm.addEventListener("change", function(event) {
+  const target = event.target;
+  if (target.matches("input")) {
+    console.log(target.value);
+  }
+});
+
+// window.requestAnimationFrame()
+// - schedule all current changes to next browser repaint frame
+// - don't use window.setTimeout for desired animation as it forces rapid document reflows and layout thrashing can lead to stuttering
+// on mobile devices
+const start = window.performance.now();
+const duration = 2000;
+
+window.requestAnimationFrame(function fadeIn(now) {
+  const progress = now - start;
+  myElement.style.opacity = progress / duration;
+
+  if (progress < duration) {
+    window.requestAnimationFrame(fadeIn);
+  }
+});
+
+// jQuery lite helper methods
+const $ = function $(selector, context = document) {
+  const elements = Array.from(context.querySelectorAll(selector));
+
+  return {
+    elements,
+
+    html(newHtml) {
+      this.elements.forEach(element => {
+        element.innerHTML = newHtml;
+      });
+
+      return this;
+    },
+
+    css(newCss) {
+      this.elements.forEach(element => {
+        Object.assign(element.style, newCss);
+      });
+
+      return this;
+    },
+
+    on(event, handler, options) {
+      this.elements.forEach(element => {
+        element.addEventListener(event, handler, options);
+      });
+
+      return this;
+    },
+
+    // etc.
+  };
+};
+
 // i.e. Dealing with tables
 let table = document.getElementById("table");
 let tableAttrs = table.attributes; // Node/Element interface
@@ -2044,11 +2563,72 @@ function foo() {
 let elem = document.getElementById("container");
 elem.addEventListener("scroll", debounce(foo, 2000));
 
+// Another sample debounce/throttle
+var helpers = {
+  /**
+   * debouncing, executes the function if there was no new event in $wait milliseconds
+   * @param func
+   * @param wait
+   * @param scope
+   * @returns {Function}
+   */
+  debounce: function(func, wait, scope) {
+    var timeout;
+    return function() {
+      var context = scope || this,
+        args = arguments;
+      var later = function() {
+        timeout = null;
+        func.apply(context, args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  },
+
+  /**
+   * In case of a "storm of events", this executes once every $threshold
+   * @param fn
+   * @param threshold
+   * @param scope
+   * @returns {Function}
+   */
+  throttle: function(fn, threshold, scope) {
+    threshold || (threshold = 250);
+    var last, deferTimer;
+
+    return function() {
+      var context = scope || this;
+      var now = +new Date(),
+        args = arguments;
+
+      if (last && now < last + threshold) {
+        // Hold on to it
+        clearTimeout(deferTimer);
+        deferTimer = setTimeout(function() {
+          last = now;
+          fn.apply(context, args);
+        }, threshold);
+      } else {
+        last = now;
+        fn.apply(context, args);
+      }
+    };
+  },
+};
+
+var resizeHandler = function() {
+  console.log("do stuff");
+};
+
+// Debounce by waiting 0.25s (250ms) with "this" context
+window.addEventListener("resize", helpers.debounce(resizeHandler, 250, this));
+
 /*
  * Throttling
  * - instead of waiting for some time to pass by before calling a function, throttling just
  * spreads the function calls across a longer time interval
- * i.e. if event occurs 10 times within 100ms, one can spread out each of functionc alls to be executed once every 2 seconds instead of all
+ * i.e. if event occurs 10 times within 100ms, one can spread out each of function calls to be executed once every 2 seconds instead of all
  * firing within 100ms
  * - limiting the amount a function is executed over a time period
  */
@@ -2090,6 +2670,25 @@ const throttle = (func, limit) => {
     }
   };
 };
+
+/*
+ * Autocomplete onKeyPress calls - debounce calls to server rather than 30 key presses and 30 server calls
+ * - closures, setTimeout (get back ID to uniquely reference timeout so you can cancel it whenever with clearTimeout)
+ * - need to interrupt timeout and not make call to server until user finishes keypresses
+ * - if not relying on the server, one can use a Trie to store all prefixes of words and then return all words with that prefix
+ */
+const searchInput = document.getElementById("search-input");
+
+searchInput.addEventListener("keypress", function(e) {
+  // Clear timeout if user presses key and there is a request waiting to be done
+  if (this.timeoutId) {
+    window.clearTimeout(this.timeoutId);
+  }
+  // Debounce the server request to happen after 200ms instead
+  this.timeoutId = window.setTimeout(function() {
+    // Make XHR request here
+  }, 200);
+});
 
 /*
   AsyncMap
@@ -2180,6 +2779,85 @@ function sMerge(toObj, fromObj) {
     throw new Error("Merge function can apply only on object");
   }
 }
+// Deep Merge
+function isMergeableObject(val) {
+  var nonNullObject = val && typeof val === "object";
+
+  return (
+    nonNullObject &&
+    Object.prototype.toString.call(val) !== "[object RegExp]" &&
+    Object.prototype.toString.call(val) !== "[object Date]"
+  );
+}
+
+function emptyTarget(val) {
+  return Array.isArray(val) ? [] : {};
+}
+
+function cloneIfNecessary(value, optionsArgument) {
+  var clone = optionsArgument && optionsArgument.clone === true;
+  return clone && isMergeableObject(value)
+    ? deepmerge(emptyTarget(value), value, optionsArgument)
+    : value;
+}
+
+function defaultArrayMerge(target, source, optionsArgument) {
+  var destination = target.slice();
+  source.forEach(function(e, i) {
+    if (typeof destination[i] === "undefined") {
+      destination[i] = cloneIfNecessary(e, optionsArgument);
+    } else if (isMergeableObject(e)) {
+      destination[i] = deepmerge(target[i], e, optionsArgument);
+    } else if (target.indexOf(e) === -1) {
+      destination.push(cloneIfNecessary(e, optionsArgument));
+    }
+  });
+  return destination;
+}
+
+function mergeObject(target, source, optionsArgument) {
+  var destination = {};
+  if (isMergeableObject(target)) {
+    Object.keys(target).forEach(function(key) {
+      destination[key] = cloneIfNecessary(target[key], optionsArgument);
+    });
+  }
+  Object.keys(source).forEach(function(key) {
+    if (!isMergeableObject(source[key]) || !target[key]) {
+      destination[key] = cloneIfNecessary(source[key], optionsArgument);
+    } else {
+      destination[key] = deepmerge(target[key], source[key], optionsArgument);
+    }
+  });
+  return destination;
+}
+
+function deepmerge(target, source, optionsArgument) {
+  var array = Array.isArray(source);
+  var options = optionsArgument || { arrayMerge: defaultArrayMerge };
+  var arrayMerge = options.arrayMerge || defaultArrayMerge;
+
+  if (array) {
+    return Array.isArray(target)
+      ? arrayMerge(target, source, optionsArgument)
+      : cloneIfNecessary(source, optionsArgument);
+  } else {
+    return mergeObject(target, source, optionsArgument);
+  }
+}
+
+deepmerge.all = function deepmergeAll(array, optionsArgument) {
+  if (!Array.isArray(array) || array.length < 2) {
+    throw new Error(
+      "first argument should be an array with at least two elements"
+    );
+  }
+
+  // we are sure there are at least 2 values, so it is safe to have no initial value
+  return array.reduce(function(prev, next) {
+    return deepmerge(prev, next, optionsArgument);
+  });
+};
 
 /*
  * Creating a non-enumerable property with Object.defineProperty();
@@ -2194,12 +2872,19 @@ Object.defineProperty(person, "phone", {
 Object.keys(person);
 
 /*
- * Search autocompletion/suggestions on typing
- */
-
-/*
  * Creating an NxN dimensional array helper function
  */
+function createArray(length) {
+  var arr = new Array(length || 0),
+    i = length;
+
+  if (arguments.length > 1) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    while (i--) arr[length - 1 - i] = createArray.apply(this, args);
+  }
+
+  return arr;
+}
 
 /*
  * Implementing a Trie for O(KeyLength) inserts and searches
@@ -2211,7 +2896,7 @@ function TrieNode() {
 }
 
 /**
- * Initialize your data structure here.
+ * Initialize your Trie
  */
 var Trie = function() {
   this.root = new TrieNode();
@@ -2799,6 +3484,185 @@ function treeBFS(root) {
 }
 
 /*
+ * Factory Pattern
+ * - Simple Factory: object which encapsulate creation of another object
+ * i.e. constructor being instantiated by "new" like classes
+ * - Factory method: defines one method which is overridden by subclasses who decide what to return
+ * - Abstract factory: provides interface for creating families of related or dependent objects without specifying their concrete classes
+ */
+// Sample Factory to create different User subclasses
+const Factory = {
+  registeredTypes: new Map(),
+  register(className, classDef) {
+    if (
+      !(
+        Factory.registeredTypes.has(className) &&
+        Class.prototype instanceof User
+      )
+    ) {
+      Factory._registeredTypes.set(className, classDef);
+    } else {
+      console.log("Already registered class");
+    }
+  },
+  create(className, ...options) {
+    if (!Factory.registeredTypes.has(className)) {
+      console.error("!!!");
+      return null;
+    }
+    let classDef = this.registeredTypes.get(className);
+    let instance = new classDef(...options);
+    return instance;
+  },
+}(
+  /*
+ * Module Pattern
+ * - for keeping pieces of code independent of other components for loose coupling
+ * - encapsulation, public/private access levels, should be IIFE to allow for private scopes (closure to protect variables and methods) and return an object
+ */
+  function() {
+    // Declare private variables and/or functions
+
+    return {
+      // Declare public variables and/or functions
+    };
+  }
+)();
+// Revealing Module Pattern
+// - for encapsulation and reveal certain variables and methods returned in object literal
+// - unable to reference private methods and public behaviors are non-overridable
+var Exposer = (function() {
+  var privateVariable = 10;
+
+  var privateMethod = function() {
+    console.log("Inside a private method!");
+    privateVariable++;
+  };
+
+  var methodToExpose = function() {
+    console.log("This is a method I want to expose!");
+  };
+
+  var otherMethodIWantToExpose = function() {
+    privateMethod();
+  };
+
+  return {
+    first: methodToExpose,
+    second: otherMethodIWantToExpose,
+  };
+})();
+
+/*
+ * Prototype Pattern
+ * - used for creating objects in performance-intensive situations
+ * - objects created are shallow clones of original object that are passed around
+ * - constructor must exist to instantiate the first object
+ */
+// Constructor allows creation of single TeslaModelS object and when creating a new object,
+// it will retain states initialized in construtor
+var TeslaModelS = function() {
+  this.numWheels = 4;
+  this.manufacturer = "Tesla";
+  this.make = "Model S";
+};
+
+TeslaModelS.prototype.go = function() {
+  // Rotate wheels
+};
+
+TeslaModelS.prototype.stop = function() {
+  // Apply brake pads
+};
+// Revealing Prototype Pattern
+// with encapsulation of public and private members since it returns object literal
+var TeslaModelS = function() {
+  this.numWheels = 4;
+  this.manufacturer = "Tesla";
+  this.make = "Model S";
+};
+
+TeslaModelS.prototype = (function() {
+  var go = function() {
+    // Rotate wheels
+  };
+
+  var stop = function() {
+    // Apply brake pads
+  };
+
+  return {
+    pressBrakePedal: stop,
+    pressGasPedal: go,
+  };
+})();
+
+/*
+ * Observer Pattern
+ * - when one part of application changes, other parts need to be updated  i.e. AngularJS $scope object updates notify another component
+ * - if an object is modified it broadcasts to dependent objects that a change has occurred
+ * - model-view-controller architecture: view updates when model changes and one can decouple view from model to reduce dependencies
+ * - may have drop in performance as number of observers increase i.e. watchers in AngularJS
+ * - can create subjects and observers
+ * - publish/subscribe pattern uses topic/event channel that sits between objects wishing to receive notifications (subscribers) and object
+ * firing the event (publisher)
+ */
+var Subject = function() {
+  this.observers = [];
+
+  return {
+    subscribeObserver: function(observer) {
+      this.observers.push(observer);
+    },
+    unsubscribeObserver: function(observer) {
+      var index = this.observers.indexOf(observer);
+      if (index > -1) {
+        this.observers.splice(index, 1);
+      }
+    },
+    notifyObserver: function(observer) {
+      var index = this.observers.indexOf(observer);
+      if (index > -1) {
+        this.observers[index].notify(index);
+      }
+    },
+    notifyAllObservers: function() {
+      for (var i = 0; i < this.observers.length; i++) {
+        this.observers[i].notify(i);
+      }
+    },
+  };
+};
+
+var Observer = function() {
+  return {
+    notify: function(index) {
+      console.log("Observer " + index + " is notified!");
+    },
+  };
+};
+
+var subject = new Subject();
+
+var observer1 = new Observer();
+var observer2 = new Observer();
+var observer3 = new Observer();
+var observer4 = new Observer();
+
+subject.subscribeObserver(observer1);
+subject.subscribeObserver(observer2);
+subject.subscribeObserver(observer3);
+subject.subscribeObserver(observer4);
+
+subject.notifyObserver(observer2); // Observer 2 is notified!
+
+subject.notifyAllObservers();
+// Observer 1 is notified!
+// Observer 2 is notified!
+// Observer 3 is notified!
+// Observer 4 is notified!
+
+/*
  * Singleton Pattern
  * - great way to wrap code into a logical unit that can be accessed through a single variable
  * - used when only once instance of an object is needed throughout the lifetime of an application
@@ -2808,6 +3672,9 @@ function treeBFS(root) {
  * i.e. object literal
  * - two parts: object itself containing members (methods and attributes) within it and global variable used to access it
  * so it can be accessed anywhere in the page
+ * - only allows for single instantiation but many instances of same object, restricts clients from creating multiple objects, after the first object created,
+ * it will return instances of itself
+ * - susceptible to race conditions in multi-threaded applications
  */
 // Namespacing and prevent accidentally overwriting variable with singleton object
 var MyNameSpace = {
@@ -2850,18 +3717,237 @@ MyNameSpace.Singleton = (function() {
 // Getting access of publicMethod
 console.log(MyNameSpace.Singleton.getInstance().publicMethod());
 
+// Another Singleton example
+var printer = (function() {
+  var printerInstance;
+
+  function create() {
+    function print() {
+      // underlying printer mechanics
+    }
+
+    function turnOn() {
+      // warm up
+      // check for paper
+    }
+
+    return {
+      // public + private states and behaviors
+      print: print,
+      turnOn: turnOn,
+    };
+  }
+
+  return {
+    getInstance: function() {
+      if (!printerInstance) {
+        printerInstance = create();
+      }
+      return printerInstance;
+    },
+  };
+
+  function Singleton() {
+    if (!printerInstance) {
+      printerInstance = intialize();
+    }
+  }
+})();
+
+/*
+ * Decorator Pattern
+ * - to promote code re-use similar to mixins, alternative to object sub-classing
+ * - add behavior (properties/methods) to existing classes in system dynamically, extending functionality
+ */
+// The constructor to decorate
+function MacBook() {
+  this.cost = function() {
+    return 997;
+  };
+  this.screenSize = function() {
+    return 11.6;
+  };
+}
+
+// Decorator 1
+function memory(macbook) {
+  var v = macbook.cost();
+  macbook.cost = function() {
+    return v + 75;
+  };
+}
+
+// Decorator 2
+function engraving(macbook) {
+  var v = macbook.cost();
+  macbook.cost = function() {
+    return v + 200;
+  };
+}
+
+// Decorator 3
+function insurance(macbook) {
+  var v = macbook.cost();
+  macbook.cost = function() {
+    return v + 250;
+  };
+}
+
+var mb = new MacBook();
+memory(mb);
+engraving(mb);
+insurance(mb);
+
+// Outputs: 1522
+console.log(mb.cost());
+
+// Outputs: 11.6
+console.log(mb.screenSize());
+
+/*
+ * Facade Pattern
+ * - higher-level interface to a larger body of code, hiding its true underlying complexity i.e. jQuery
+ * - providing limited abstraction of these methods to public for use
+ */
+$(".some-selector");
+$(".some-class").on("click", function(e) {
+  // ...
+});
+
+/*
+ * Iterator Pattern
+ * - implementing hasNext() and next() methods given an array
+ */
+function makeIterator(array) {
+  let nextIndex = 0;
+  const len = array.length;
+
+  return {
+    next() {
+      if (nextIndex < len) {
+        const nextVal = { value: array[nextIndex] };
+        nextIndex++;
+      } else {
+        return { value: null };
+      }
+    },
+    hasNext() {
+      return nextIndex < len;
+    },
+  };
+}
+// Usage:
+const arrayNums = [1, 2, 3];
+const iter = makeIterator(arrayNums);
+while (iter.hasNext()) {
+  console.log(iter.next().value);
+}
+
+// ES6 iterators have done:true/false
+function reverseArrayIterator(array) {
+  var index = array.length - 1;
+  return {
+    next: () =>
+      index >= 0 ? { value: array[index--], done: false } : { done: true },
+  };
+}
+
+// Utilizing Symbol.Iterator
+function range(start, end) {
+  return {
+    [Symbol.iterator]() {
+      //#A
+      return this;
+    },
+    next() {
+      if (start < end) {
+        return { value: start++, done: false }; //#B
+      }
+      return { done: true, value: end }; //#B
+    },
+  };
+}
+
+for (number of range(1, 5)) {
+  console.log(number); //-> 1, 2, 3, 4
+}
+
+let iter = ["I", "t", "e", "r", "a", "t", "o", "r"][Symbol.iterator]();
+iter.next().value; //-> I
+iter.next().value; //-> t
+
+/*
+ * Permutations of String
+ */
+function permut(string) {
+  if (string.length < 2) return string; // This is our break condition
+
+  var permutations = []; // This array will hold our permutations
+
+  for (var i = 0; i < string.length; i++) {
+    var char = string[i];
+
+    // Cause we don't want any duplicates:
+    if (string.indexOf(char) != i)
+      // if char was used already
+      continue; // skip it this time
+
+    var remainingString =
+      string.slice(0, i) + string.slice(i + 1, string.length); //Note: you can concat Strings via '+' in JS
+
+    for (var subPermutation of permut(remainingString))
+      permutations.push(char + subPermutation);
+  }
+  return permutations;
+}
+
 /*
  * MergeSort Implementation
  * Time Complexity: O(Nlog(N))
  * Space Complexity: O(N)
- * - better for linked lists
+ * - better for linked lists, for large data sets stored on external devices and faster speed
  */
+var mergeSort = function(source) {
+  if (source.length < 2) {
+    return source;
+  }
+  var end = source.length;
+  var mid = Math.floor(end / 2);
+  // Split array into 2 halves.
+  var leftHalf = source.splice(0, mid);
+  var rightHalf = source;
+  // Merge the 2 sorted halves. And in order to sort the respective halves
+  // Call the split functionality recusively untill we have 1 element in the array.
+  return merge(mergeSort(leftHalf), mergeSort(rightHalf));
+};
+
+var merge = function(leftArr, rightArr) {
+  var mergerdArr = [];
+  var indL = 0,
+    indR = 0;
+  // start from 0th position for both the array , and whose 1st elemnet is bigger
+  // Push that to new array and increase that index .
+  while (indL < leftArr.length || indR < rightArr.length) {
+    // typeof leftArr[indL] === ‘undefined’ means lArray has ended and item remains in rArray.
+    // So just keep pushing.
+    if (!leftArr[indL] || leftArr[indL] > rightArr[indR]) {
+      mergerdArr.push(rightArr[indR]);
+      indR++;
+    } else {
+      mergerdArr.push(leftArr[indL]);
+      indL++;
+    }
+  }
+  return mergerdArr;
+};
 
 /*
  * QuickSort Implementation
  * Time Complexity: O(N^2) worst case for sorted arrays, O(Nlog(N)) best/average case
  * Space Complexity: O(1) in-place
  * - better for arrays, can randomize to avoid sorted worst case
+ * - need two pointers to work way toward middle and can be expensive with files because files oriented primarily
+ * toward reading in one direction, reading backwards expensive
  */
 var swap = function(arr, i, j) {};
 
@@ -2900,6 +3986,30 @@ var quickSort = function(arr, low, high) {
 };
 
 /*
+ * Implementing getElementByID
+ */
+function getById(id, parent, list) {
+  parent = parent || document.body;
+  list = list || [];
+
+  var l,
+    child,
+    children = parent.children;
+  if (children) {
+    l = children.length;
+    while (l--) {
+      child = children[l];
+      if (child.id === id) {
+        list.push(child);
+      }
+      getById(id, child, list);
+    }
+  }
+
+  return list;
+}
+
+/*
  * Finding K-th Max/Min in an array using QuickSelect
  * - similar to quick sort algorithm but only finding kth pivot
  * - O(N^2) solution is easy but we want to find O(Nlog(N)) worst case
@@ -2926,7 +4036,7 @@ let kthMax = function(arr, low, high, k) {
     // Swap it with greaterIndex element and increment greaterIndex pointer
     // All elements greater than pivot will be to left, all elements smaller than or equal
     // to the pivot element will be on the right
-    if (arr[i] > arr[high]) {
+    if (arr[i] > pivot) {
       swap(arr, greaterIndex, i);
       greaterIndex++;
     }
@@ -2937,7 +4047,6 @@ let kthMax = function(arr, low, high, k) {
   swap(arr, greaterIndex, high);
 
   // Only try to sort the part in which kth index lies
-  //
   if (k === greaterIndex) {
     return arr[greaterIndex];
   } else if (greaterIndex > k) {

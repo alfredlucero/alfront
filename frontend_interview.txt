@@ -3,6 +3,8 @@
 - Scoping the problem like this
 Come up with clarifying examples and expected outputs, clarify function signature
 Ask performance questions up front (space vs. time requirements)
+  Generally, to improve the speed of a program, we can choose to either use an appropriate data structure or algorithm, or to use more memory.
+Validate inputs first
 State assumptions up front
 How big is the size of the input?
 How big is the range of values?
@@ -27,6 +29,314 @@ Follow up
 How would you handle the input arriving as a stream? 
 The answer is usually a divide-and-conquer approach — perform distributed processing of the data and only read certain 
 chunks of the input from disk into memory, write the output back to disk and combine them later.
+
+Stuck?
+- Consider all data structures like hashmap, set, stack, etc. and see if you can apply it to the problem by using more memory to save time
+- Use the brute force approach and repeated work as guide for optimizing it further; consider various algorithm approaches like greedy, recursive, graph traversal,
+sorting, searching, etc.
+- Implement pure helper functions to help like isAlphaNumeric(), isValidRow/Col, etc.
+- Code optimistically - say you already have these functions implemented based on your algorithm, use them in your code and implement them later if within time constraint
+
+Tips and Tricks
+
+Sequences i.e. arrays and strings
+  are there duplicates and would they affect the answer?
+  check for out of bounds
+  be mindful about slicing and concatenating as they usually take O(n) time
+  use start and end to demarcate subarray or substring as much as possible
+  sliding window technique/two pointers
+  when given two sequences to process, great to have two indices to go through it like merging two sorted arrays
+  corner cases:
+    empty sequence
+    sequence with 1 or 2 elements
+    sequence with repeated elements
+  
+Arrays
+  is it sorted or partially sorted? if yes, some sort of binary search is possible and looking for solution faster than O(N)
+  can you sort array and simplify problem? make sure order of elements does not need to be preserved before sorting
+  summation or multiplication is involved -> pre-computation using hashing or a prefix, suffix sum, or product might be useful
+  if asking for O(1) space, might be possible to use array itself as hashtable
+    i.e. if values only from 1 to N where N is length of array, negate value of that index to indicate presence of that number
+
+Binary
+  test kth bit is set
+    num & (1 << k) != 0
+  set kth bit
+    num |= (1 << k)
+  turn off kth bit
+    num &= ~(1 << k)
+  toggle the kth bit
+    num ^= (1 << k)
+  to check if a number is a power of 2
+    num & num - 1 == 0
+  corner cases
+    check for overflow/underflow
+    negative numbers
+
+Dynamic Programming
+  to optimize space, sometimes you don't have to store entire DP table in memory but only need last two rows or values of matrix
+
+Geometry
+  Euclidean distance between two pairs of points
+    dx^2 + dy^2
+  To find two circles overlap, check that distance between two centers of circles is less than sum of their radii
+
+Graph
+  Given list of edges, build your own graph to traverse
+    adjacency matrix, adjacency list,  hashmap of hashmaps
+  handle cycles and keep a set of visited nodes when traversing
+  Breadth first search and depth first search
+  topological sort, Dijkstra's algorithm
+  graphs commonly represented as 2D matrices and each cell can traverse to its adjacent cells (up, left, down, right)
+  when recursively traversing matrix, always ensure that next position is within boundary of matrix
+  corner cases:
+    empty graph
+    graph with one or two nodes
+    disjoint graphs
+    graphs with cycles
+  
+  Template for DFS on matrix:
+  def traverse(matrix):
+    rows, cols = len(matrix), len(matrix[0])
+    visited = set()
+    (Right, Left, Down, Up)
+    directions = ((0, 1), (0, -1), (1, 0), (-1, 0))
+    def dfs(i, j):
+      if (i, j) in visited:
+        return
+      visited.add((i, j))
+      # Traverse neighbors
+      for direction in directions:
+        next_i, next_j = i + direction[0], j + direction[1]
+        if 0 <= next_i < rows and 0 <= next_j < cols: # Check boundary
+          # Add any other checking here ^
+          dfs(next_i, next_j)
+    for i in range(rows):
+      for j in range(cols):
+        dfs(i, j)
+    
+    def dfs(self, i, j, matrix, visited, m, n):
+      if visited: 
+        # return or return a value
+      for dir in self.directions:
+        x, y = i + direction[0], j + direction[1]
+            if x < 0 or x >= m or y < 0 or y >= n or matrix[x][y] <= matrix[i][j] (or a condition you want to skip this round):
+              continue
+            # do something like
+            visited[i][j] = True
+            # explore the next level like
+            self.dfs(x, y, matrix, visited, m, n)
+
+Intervals
+  questions that give an array of two-element arrays with two values representing a start and end value
+  i.e. [[1,2], [4,7]]
+  tricky due to number of cases in which they overlap
+  clarify whether [1,2], [2,3] are considered overlapping intervals
+  common routine is to sort array of intervals by the start value of each interval
+  be familiar with code to check if two intervals overlap and to merge overlapping intervals
+  def is_overlap(a, b):
+    return a[0] < b[1] and b[0] < a[1]
+  def merge_overlapping_intervals(a, b):
+    return [min(a[0], b[0]), max(a[1], b[1])]
+  corner cases
+    single interval
+    non-overlapping intervals
+    an interval totally consumed within another interval
+    duplicate intervals
+
+Linked List
+  represent sequential data
+  insertion and deletion of code anywhere is O(1); arrays have to be shifted O(N)
+  adding dummy node at head and/or tail might help to handle any edge cases where operations have to be performed at head or tail
+    helps with removing conditional code to deal with null pointers
+  some can be solved without additional storage like reversing linked list
+  for deletion, you can either modify the node values or change the node pointers, might need to keep reference to previous element
+  for partitioning linked lists, create two separate linked lists and join them back together
+  two pointers also common
+    getting kth from last node by having two pointers where on is k ahead of the other; when other node reaches end, the earlier one is k nodes from end
+    detecting cycles: have two pointers where on increments twice as fast as the other; if the two pointers meet there is a cycle
+    getting middle node: one pointer increments twice as fast as other, when faster node reaches the end of list, slower node will be in middle
+  count number of nodes in linked list
+  reverse linked list in place
+  find middle node of linked list using fast or slow pointers
+  merge two lists together
+  corner cases
+    single node
+    two nodes
+    clarify cycles
+
+Math
+  if code involves division or modulo, remember to check division/modulo by 0
+  when question involves multiple of a number, modulo might be useful
+  check for and handle overflow and underflow - mention it is possible and how to handle it
+  consider negative and floating point numbers
+  if the question asks to implement an operator such as power, squareroot, or division and it is faster than O(N), binary search is usually approach
+  common formulas
+    sum of 1 to N = (n+1)*n / 2
+    sum of GP = 2^0 + ... + 2^N = 2^(N+1) - 1
+    permutations of N = N!/(N-K)!
+    combinations of N = N!/(K! * (N-K)!)
+  corner cases
+    division by 0
+    integer overflow and underflow
+
+Matrix
+  2D array, usually related to graph traversal or dynamic programming
+    typically make a copy of matrix with same dimensions that are initialized to empty values and use these to store 
+    the visited state or the dynamic programming table
+    i.e. filling up a matrix
+    rows, cols = len(matrix), len(matrix[0])
+    copy = [[0 for _ in range(cols)] for _ in range(rows)
+  verify winning condition of games
+    i.e. vertically and horizontally like for tictactoe
+    one trick is to write code to verify horizontal cells, then transpose matrix and reuse logic for horizontal verification to verify originally vertical cells
+  corner cases
+    empty matrix
+    1 x 1 matrix
+    matrix with only one row or column
+
+Recursion
+  useful for permutation, know how to generate all permutations of a sequence as well as how to handle duplicates
+  always define a base case for recursion to end
+  implicitly uses stack and can be rewritten iteratively using stack
+  recursion level may go too deep and cause stack overflow
+  will never be O(1) space complexity because stack is involved unless there is tail call optimization
+
+String
+  ask about input character set and case sensitivity
+  i.e. usually lowercase Latin letters from a to z
+  when you need to compare strings where the order isn't important like anagram, you may use hashmap as a counter
+  if you need to keep a counter of characters, space complexity is O(1) because upper bound is range of characters which is fixed
+  at 26 characters for lowercase Latin letters
+  common data structures to look up strings efficiently: trie/prefix tree, suffix tree
+  common string algorithms
+    Rabin Karp - efficient searches of substrings using a rolling hash
+    KMP - efficient searches of substrings, longest proper prefix suffix
+  non-repeating characters - use a 26-bit bitmask to indicate which lowercase Latin letters are inside the string
+    mask = 0
+    for c in set(word):
+      mask |= (1 << (ord(c) - ord('a')))
+    to determine if two strings have common characters, perform & on two bitmasks
+      if result is non-zero, mask_a & mask_b > 0, then the two strings have common characters
+  anagram = result of re-arranging letters of a word or phrase to produce a new word or phrase while using all original letters once
+    to determine if two stirngs are anagrams:
+      sorting both strings should return same resulting string O(NlogN) time O(logN) space
+      if we map each character to a prime number and multiply each mapped number together, anagrams should have same multiple (prime factor decomposition)
+      O(N) time and O(1) space
+      frequency counting of characters O(N) time O(1) space
+  palindrome = word, phrase or number or other sequence of characters that reads same backward and forward
+    reverse string and it should be equal to itself
+    have two pointers at start and end of string, move inward until they meet and at any point in time, the characters at both pointers should match
+    when counting number of palindromes, can have two pointers that move outward, away from middle
+    can be even or odd length -> for each middle pivot position, you need to check it twice: once with character and once without the character
+      for substrings you can terminate early if no match
+      for subsequences, use dynamic programming as there are overlapping subproblems
+  corner cases
+    empty string
+    single-character string
+    strings with only one distinct character
+
+  sliding window substring
+    1. Use two pointers: start and end to represent a window.
+    2. Move end to find a valid window.
+    3. When a valid window is found, move start to find a smaller window.
+    string minWindow(string s, string t) {
+      unordered_map<char, int> m;
+      // Statistic for count of char in t
+      for (auto c : t) m[c]++;
+      // counter represents the number of chars of t to be found in s.
+      size_t start = 0, end = 0, counter = t.size(), minStart = 0, minLen = INT_MAX;
+      size_t size = s.size();
+      
+      // Move end to find a valid window.
+      while (end < size) {
+        // If char in s exists in t, decrease counter
+        if (m[s[end]] > 0)
+          counter--;
+        // Decrease m[s[end]]. If char does not exist in t, m[s[end]] will be negative.
+        m[s[end]]--;
+        end++;
+        // When we found a valid window, move start to find smaller window.
+        while (counter == 0) {
+          if (end - start < minLen) {
+            minStart = start;
+            minLen = end - start;
+          }
+          m[s[start]]++;
+          // When char exists in t, increase counter.
+          if (m[s[start]] > 0)
+            counter++;
+          start++;
+        }
+      }
+      if (minLen != INT_MAX)
+        return s.substr(minStart, minLen);
+      return "";
+    }
+
+Tree
+  undirected and connected acyclic graph
+  try using recursion when you can use subtree to solve solution, recursive function may need to return two values
+  traversing a tree by level, use depth first search
+  ask whether nodes can be negative if dealing with summation
+  pre-order, in-order, post-order traversal recursively -> though they may ask for iterative approach
+  binary tree: inorder traversal is insufficient to uniquely serialize a tree; pre-order/post-order also required
+  binary search tree
+    in-order traversal of BST will give you all elements in order
+    validate that binary tree is BST with in-order traversal
+    usually looking for solutions faster than O(N)
+  corner cases
+    empty tree
+    single node
+    two nodes
+    very skewed tree like linked list
+  
+  O(N) to go through all N nodes in tree
+  preorder traversal - for copy of tree or get prefix expression on expression tree
+    if null return
+    visit root
+    traverse left subtree (i.e. preorder(left-subtree))
+    traverse right subtree (i.e. preorder(right-subtree))
+  
+  postorder traversal - to delete tree
+    if null return
+    traverse left subtree (i.e. postorder(left-subtree))
+    traverse right subtree (i.e. postorder(right-subtree))
+    visit root
+  
+  inorder traversal - to validate BST, output all numbers in ascending order
+    if null return
+    traverse left subtree
+    visit root
+    traverse right subtree
+  
+  levelorder traversal - breadth first traversal of tree
+    printLevelorder(tree)
+    for d = 1 to height(tree)
+      printGivenLevel(tree, d);
+
+    // recursive function to print all nodes at given livel
+    printGivenLevel(tree, level)
+    if tree is NULL then return;
+    if level is 1, then
+        print(tree->data);
+    else if level greater than 1, then
+        printGivenLevel(tree->left, level-1);
+        printGivenLevel(tree->right, level-1);
+
+Tries
+  prefix trees that make searching and storing strings more efficient
+  i.e. for autocomplete, searches
+  preprocessing dictionary of words into a list with word of length k, among n words leads to O(k) searching rather than O(nk)
+  implement add, remove, search methods
+  can possibly save time using linked list instead because a lot of spots in character array are empty
+
+Heaps
+  if you see a top or lowest k mentioned in question, can possibly use heap to solve problem like top K frequent elements
+  if you require top k elements, use minheap of size k; iterate through each element, pushing it into heap
+    whenever heap size exceeds k, remove minimum element to guarantee you have k largest elements
+  binary tree with two special properties: must have all nodes in specific order and shape must be complete (left-most nodes filled always)
+  can have duplicate values, not a BST; ordering of parent nodes compared to children
 
 2. Algorithms and Big O Complexity:
 
@@ -215,6 +525,7 @@ a different sorting algorithm or by recursively applying the bucket sorting algo
 
 HeapSort
 -> General Algorithm
+---
 -> Time Complexity
 
 Insertion Sort
@@ -283,14 +594,55 @@ and then push it to a stack (a vertex is only pushed to stack only when all of i
 -> Time Complexity: O(|V| + |E|)
 
 - Divide and Conquer
+  Divides a problem into simpler versions of itself and then applies solution on smaller subproblems to larger problem itself
+  Often combines answers to subproblems like merging elements together upon recursion and sorting
+  i.e. MergeSort
 
 - Binary Search
 -> General Algorithm
+  Search a sorted array by repeatedly dividing the search interval in half. 
+  Begin with an interval covering the whole array. 
+  If the value of the search key is less than the item in the middle of the interval, 
+    narrow the interval to the lower half. 
+  Otherwise narrow it to the upper half. 
+  Repeatedly check until the value is found or the interval is empty.
 -> Time Complexity: O(log(N)) if data is sorted
 
 - Dynamic Programming and Memoization
+  Focusing on optimization, always choosing best possible element at any given time
+  Exhaustively search through all possible subproblems and then choose best solution from that
+  Memoization to not recompute sub-problems more than once, storing values in memory
+  1. Identify sub-problem in words
+  2. Write out sub-problem as recurring mathematical decision
+    What decision do I make at every step?
+    If my algorithm is at step i, what information would it need to decide what to do in step i + 1 (and what it needs to do in step i - 1)?
+    i.e. OPT(i) = max(v_i + OPT(next[i]), OPT(i+1))
+  3. Solve original problem using steps 1 and 2
+    i.e. OPT(1)
+  4. Determine the dimensions of the memoization array and the direction in which it should be filled
+    See if the solution depends upon solutions in range above or below it i.e. OPT(N)...OPT(2), OPT(1)
+    Dimensions of array equal to number and size of variables on which OPT(*) relies i.e. one dimensional if depending on variable i in OPT(i)
+      i.e. memo = [OPT(1), OPT(2), OPT(3)] though we can create it like this to match up with indices [0, OPT(1), OPT(2), OPT(3)]
+  5. Code it and figure out base cases
+
+  Top down DP
+    start with large, complex problem and understand how to break it down into smaller subproblems, memoizing the problem into parts
+
+  Bottom up DP
+    starts with smallest possible subproblems, figures out a solution to them, and then slowly builds itself up to solve the larger, more complicated subproblem
+    can save only say the last two values rather than all previous values -> O(1) space
+
+  Runtime:
+    pre-processing
+    how many times the for loop runs
+    how much time it takes recurrence to run in one for loop iteration
+    post-processing
+
+    Pre-processing + Loop * Recurrence + Post-processing
 
 - Greedy 
+-> they choose the best possible option in the moment, which is often referred to as the “greedy choice”; local heuristic
+i.e. Dijkstra's
 -> make locally optimal choices at each step in the hope of eventually reaching the globally optimal solution
 -> need two properties:
   optimal substructure: optimal solution to the problem contains optimal solutions to the given problem's subproblems
@@ -304,8 +656,21 @@ i.e. Kruskal's Algorithm -> finds minimum spanning tree in a graph, graph does n
 -> O(|E|log|V|)
 
 - Recursion (and backtracking)
+  To use recursion: problem can be broken down into smaller problems of same type, problem has some base cases, base case is reached before stack size limit exceeds
+  Backtracking: we attempt solving a subproblem, and if we don't reach the desired solution, then undo whatever we did for solving that subproblem, and try solving another subproblem
+    typically has exponential time behavior
+    can prune branches of tree early on
+
 
 - Breadth first search
+-> visiting sibling/neighbor nodes before children nodes, uses queue
+1. Add a node/vertex from the graph to a queue of nodes to be “visited”.
+2. Visit the topmost node in the queue, and mark it as such.
+3. If that node has any neighbors, check to see if they have been “visited” or not.
+4. Add any neighboring nodes that still need to be “visited” to the queue.
+5. Remove the node we’ve visited from the queue.
+-> if we backtrack from a node and follow one of its parents until we reach the main parent node, we will have found one of shortest paths
+to that node which will be equivalent to the level of that node
 -> General Algorithm
   for graphs, there may be cycles so we may come to the same node again -> can use a boolean visited array 
   function bfs(start) {
@@ -323,6 +688,13 @@ i.e. Kruskal's Algorithm -> finds minimum spanning tree in a graph, graph does n
 -> Time Complexity: O(|V| + |E|)
 
 - Depth first search
+-> can determine whether two nodes x and y have a path between them by looking at the children of the starting node and recursively
+  determining if path exists
+-> BFS traverses one level of children at a time and may use more memory -> shortest path; DFS traverses down a single path, one child node at a time -> tells us if even a path exists
+and could be longest path
+-> i.e. solving a maze and backtracking when we hit a dead end - recursion
+-> graph traversal: choose arbitrary node to start traversal and don't repeat any nodes by marking vertex as visited("breadcrumbs")
+-> runtime depends on size of adjacency list - linear time
 -> General Algorithm
     for graphs, there may be cycles so we may come to the same node again -> can use a boolean visited array 
     function dfs(start) {
@@ -339,9 +711,23 @@ i.e. Kruskal's Algorithm -> finds minimum spanning tree in a graph, graph does n
 -> Time Complexity: O(|V| + |E|)
 
 - Dijkstra
+-> Problem: Given a graph and a source vertex in graph, find shortest paths from source to all vertices in the given graph
 -> General Algorithm
+  create a shortest path tree set that keeps track of vertices included in shortest path tree whose minimum distance
+    from source is calculated and finalized; initially, this is empty
+  assign a distance value to all vertices in input graph, initialize all values as infinite, initialize source vertex distance as 0 to start from
+  while sptSet doesn't include all vertices
+    pick vertex u which is not in sptSet and has minimum distance value
+    include u to sptSet
+    update distance value of all adjacent vertices to u
+      must iterate through all adjacent vertices and for every adjacent vertex v, if sum of distance value u from source and weight of
+      edge u-v is less than distance value of v, then update distance value of v
 -> algorithm to find shortest path between nodes in a graph
+-> best for one source to all destinations like BFS for unweighted graphs, dijkstra for weighted graphs without negative weights, and
+Bellman Ford for weighted graphs with negative weights
 -> Time Complexity: O(|V|^2)
+  O(V) space to hold all vertices
+
 
 - Bellman-Ford Algorithm
 -> General Algorithm
@@ -352,11 +738,40 @@ versatile in handling graphs in which some of edge weights are negative numbers
 - Floyd-Warshall Algorithm
 -> finding shortest paths in a weighted graph with positive or negative edge weights but no negative cycles
 -> single execution will find lengths (summed weights) of shortest paths between all pairs of nodes
+-> great if trying to find between every pair of nodes
 -> Time Complexity: O(|V|^3)
 
 - A*
-->
+-> Problem: for path-finding/graph traversal and approximate shortest path even with obstacles in way in 2D grid
+-> pick a node according to an f value based on movement cost, g, to get from starting point to given square on grid and estimated
+movement cost, h, to move from that given square on grid to final destination
+-> need an open and closed list, can use Manhattan/Euclidean/Diagonal Distance for heuristics
+-> General Algorithm
+  initialize open list
+  initialize closed list
+  put starting node on open list and can leave its parameter f as zero
+
+  while open list is not empty
+    find a node with least f on open list called q
+    pop q off open list
+    generate q's 8 successors and set their parents to q
+    for each successor
+      if successor is the goal, stop search
+      successor.g = q.g + distance between successor and q
+      successor.h = distance from goal to successor
+      successor.f = successor.g + successor.h
+
+      if a node with same position as successor is in open list which has a lower f than
+      successor, skip this successor
+
+      if a node with a same position as successor is in the closed list which has a lower f than successor, skip this successor
+      otherwise add node to open list
+    
+    push q onto closed list
 -> Time Complexity:
+  - best to use when there is only one source and one destination
+  O(E) to go through all edges in graph
+  O(V) auxiliary space where V is number of vertices
 
 - KMP: Knuth Morris Pratt Algorithm (Pattern Searching)
 -> Problem: Given text and pattern, print out all occurrences of pattern in text
@@ -448,6 +863,13 @@ while i is less than string length N
   Remove: O(1)
 
 - Tree: undirected, connected, acyclic graph
+  To tell whether a graph is a valid tree, we have to make sure there is no cycle in the graph (acyclic)
+  and make sure every node is reached (connected)
+    -> edges.length === n - 1, where n is number of nodes in graph
+    -> to test cyclic, can make an array for each node as array index and array will store parent of node as array index;
+    every time we fetch a new pair of nodes, we trace the root node (deepest parent node of two nodes) and if they have same root,
+    then there is a cycle; otherwise we set parent of second node to be first node
+    -> if we know there is no cycle, we just check if there are enough edges to make it connected (edges.length === n - 1)
 
 - Binary Tree: tree in which each node has at most two children referred to as left and right child
 -> Full Tree: tree in which every node has either 0 or 2 children
@@ -465,6 +887,12 @@ right subtree
 - Trie: radix or prefix tree, search tree used to store a dynamic set or associative array where the keys are usually strings
 -> no node in the tree stores the key associated with that node but the position in tree defines the key with which it is associated
 -> all descendants of a node have a common prefix of string associated with that node and root is associated with empty string
+-> empty root with links to other nodes, one for each possible alphabetic value
+-> needs preprocessing and takes up memory for each word so for n words and k letters can be O(nk) space
+-> each node may contain value which may be null (can be like word/endOfWord), array of references to child nodes which may be null
+-> to delete: find node that contains value for that key and set its value to null; then check all its references - if all null then the character node can be removed otherwise, leave it
+-> takes up a lot of space with empty/null pointers, doesn't need a hash function
+-> Time Complexity: O(k) to search for words/insert a word/remove
 
 - Fenwick Tree: binary indexed tree, implemented as implicit data structure using an array
 -> given an index in array representing a vertex, the index of a vertex's parent or child is calculated through bitwise operations on the binary representation of its index
@@ -483,6 +911,22 @@ the prefix sum is calculated
 - Heap: specialized tree that satisfies heap property
 -> if A is a parent node of B, then the key (value) of node A is ordered with respect to key of node B with same ordering applying across
 entire heap
+-> binary heap is a binary tree, all levels completely filled except possibly last level and last level has all keys as left as possible, can be stored
+in array
+-> when inserting, need to swap nodes out of order; when removing nodes, continue to "bubble down" former root node until no longer violating heap-order
+  compare and swap on the way down
+-> partially sorted, max/min at root node -> index 0 of array, 2i+1 left child, 2i+2 right child, floor of (n-1)/2 index of current node's parent
+-> either min or maxheap i.e. for minheap, the root must be minimum among all keys present in binary heap and same property must be recursively true for all nodes
+-> for array format: root element is arr[0]; need level order traversal to achieve array representation (can use BFS with queues)
+  for the ith node arr[i]
+    arr[i/2] = parent node
+    arr[(2*i) + 1] = left child node
+    arr[(2*i) + 2] = right child node
+-> for heapsort, priority queue (insert, delete, extractmax, decreasekey in O(logN) time)
+-> priority queue: each item has priority, higher priorities dequeued first, two items with equal priority dequeued based on order in queue
+  implemented easily through binary heaps cause finding max/min priority is O(1) at root; insertion/deletion takes O(logN)
+-> applied to CPU scheduling
+-> general algorithm of minheap:
 -> "max heap" or "min heap"
 -> "max heap": the keys of parent nodes are always greater than or equal to those of children and the highest key is in the root node
 -> "min heap": keys of parent nodes are less than or equal to those of the children and the lowest key is in the root node
@@ -492,6 +936,7 @@ entire heap
   Remove Max/Min: O(log(N))
 
 - Hashing: map data of an arbitrary size to the data of a fixed size
+-> to hash somethings typically takes O(k) where k is size of object being hashed
 -> values returned by a hash function are called hash values/codes/hashes; if two keys map to the same value, a collision occurs
 -> HashMap - maps keys to values, uses a hash function to compute an index into an array of buckets or slots from which the desired value can be found
 -> collision resolution
@@ -609,9 +1054,48 @@ execution context; always refer to an object and depends on how function is call
 6. can set value of this to any arbitrary object by passing the object as first parameter to bind, call, apply
 7. for DOM event handler, value of this would be the element that fired the event
 
+-> Shadow DOM: encapsulated DOM subtree from rest of page, useful for plug and play widgets, document stylesheet can't apply to encapsulated subtree
+
+-> using async (in scripts): HTML parsing doesn't stop during file is fetched but once it's fetched, HTML parsing stops to execute script
+
+-> using defer (in scripts): downloads JS during HTML parsing and executes JS only when HTML parsing is done
+
+-> document fragments and node caching
+DocumentFragments allow developers to place child elements onto an arbitrary node-like parent, allowing for node-like interactions without a true root node
+  helps with speed by letting developers produce structure without doing so within visible DOM
+  acts like pseudo-DOM node
+Can cache references to nodes as each time you query for them it goes through a DFS traversal of the document to get all matching ones
+  can keep reference to parent element to query from
+
+Responsive Design: changing an element's dimensions based on browser width size
+Adaptive Design: changing an element's dimensions based on specific break points
+
+System Design:
+  Rendering - client-side (CSR) vs. server-side (SSR) and universal rendering
+  Layout - building out components, consistent markup, style guide
+  State management - unidirectional data flow or two-way data binding
+  Async Flow - communicating with server, XHR vs. bidirectional calls; considering older browsers to choose between hidden iframes,
+  script tags or XHR for messaging or just use WebSockets or server-sent events
+  Separation of Concerns: Model-View-Controller (MVC), Model-View-View-Model(MVVM), Model-View-Presenter(MVP)
+  Multi-device support (web, mobile, hybrid, responsive design)
+  Asset Delivery (separate codebases and different pipelines to release changes to production), consider how assets built with dependencies
+  like through code splitting, tested (unit and integration tests) and deployed; vend assets through CDN or inline them to reduce network latency
+
+Single Page App Design Patterns:
+- Router (Static like Backbone/Marionette AppRouter/Dynamic like react-router-v4)
+  user navigation and following different links with possible wildcards, query params
+- HTTP Library (i.e. axios, Promise-based async libraries, XHR) - making requests to backend services/databases
+  possibly use something like GraphQL, other AJAX requests through jQuery/native fetch, etc.
+- User Interface Layer (i.e. React, AngularJS, Backbone)
+- State Manager (i.e. Redux, Angular, Vuex)
+- Business Logic
+
 Progressive Enhancement:
+basic markup created, geared towards lowest common denominator of browser software functionality, all enhancements like JS, CSS,
+SVGs will be added to presentation and behavior of page but all externally linked to prevent data unusable by certain browsers from being unnecessarily downloaded
 
 Gradual Degradation:
+designers create webpages for latest browsers that would also work well in older versions of browser software
 
 Web Security Issues:
 
@@ -627,7 +1111,7 @@ without being validated for malicious content
 performing malicious operations on user's machine under guise of vulnerable site
 - three categories: stored (persistent), reflected (non-persistent), DOM-based
 -> stored XSS attacks - injected script is stored permanently on target servers; victim then retrieves malicious scripts from server when browser sends a request for data
--> reflexted XSS attacks - user tricked into clicking malicious link, submitting a form or browsing to malicious site, injected code travels to vulnerable website. web server 
+-> reflected XSS attacks - user tricked into clicking malicious link, submitting a form or browsing to malicious site, injected code travels to vulnerable website. web server 
 reflects injected script back to user's browser as an error/search result/server response. brwoser executes code because it assumes response is from
 a "trusted" server which user has already interacted with
 -> DOM-based XSS attacks - payload is executed as a result of modifying DOM environment in victim's browser used by original client-side script; page does not change but client side
@@ -749,6 +1233,30 @@ type, operating system, software vendor or software version of the requesting so
 going unnoticed), Public-Key-Pins (HPKP) - associates specific cryptographic public key with certain web server to decrease the risk of MITM attacks with forged certificates,
 Strict-Transport-Security (HSTS) - force communication using HTTPS instead of HTTP, Upgrade-Insecure-Requests, X-Content-Type-Options - disables MIME sniffing and forces browser to use the type given in Content-Type,
 X-Frame-Options(XFO) - indicates whether browser should be allowed to render a page in <frame>/<iframe>/<object>, X-XSS-Protection - enables cross-site scripting filtering
+- ETag: opaque-to-the-useragent value as a validator response header, can be used to help invalidate cache through If-None-Match in header of future requests - identifier for specific version of resource
+- Status Codes: 200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error
+- Transfer-Encoding: specifies form of encoding used to safely transfer entity to user, hop-by-hop header
+i.e. chunked, compress, gzip, identity, deflate
+- Content-Encoding: if you want to compress data over whole connection
+- Compression: for file formats (loss-less/lossy), general encryption at HTTP level (resource transmitted compressed from end to end), at connection level between
+two nodes of an HTTP connection
+- Conditional Requests: result and success of request changed by comparing affected resources with the value of validator and can be useful
+for validating content of a cache, verifying integrity of document; executed differently based on value of specific headers
+  for safe methods like GET, can be used to send back document to spare bandwidth
+  for unsafe methods like PUT, can be used to upload document only if original is same as the one stored on server
+- Caching: reduce latency and network traffic by reusing previously fetched resources
+  shared cache by more than one user vs. private cache for single user
+  primary cache key consists of request method and target URI like for 200 responses, 301 redirects, 206 incomplete results
+  use Cache-Control header to specify directives for requests and responses
+  i.e. Cache-Control: private/public or no-store
+  i.e. Cache-Control: max-age=31436000 // max amount of time a resource will be considered fresh, Expires is relative to time of request
+  Cache-Control: must-revalidate // must verify status of stale resources before using it and expired ones should not be used
+  caches have finite storage so items are periodically remove through cache eviction
+- Authentication
+  server responds with 401 Unauthorized and provides information on how to authorize with a WWW-Authenticate response header containing at least one challenge
+  a client that wants to authenticate itself with a server can then do so by including an Authorization request header field with the credentials
+  usually a client will present a password prompt to the user and will then issue the request including correct Authorization header
+
 
 Cross-Origin Resource Sharing (CORS):
 - mechanism that uses additional HTTP headers to let a user agent gain permission to access selected resources from a server on a different origin (domain) than the site currently in use
@@ -756,6 +1264,10 @@ Cross-Origin Resource Sharing (CORS):
 i.e. HTML page served from http://domain-a.com makes <img> src request to http://domain-b.com/image.jpg, loading up images and scripts from separate domains like content delivery networks (CDN)
 - XMLHttpRequest and Fetch API follow same-origin policy => web app using those APIs can only request HTTP resources from the same domain the application was loaded from unless CORS headers are used
 - CORS mechanism supports secure cross-domain requests and data transfers between browsers and web servers
+
+JSONP:
+
+IFrame Policies:
 
 Web Performance Gains:
 - Compress diligently (GZip, Brotli)
@@ -994,10 +1506,32 @@ and third-party cookies for tracking and advertising in third-party components (
 -> can set clear disclosures/privacy policies to notify users of cookies
 -> Do-Not-Track, zombie/"Evercookies" recreated after deletion and are intentionally hard to delete forever
 
+SOAP:
+  remote procedure call model, defined how to encode procedure call into XML string, really complicated WS* stack
+
 REST API:
 REST stands for Representational State Transfer, an architectural style that has largely been adopted as a best practice for building web and mobile applications. 
 RESTful services are designed to be lightweight, easy to maintain, and scaleable. 
 They are typically based on the HTTP protocol, make explicit use of HTTP methods (GET, POST, PUT, DELETE), are stateless, use intuitive URIs,
 and transfer XML/JSON data between the server and the client.
 
+Restful Patterns:
+  REST (Representational State Transfer), resource oriented model
+  - modeled around large number of Resources which link among each other, each resource will have a URI to make it globally identifiable
+  - define small number of "actions" based on HTTP methods i.e. GET (read-only), PUT (update, modify resource with new representation inside HTTP Body), DELETE (remove), HEAD (for metadata of resource),
+  POST(create)
+  - URI naming convention related to "Factory Resource" and "Resource Instance" that typically have limited life spanning
+  ie. http://xyz.com/books and http://xyz.com/books/4545
+  "Dependent Resource" created and owned by existing resource during part of its lifecycle
+  i.e. http://xyz.com/books/4545/tableofcontent
+  - Creating a resource with POST /books, creating resource when URI is unknown to client before its creation
+  - Uploading content of book with PUT /books/4545
+  - Searching for books with certain author GET /books?author=Ricky
+  - Looking up a particular resource GET /books/4545
+  - Looking up dependent resource GET /books/4545/tableofcontent
+  - Deleting a book DELETE /books/4545
 
+
+RPC (remote procedure call):
+form of inter-process communication, request-response protocol for message passing
+i.e. JSON-RPC - JSON encoded message passing and notifications and for multiple calls to be sent to server

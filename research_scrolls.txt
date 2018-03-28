@@ -205,11 +205,17 @@ https://www.sitepoint.com/event-bubbling-javascript/
 - Google Web Fundamentals
 https://developers.google.com/web/fundamentals/
 
+- Basics of DOM Manipulation with Vanilla JavaScript
+https://www.sitepoint.com/dom-manipulation-vanilla-javascript-no-jquery/
+
 - JavaScript From Callbacks to Async Await
 https://medium.freecodecamp.org/javascript-from-callbacks-to-async-await-1cc090ddad99
 
 - Preparing for a Front-End Web Development Interview in 2017
 http://davidshariff.com/blog/preparing-for-a-front-end-web-development-interview-in-2017/
+
+- The Best Frontend JavaScript Interview Questions
+https://performancejs.com/post/hde6d32/The-Best-Frontend-JavaScript-Interview-Questions-%28written-by-a-Frontend-Engineer%29
 
 - 123 Essential JavaScript Interview Questions
 https://github.com/ganqqwerty/123-Essential-JavaScript-Interview-Question
@@ -225,6 +231,12 @@ https://medium.com/javascript-scene/10-interview-questions-every-javascript-deve
 
 - 3 Questions To Watch Out For In A JavaScript Interview
 https://medium.freecodecamp.org/3-questions-to-watch-out-for-in-a-javascript-interview-725012834ccb
+
+- We have a problem with promises
+https://pouchdb.com/2015/05/18/we-have-a-problem-with-promises.html
+
+- 4 JavaScript Design Patterns You Should Know
+https://scotch.io/bar-talk/4-javascript-design-patterns-you-should-know
 
 - Throttling and Debouncing in JavaScript
 https://medium.com/a-developers-perspective/throttling-and-debouncing-in-javascript-b01cad5c8edf
@@ -303,6 +315,9 @@ https://serverless-stack.com
 
 General Frontend Web Resources I Found Useful:
 
+- Frontend JavaScript Single Page Application Architecture
+http://marcobotto.com/frontend-javascript-single-page-application-architecture/
+
 - What's next for CSS?
 https://jonathantneal.github.io/css-db/
 
@@ -376,12 +391,17 @@ https://firebase.google.com/
 - DynamoDB Guide
 https://www.dynamodbguide.com/what-is-dynamo-db/
 
+- Common Rest Design Patterns
+https://dzone.com/articles/common-rest-design-pattern
 
 
 Cheatsheets I Found Useful:
 
 - VSCode Shortcuts
 https://code.visualstudio.com/shortcuts/keyboard-shortcuts-macos.pdf
+
+- Vanilla JS Cheatsheet
+https://gist.github.com/thegitfather/9c9f1a927cd57df14a59c268f118ce86
 
 
 UI/UX Resources I Found Useful:
@@ -394,3 +414,12 @@ https://polaris.shopify.com/principles/principles
 
 - Design Systems Handbook
 https://www.designbetter.co/design-systems-handbook
+
+
+Algorithms Resources:
+
+- Recursion and Backtracking
+https://www.hackerearth.com/practice/basic-programming/recursion/recursion-and-backtracking/tutorial/
+
+- Coding Interviews For Dummies
+https://medium.freecodecamp.org/coding-interviews-for-dummies-5e048933b82b
