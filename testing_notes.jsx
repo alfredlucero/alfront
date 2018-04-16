@@ -1273,3 +1273,1058 @@ Cypress._.times(100, (i) => {
 // - allows you to record tests when running Cypress tests from CI provider
 // - can get stack trace of tests, screenshots when tests fail or when using cy.screenshot(), watch
 // video of entire test run or clip at point of test failure, manage who has access to your recorded test data
+
+
+/*
+  End to End Tests with WebDriver.io
+  - API Docs: http://webdriver.io/api.html
+  - WebDriver bindings for Node.js, lets you control browser or mobile application, synchronous command handling
+  - manages Selenium session for you, can use native JS functions, $ and $$ selectors for jQuery like syntax
+  - can have hooks to take screnshots upon error i.e. beforeSession, beforeSuite, beforeTest, before/afterCommand, afterHook/Suite/Session
+  onError 
+  - all synchronous commands meaning that we don't have to deal with calling Promise.then anymore due to Fibers package, 3rd party integrations
+  - handles state element reference error in Selenium with a retry mechanism for all failing requests to Selenium serevr in case element
+  you requested got re-rendered causing the driver to lose its connection to it
+  - wdio config/cli, services like Sauce Labs or BrowserStack provide Selenium testing on remote hosts
+  - setup: need to download Selenium server, geckodriver and then start it up in a separate terminal; npm install webdriverio
+  - use WebdriverIO test runner for integration testing and you need to create config file first
+  i.e. ./node_modules/.bin/wdio 
+  -> has a lot of options to add other services and choosing assertion/tdd library like mocha
+  -> create sample spec and then run test runner
+  i.e. ./node_modules/.bin/wdio wdio.conf.js
+  -> can setup babel to write tests using latest JS (babel-register and babel-preset-es2015)
+  i.e. mochaOpts: { ui: 'bdd', compilers: ['js:babel-register'], require: ['./test/helpers/common.js'] }
+  .babelrc: { "presets": ["es2015"], "plugins": [ ["transform-runtime", { "polyfill": false }] ]}
+  -> can also set up typescript in before hook of config file or mochaOpts with ts-node/register
+*/
+// Sample test.js
+var webdriverio = require('webdriverio');
+// Passing in options to define the Webdriver instance if you run WebdriverIO as standalone package
+// Otherwise, you can set it in wdio.conf.js configuration file if you use wdio test runner
+var options = {
+    // Defines capabilities to run in Selenium session
+    // i.e. browserName, version, platform, tags, name, pageLoadStrategy, logOutput, port, etc.
+    desiredCapabilities: {
+        browserName: 'firefox'
+    }
+};
+
+webdriverio
+    .remote(options)
+    .init()
+    .url('http://www.google.com')
+    .getTitle().then(function(title) {
+        console.log('Title was: ' + title);
+    })
+    .end()
+    .catch(function(err) {
+        console.log(err);
+    });
+
+// Sample spec file
+var assert = require('assert');
+
+describe('webdriver.io page', function() {
+    it('should have the right title - the fancy generator way', function () {
+        browser.url('http://webdriver.io');
+        var title = browser.getTitle();
+        assert.equal(title, 'WebdriverIO - WebDriver bindings for Node.js');
+    });
+});
+
+// Selectors
+// - JsonWireProtocol allows us to query for an element
+// - CSS Query Selector
+browser.click('h2.subheading a');
+// - Link Text
+// -> to get an anchor element with a specific text in it, query the text starting with an equal sign
+// i.e. <a href="http://webdriver.io">WebdriverIO</a>
+console.log(browser.getText('=WebdriverIO'));
+console.log(browser.getAttribute('=WebdriverIO', 'href'));
+// -> partial link text search match i.e. *=driver
+console.log(browser.getText('*=driver'));
+// - Element with certain text
+// i.e. <h1 alt="welcome-to-my-page">Welcome to my Page</h1>
+console.log(browser.getText('h1=Welcome to my Page'));
+console.log(browser.getTagName('h1=Welcome to my Page'));
+// -> query partial text
+console.log(browser.getText('h1*=Welcome'));
+console.log(browser.getText('h1[alt*="welcome"]'));
+// -> for ids and classnames
+// i.e. <i class="someElem" id="elem">WebdriverIO is the best </i>
+console.log(browser.getText('.someElem=WebdriverIO is the best'));
+console.log(browser.getText('#elem=WebdriverIO is the best'));
+// -> to query an element with a specific tag name use <tag> or <tag />
+// - for specific name attributes you can use normal CSS3 selector or doing something like [name="some-name"]
+// - can also do xPath selectors
+// - supports Android/iOS selectors
+// - chain selectors
+browser.element('.row .entry:nth-child(1)').click('button*=Add');
+
+// Custom Commands
+// - can extend browser instance with your own set of commands with addCommand method
+// - can define these at any point in yoru test suite or say the before hook in wdio.conf.js
+// - typically throws an error if you try to overwrite an existing command
+// -> can only be called inside a test hook or it block
+browser.addCommand("getUrlAndTitle", function(customVar) {
+  return {
+    url: this.getUrl(),
+    title: this.getTitle(),
+    customVar: customVar
+  };
+});
+
+it('should use my custom command', function() {
+  browser.url('http://www.github.com');
+  var result = browser.getUrlAndTitle('foobar');
+
+  assert.strictEqual(result.url, 'https://github.com/');
+  assert.strictEqual(result.title, 'Github - Where software is built');
+  assert.strictEqual(result.customVar, 'foobar');
+});
+// can also define with old promise syntax
+clientInformation.addCommand("getUrlAndTitle", async function() {
+  return Promise.all([
+    this.getUrl(),
+    this.getTitle()
+  ]);
+});
+// integrate third party libraries by wrapping certain API methods within a custom command
+browser.addCommand("doExternalJob", async function(params) {
+  return externalLib.command(params);
+});
+
+it('execute external library in a sync way', function() {
+  browser.url('...');
+  browser.doExternalJob('someParam');
+  console.log(browser.getTitle());
+});
+
+// Using CloudServices
+// - say you want to use Sauce Labs, Browserstack or Testingbot
+// 1. use their host i.e. ondemand.saucelabs.com as the Selenium server either by setting host config or letting WebdriverIO
+// configure it automatically based on value of user and key
+// 2. optional: set service specific values for each browser in desiredCapabilities i.e. build to specify build number and cluster multiple tests together
+// 3. optional: tunnel local traffic to provider so that your tests can access localhost
+// i.e. to run against a server that is not accessible to the Internet like on localhost, then we need to use Local Testing
+
+// Bindings and Commands
+// - two different method types: protocol bindings and commands
+// - protocol bindings: exact representation of JSONWire protocol interface
+console.log(browser.url());
+
+var element = browser.element('#myElem');
+var res = browser.elementIdCssProperty(element.value.ELEMENT, 'width');
+assert(res.value === '100px');
+// Use these commands for shorter expressions
+var width = browser.getCssProperty('#myElem', 'width');
+assert(width.parsed.value === 100);
+// - when you call a command, WebdriverIO automatically tries to propagate the prototype to the result so you can chain things
+browser.click('#elem1').click('#elem2');
+// - can also call commands on element results and remembers last result of each command
+var element = browser.element('#elem1');
+console.log(element.getText());
+element.click();
+console.log(element.getText());
+// - can encapsulate page information into a page object which will allow you to write highly expressive tests like
+var expect = require('chai').expect;
+var FormPage = reuqire('../pageobjects/form.page');
+
+describe('Auth Form', function() {
+  it('should deny access with wrong creds', function() {
+    FormPage.open();
+    FormPage.username.setValue('foo');
+    FormPage.password.setValue('bar');
+    FormPage.submit();
+    
+    expect(FormPage.flash.getText()).to.contain('Your username is invalid!');
+  });
+});
+
+// Run multiple browsers at the same time
+// - multiple Selenium sessions in a single test
+// i.e. when you need to test app features where multiple users are required
+// - can have multiremote instance and control all browsers at same time
+// - use multiremote function and pass object with named browser with capabilities into it
+var webdriverio = require('webdriverio');
+// Two sessions with Chrome and Firefox
+// - all commands you call with browser variable gets executed in parallel with each instance
+var browser = webdriverio.multiremote({
+  myChromeBrowser: {
+    desiredCapabilities: {
+      browserName: 'chrome'
+    },
+    myFirefoxBrowser: {
+      desiredCapabilities: {
+        browserName: 'firefox'
+      }
+    }
+  }
+});
+
+// Results accessible in callback functions, more than one result since more than one browser
+// - command finishes once all browsers executed, browser actions synced
+browser
+  .init()
+  .url('https://www.whatismybrowser.com/')
+  .getText('.string-major').then(function(result) {
+    console.log(result.resultChrome);
+    console.log(result.resultFirefox);
+  })
+  .end();
+
+// Say for a chat application one browser has to input a text message while the other browser listens to receive that messsage
+// and do an assertion for it
+// -> we can get access to single instance using select method
+var myChromeBrowser = browser.select('myChromeBrowser');
+var myFirefoxBrowser = browser.select('myFirefoxBrowser');
+
+myChromeBrowser
+  .setValue('#message', 'Hi, I am Chrome')
+  .click('#send');
+
+myFirefoxBrowser
+  .waitForExist('.messages', 5000)
+  .getText('.messages').then(function(messages) {
+    assert.equal(messsages, 'Hi, I am Chrome');
+  });
+// -> for actions to be in parallel again we can call the sync method and all methods chained behind sync method
+// get executed in parallel again
+// these commands get executed in parallel by all defined instances
+browser.init().url('http://example.com');
+
+// do something with Chrome browser
+myChromeBrowser.setValue('.chatMessage', 'Hey Whats up!').keys('Enter');
+
+// do something with Firefox browser
+myFirefoxBrowser.getText('.message').then(function(message) {
+  console.log(messages);
+});
+
+// now sync instances again
+browser.sync().url('http://anotherwebsite.com');
+// i.e. sample wdio.conf.js
+export.config = {
+    // ...
+    capabilities: {
+        myChromeBrowser: {
+            desiredCapabilities: {
+                browserName: 'chrome'
+            }
+        },
+        myFirefoxBrowser: {
+            desiredCapabilities: {
+                browserName: 'firefox'
+            }
+        }        
+    }
+    // ...
+};
+// -> since all commands are running synchronous with wdio test runner, all multiremote commands are sync
+// so the sync method is obsolete and each single browser name is globally available
+// -> multiremote is not meant to execute all tests in parallel but it should help for when you need more than one browser
+it('should do something with two browsers', function() {
+  browser.url('http://google.com');
+  console.log(browser.getTitle()); // returns {myChromeBrowser: 'Google', myFirefoxBrowser: 'Google'}
+
+  myFirefoxBrowser.url('http://yahoo.com');
+  console.log(myFirefoxBrowser.getTitle()); // return 'Yahoo'
+
+  console.log(browser.getTitle()); // returns {myChromeBrowser: 'Google', myFirefoxBrowser: 'Yahoo'}
+});
+
+// Event Handling
+// - supports on, once, emit, removeListener, removeAllListeners
+// - predefined events such as error, init, end, command, log
+browser.on('error', function(e) {
+  // will be executed everytime an error occurred
+  // i.e. when element couldn't be found
+  console.log(e.body.value.class);  // "org.openqa.selenium.NoSuchElementException"
+  console.log(e.body.value.message) // "no such element..."
+});
+
+// -> log() to log arbitrary data which can be logged or displayed by a reporter
+browser
+  .init()
+  .emit('log', 'Before my method')
+  .click('h2.subheading a')
+  .emit('log', 'After my method', { more: 'data' })
+  .end();
+// -> can chain commands
+var cnt;
+
+browser
+  .init()
+  .once('countme', function(e) {
+    // Can't execute any WebdriverIO commands or any other async operation within listener function
+    // more fo logging purposes
+    console.log(e.elements.length, 'elements were found');
+  })
+  .elements('.myElem').then(function(res) {
+    cnt = res.value;
+  })
+  .emit('countme', cnt)
+  .end();
+
+// - REPL interface, SeleniumGrid, Transfer Promises
+// - comes with its own test runner, config file needed which is a node module that exports a JSON
+// i.e. sample config
+exports.config = {
+
+// =====================
+// Server Configurations
+// =====================
+// Host address of the running Selenium server. This information is usually obsolete as
+// WebdriverIO automatically connects to localhost. Also if you are using one of the
+// supported cloud services like Sauce Labs, Browserstack or Testing Bot you also don't
+// need to define host and port information because WebdriverIO can figure that out
+// according to your user and key information. However if you are using a private Selenium
+// backend you should define the host address, port, and path here.
+//
+host: '0.0.0.0',
+port: 4444,
+path: '/wd/hub',
+//
+// =================
+// Service Providers
+// =================
+// WebdriverIO supports Sauce Labs, Browserstack and Testing Bot (other cloud providers
+// should work too though). These services define specific user and key (or access key)
+// values you need to put in here in order to connect to these services.
+//
+user: 'webdriverio',
+key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
+//
+// ==================
+// Specify Test Files
+// ==================
+// Define which test specs should run. The pattern is relative to the directory
+// from which `wdio` was called. Notice that, if you are calling `wdio` from an
+// NPM script (see https://docs.npmjs.com/cli/run-script) then the current working
+// directory is where your package.json resides, so `wdio` will be called from there.
+//
+specs: [
+    'test/spec/**'
+],
+// Patterns to exclude.
+exclude: [
+    'test/spec/multibrowser/**',
+    'test/spec/mobile/**'
+],
+//
+// ============
+// Capabilities
+// ============
+// Define your capabilities here. WebdriverIO can run multiple capabilities at the same
+// time. Depending on the number of capabilities, WebdriverIO launches several test
+// sessions. Within your capabilities you can overwrite the spec and exclude option in
+// order to group specific specs to a specific capability.
+//
+//
+// First you can define how many instances should be started at the same time. Let's
+// say you have 3 different capabilities (Chrome, Firefox and Safari) and you have
+// set maxInstances to 1, wdio will spawn 3 processes. Therefor if you have 10 spec
+// files and you set maxInstances to 10, all spec files will get tested at the same time
+// and 30 processes will get spawned. The property basically handles how many capabilities
+// from the same test should run tests.
+//
+//
+maxInstances: 10,
+//
+// If you have trouble getting all important capabilities together, check out the
+// Sauce Labs platform configurator - a great tool to configure your capabilities:
+// https://docs.saucelabs.com/reference/platforms-configurator
+//
+capabilities: [{
+    browserName: 'chrome',
+    chromeOptions: {
+    // to run chrome headless the following flags are required
+    // (see https://developers.google.com/web/updates/2017/04/headless-chrome)
+    // args: ['--headless', '--disable-gpu'],       
+    }        
+}, {
+    // maxInstances can get overwritten per capability. So if you have an in house Selenium
+    // grid with only 5 firefox instance available you can make sure that not more than
+    // 5 instance gets started at a time.
+    maxInstances: 5,
+    browserName: 'firefox',
+    specs: [
+        'test/ffOnly/*'
+    ],
+    "moz:firefoxOptions": {
+      // flag to activate Firefox headless mode (see https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities for more details about moz:firefoxOptions)
+      // args: ['-headless']
+    }
+},{
+    browserName: 'phantomjs',
+    exclude: [
+        'test/spec/alert.js'
+    ]
+}],
+//
+// When enabled opens a debug port for node-inspector and pauses execution
+// on `debugger` statements. The node-inspector can be attached with:
+// `node-inspector --debug-port 5859 --no-preload`
+// When debugging it is also recommended to change the timeout interval of
+// test runner (eg. jasmineNodeOpts.defaultTimeoutInterval) to a very high
+// value and setting maxInstances to 1.
+debug: false,
+//
+// Additional list node arguments to use when starting child processes
+execArgv: null,
+//
+//
+// ===================
+// Test Configurations
+// ===================
+// Define all options that are relevant for the WebdriverIO instance here
+//
+// Per default WebdriverIO commands getting executed in a synchronous way using
+// the wdio-sync package. If you still want to run your tests in an async way
+// using promises you can set the sync command to false.
+sync: true,
+//
+// Level of logging verbosity: silent | verbose | command | data | result | error
+logLevel: 'silent',
+//
+// Enables colors for log output.
+coloredLogs: true,
+//
+// Warns when a deprecated command is used
+deprecationWarnings: true,
+//
+// If you only want to run your tests until a specific amount of tests have failed use
+// bail (default is 0 - don't bail, run all tests).
+bail: 0,
+//
+// Saves a screenshot to a given path if a command fails.
+screenshotPath: 'shots',
+//
+// Set a base URL in order to shorten url command calls. If your `url` parameter starts 
+// with `/`, the base url gets prepended, not including the path portion of your baseUrl. 
+// If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url 
+// gets prepended directly.
+baseUrl: 'http://localhost:8080',
+//
+// Default timeout for all waitForXXX commands.
+waitforTimeout: 1000,
+//
+// Initialize the browser instance with a WebdriverIO plugin. The object should have the
+// plugin name as key and the desired plugin options as property. Make sure you have
+// the plugin installed before running any tests. The following plugins are currently
+// available:
+// WebdriverCSS: https://github.com/webdriverio/webdrivercss
+// WebdriverRTC: https://github.com/webdriverio/webdriverrtc
+// Browserevent: https://github.com/webdriverio/browserevent
+plugins: {
+    webdrivercss: {
+        screenshotRoot: 'my-shots',
+        failedComparisonsRoot: 'diffs',
+        misMatchTolerance: 0.05,
+        screenWidth: [320,480,640,1024]
+    },
+    webdriverrtc: {},
+    browserevent: {}
+},
+//
+// Framework you want to run your specs with.
+// The following are supported: mocha, jasmine and cucumber
+// see also: http://webdriver.io/guide/testrunner/frameworks.html
+//
+// Make sure you have the wdio adapter package for the specific framework installed before running any tests.
+framework: 'mocha',
+//
+// Test reporter for stdout.
+// The only one supported by default is 'dot'
+// see also: http://webdriver.io/guide.html and click on "Reporters" in left column
+reporters: ['dot', 'allure'],
+//
+// Some reporter require additional information which should get defined here
+reporterOptions: {
+    //
+    // If you are using the "xunit" reporter you should define the directory where
+    // WebdriverIO should save all unit reports.
+    outputDir: './'
+},
+//
+// Options to be passed to Mocha.
+// See the full list at http://mochajs.org/
+mochaOpts: {
+    ui: 'bdd'
+},
+//
+// Options to be passed to Jasmine.
+// See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
+jasmineNodeOpts: {
+    //
+    // Jasmine default timeout
+    defaultTimeoutInterval: 5000,
+    //
+    // The Jasmine framework allows it to intercept each assertion in order to log the state of the application
+    // or website depending on the result. For example it is pretty handy to take a screenshot every time
+    // an assertion fails.
+    expectationResultHandler: function(passed, assertion) {
+        // do something
+    },
+    //
+    // Make use of Jasmine-specific grep functionality
+    grep: null,
+    invertGrep: null
+},
+//
+// If you are using Cucumber you need to specify where your step definitions are located.
+// See also: https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
+cucumberOpts: {
+    require: [],        // <string[]> (file/dir) require files before executing features
+    backtrace: false,   // <boolean> show full backtrace for errors
+    compiler: [],       // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
+    dryRun: false,      // <boolean> invoke formatters without executing steps
+    failFast: false,    // <boolean> abort the run on first failure
+    format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
+    colors: true,       // <boolean> disable colors in formatter output
+    snippets: true,     // <boolean> hide step definition snippets for pending steps
+    source: true,       // <boolean> hide source URIs
+    profile: [],        // <string[]> (name) specify the profile to use
+    strict: false,      // <boolean> fail if there are any undefined or pending steps
+    tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
+    timeout: 20000,      // <number> timeout for step definitions
+    ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
+},
+//
+// =====
+// Hooks
+// =====
+// WebdriverIO provides a several hooks you can use to interfere the test process in order to enhance
+// it and build services around it. You can either apply a single function to it or an array of
+// methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
+// resolved to continue.
+//
+
+/**
+ * Gets executed once before all workers get launched.
+ * @param {Object} config wdio configuration object
+ * @param {Array.<Object>} capabilities list of capabilities details
+ */
+onPrepare: function (config, capabilities) {
+},
+/**
+ * Gets executed just before initialising the webdriver session and test framework. It allows you
+ * to manipulate configurations depending on the capability or spec.
+ * @param {Object} config wdio configuration object
+ * @param {Array.<Object>} capabilities list of capabilities details
+ * @param {Array.<String>} specs List of spec file paths that are to be run
+ */
+beforeSession: function (config, capabilities, specs) {
+},  
+/**
+ * Gets executed before test execution begins. At this point you can access to all global
+ * variables like `browser`. It is the perfect place to define custom commands.
+ * @param {Array.<Object>} capabilities list of capabilities details
+ * @param {Array.<String>} specs List of spec file paths that are to be run
+ */
+before: function (capabilities, specs) {
+},
+/**
+ * Hook that gets executed before the suite starts
+ * @param {Object} suite suite details
+ */
+beforeSuite: function (suite) {
+},
+/**
+ * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
+ * beforeEach in Mocha)
+ */
+beforeHook: function () {
+},
+/**
+ * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
+ * afterEach in Mocha)
+ */
+afterHook: function () {
+},
+/**
+ * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
+ * @param {Object} test test details
+ */
+beforeTest: function (test) {
+},
+/**
+ * Runs before a WebdriverIO command gets executed.
+ * @param {String} commandName hook command name
+ * @param {Array} args arguments that command would receive
+ */
+beforeCommand: function (commandName, args) {
+},
+/**
+ * Runs after a WebdriverIO command gets executed
+ * @param {String} commandName hook command name
+ * @param {Array} args arguments that command would receive
+ * @param {Number} result 0 - command success, 1 - command error
+ * @param {Object} error error object if any
+ */
+afterCommand: function (commandName, args, result, error) {
+},
+/**
+ * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
+ * @param {Object} test test details
+ */
+afterTest: function (test) {
+},
+/**
+ * Hook that gets executed after the suite has ended
+ * @param {Object} suite suite details
+ */
+afterSuite: function (suite) {
+},
+/**
+ * Gets executed after all tests are done. You still have access to all global variables from
+ * the test.
+ * @param {Number} result 0 - test pass, 1 - test fail
+ * @param {Array.<Object>} capabilities list of capabilities details
+ * @param {Array.<String>} specs List of spec file paths that ran
+ */
+after: function (result, capabilities, specs) {
+},
+/**
+ * Gets executed right after terminating the webdriver session.
+ * @param {Object} config wdio configuration object
+ * @param {Array.<Object>} capabilities list of capabilities details
+ * @param {Array.<String>} specs List of spec file paths that ran
+ */
+afterSession: function (config, capabilities, specs) {
+},
+/**
+ * Gets executed after all workers got shut down and the process is about to exit.
+ * @param {Object} exitCode 0 - success, 1 - fail
+ * @param {Object} config wdio configuration object
+ * @param {Array.<Object>} capabilities list of capabilities details
+ */
+onComplete: function (exitCode, config, capabilities) {
+},
+//
+// Cucumber specific hooks
+beforeFeature: function (feature) {
+},
+beforeScenario: function (scenario) {
+},
+beforeStep: function (step) {
+},
+afterStep: function (stepResult) {
+},
+afterScenario: function (scenario) {
+},
+afterFeature: function (feature) {
+}
+};
+
+// -> currently supports Mocha, Jasmine, Cucumber
+// i.e. using Mocha, npm install wdio-mocha-framework --save-dev and Chai
+before() {
+  var chai = require('chai');
+  global.expect = chai.expect;
+  chai.Should();
+}
+
+describe('my awesome website', function() {
+  it('should do some chai assertions', function() {
+      browser.url('http://webdriver.io');
+      browser.getTitle().should.be.equal('WebdriverIO - WebDriver bindings for Node.js');
+  });
+});
+
+// -> global browser object initialized by test runner
+console.log(browser.desiredCapabilities);
+// get wdio config options
+console.log(browser.options);
+// check if capability is a mobile device
+var client = require('webdriverio').remote({
+  desiredCapabilities: {
+    platformName: 'iOS',
+    app: 'net.company.SafariLauncher',
+    udid: '123123123',
+    deviceName: 'iPhone',
+  }
+});
+console.log(client.isMobile);
+console.log(client.isIOS);
+console.log(client.isAndroid);
+browser.logger.info('some random logging');
+
+// Organizing Test Suites
+// - try running tests in parallel; WebdriverIO creates for each spec or feature file in cucumber a single Selenium session
+// - try to test a single feature in your app in one spec file
+// - adjust maxInstances property in your config file to run spec files concurrently
+// i.e. if you have 3 different capabilities (Chrome, Firefox, and Safari) and you set maxInstances to 1, wdio test runner will spawn
+// 3 processes - if we have 10 spec files and set maxInstances to 10, all spec files will get tested at the same time and 30 processes will be spawned
+// - can have multiple config files for multiple environments but we need a main config file first that contains configurations shared across
+// all envrionments
+exports.config = {
+  // set maxInstances for all browsers
+  maxInstances: 10,
+  capabilities: [{
+    browserName: "firefox"
+  }, {
+    // maxInstances can get overwritten per capability
+    browserName: "chrome"
+  }]
+};
+
+// wdio.dev.config.js
+var merge = require('deepmerge');
+var wdioConf = require('./wdio.conf.js');
+
+// have main config file as default but overwrite envrionment specific information
+exports.config = merge(wdioConf.config, {
+  capabilities: [
+    // more caps here...
+  ],
+
+  // run tests on sauce instead locally
+  user: process.env.SAUCE_USERNAME,
+  key: process.env.SAUCE_ACCESS_KEY,
+  services: ['sauce']
+}, { clone: false });
+
+exports.config.reporters.push('allure');
+
+// - group test specs in suites and run single specific suites instead of all of them
+// i.e. wdio wdio.conf.js --suite login
+// wdio wdio.conf.js --suite login,otherFeature
+exports.config = {
+  // define all tests
+  specs: ['./test/specs/**/*.spec.js'],
+  // define specific suites
+  suites: {
+    login: [
+      './test/specs/login.success.spec.js',
+      './test/specs/login.failure.spec.js',
+    ],
+    otherFeature: [
+      // ...
+    ]
+  }
+};
+
+// - run selected tests with --spec parameter
+// -> in Mocha/Jasmine can specify which suite or feature for Cucumber
+// i.e. wdio wdio.conf.js --spec ./test/specs/e2e/login.js
+// -> multiple specs at once
+// wdio wdio.conf.js --spec ./test/specs/signup.js,./test/specs/forgot-password.js
+// -> to run all specs with word 'dialog' in them as defined in config file
+// wdio wdio.conf.js --spec dialog
+// -> run suites and test specs
+// wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
+// - accepts piped input in form of filenames like grep/find/etc.
+// grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
+// - can stop testing after failure with bail option
+// i.e. expects a number with a default of 0: always run all test specs it can find
+
+// Timeouts
+// - each command in WebdriverIO is an asynchronous operation where a request is fired to the Selenium server and
+// its response contains the result once the action has completed or failed
+// - Selenium timeouts
+// -> session script timeout: usually 30 seconds default to run asynchronous script
+browser.timeouts('script', 60000);
+browser.executeAsync(function(done) {
+  console.log('This should not fail');
+  setTimeout(done, 59000);
+});
+// -> session page load timeout: to wait for page loading to complete, usually 300000ms default
+browser.timeouts('pageLoad', 10000);
+// -> session implicit wait timeout: time to wait for implicit element location strategy when locating elements
+// using element or elements commands; unless otherwise stated it is 0ms by default
+browser.timeouts('implicit', 5000);
+// - WebdriverIO related timeouts
+// -> WaitForXXX timeout: provides multiple commands to wait on elements to reach a certain state (enabled, visible, existing)
+// which take a selector argument and timeout number which declares how long the instance should wait for that element to reach that state
+// waitforTimeout option allows you to set global timeout for all waitFor commands so you don't need to set same timeout over and over again
+exports.config = {
+  waitforTimeout: 5000,
+};
+var myElem = browser.element('#myElem');
+myElem.waitForVisible();
+
+// which is same as 
+browser.waitForVisible('#myElem');
+
+// which is same as
+browser.waitForVisible('#myElem', 5000);
+// - Framework related timeouts
+// by default timeout is set to 10 seconds which means that a single test should not take longer than that
+// i.e. single test in Mocha
+it('should login into the application', function() {
+  browser.url('/login');
+
+  var form = browser.element('form');
+  var username = browser.element('#username');
+  var password = browser.element('#password');
+
+  username.setValue('userXY');
+  password.setValue('******');
+  form.submit();
+
+  expect(browser.getTitle()).to.be.equal('Admin Area');
+});
+// can increase timeout if your test takes longer than default value in the framework options
+exports.config = {
+  framework: 'mocha',
+  mochaOpts: {
+    timeout: 20000
+  }
+};
+// i.e. for Jasmine
+exports.config = {
+  framework: 'jasmine',
+  jasmineNodeOpts: {
+    defaultTimeoutInterval: 20000
+  }
+};
+
+// Page Object Pattern
+// - introducing  "elements as first class citizens" and can build up large test suites
+// - Object.create provides all features we need for this pattern: inheritance between page objects, lazy loading of elements
+// and encapsulation of methods and actions
+// - goal of page objects: abstract any page information away from actual tests; ideally store all selectorrs or specific instructions
+// that are unique for a certain page in a page object so you can still run your test after you've completely redesigned your page
+// - say we create main page object called Page and it will contain general selectors or methods all page objects will inherit from
+// and apart from all child page objects, Page is created using the prototype modle
+function Page() {
+  this.title = "My Page";
+}
+
+Page.prototype.open = function(path) {
+  browser.url(path);
+}
+
+module.exports = new Page();
+// or ES6 class
+export default class Page {
+  constructor() {
+    this.title = 'My Page';
+  }
+
+  open(path) {
+    browser.url(path);
+  }
+}
+// - we will always export an instance of a page object and never create that instance in the test
+// -> we always see page as stateless construct the same way as each http request is stateless construct
+// -> browser session infromation shouldn't be reflected within page object and state changes should emerge from actual tests
+// i.e. login.page.js and using Object.create method to inherit the prototype of main page
+const Page = require('./page');
+
+const LoginPage = Object.create(Page, {
+  // define elements
+  username: { get() { return browser.element('#username'); } },
+  password: { get() { return browser.element('#password'); } },
+  form: { get() { return browser.element('#login'); } },
+  flash: { get() { return browser.element('#flash'); } },
+
+  // define or overwrite page methods
+  open: { value() {
+    Page.open.call(this, 'login');
+  } },
+
+  submit: { value() {
+    this.form.submitForm();
+  } }
+});
+
+module.exports = LoginPage;
+// or using ES6 class
+import Page from './page';
+
+class LoginPage extends Page {
+  // these getter functions are evaluated when you actually access the proeprty and not when you generate the object
+  // and with that you always request the element before you do an action on it
+  // -> WebdriverIO internally remembers the last result of a command and if you chain an element command with an action command,
+  // it finds the element from the previous command and uses the result to execute the action
+  get username() { return browser.element('#username'); }
+  get password() { return browser.element('#password'); }
+  get form() { return browser.element('#login'); }
+  get flash() { return browser.element('#flash'); }
+
+  open() {
+    super.open('login');
+  }
+
+  submit() {
+    this.form.submitForm();
+  }
+}
+
+export default new LoginPage();
+
+LoginPage.username.setValue('alucero');
+// same as this
+var elem = browser.element('#username');
+elem.setValue('alucero');
+// or
+browser.element('#username').setValue('alucero');
+// or 
+browser.setValue('#username', 'alucero');
+
+// i.e. login.spec.js
+// when writing test for it we just need to require page object
+// - can use page object pattern to encapsulate page information from your actual tests and helps to keep test suite structured
+// and clear when probject and number of tests grow
+// - can have pageobjects directory as well to separate spec files and page objects
+var expect = require('chai').expect;
+var LoginPage = require('../pageobjects/login.page');
+
+describe('login form', function() {
+  it('should deny access with wrong creds', function() {
+    LoginPage.open();
+    LoginPage.username.setValue('foo');
+    LoginPage.password.setValue('bar');
+    LoginPage.submit();
+
+    expect(LoginPage.flash.getText()).to.contain('Your username is invalid!');
+  });
+
+  it('should allow access with correct creds', function() {
+    LoginPage.open();
+    LoginPage.username.setValue('tomsmit');
+    LoginPage.password.setValue('SuperSecretPW');
+    LoginPage.submit();
+
+    expect(LoginPage.flash.getText()).to.contain('You logged into a secure area!'):
+  });
+});
+
+// Debugging
+// - difficult when several processes spawning dozens of tests in multiple browsers
+// - helpful to limit parallelism by setting maxInstances to 1 and targeting only those specs and browsers
+// that need to be debugged
+// i.e. maxInstances: 1, specs: ['**/myspec.spec.js'], capabilities: [{ browserName: 'firefox' }]
+// - can use browser.debug() to pause test and inspect browser and your command line interface will switch to REPL mode
+// that allows you to fiddle around with commands and elements on page; can access browser object or $ and $$ in your tests
+// -> when using browser.debug() we need to increase timeout of test runner to prevent test runner from failing the test for taking too long
+// --watch flag to run certain specs when they get updated; it will initialize desired Selenium sessions defined in config and will wait
+// until a file that was defined via the specs option has changed
+// - can use node-inspector or chrome-devtools by passing in --inspect flag to node process running tests like
+// execArgv: ['--inspec']
+// - can do dynamic configuration since we don't want to permanently change timeout value to 1 day but from command line using environment variable
+var debug = process.env.DEBUG;
+var defaultCapabilities = {};
+var defaultTimeoutInterval = 10000;
+var defaultSpecs = './';
+
+exports.config = {
+  debug: debug,
+  maxInstances: debug ? 1 : 100, 
+  capabilities: debug ? [{ browserName: 'chrome' }] : defaultCapabilities,
+  specs: process.env.SPEC ? [process.env.SPEC] : defaultSpecs,
+  jasmineNodeOpts: {
+    defaultTimeoutInterval: debug ? (24 * 60 * 60 * 1000) : defaultTimeoutInterval
+  }
+};
+// run command with desired values like this
+// DEBUG=true SPEC=myspec ./node_modules/.bin/wdio wdio.conf
+
+// Retry Flaky Tests
+// - can rerun unstable tests (due to race conditions or flaky network)
+// - for Mocha you can use retry mechanism instead of WebdriverIO implementation that only allows you to rerun certain test blocks
+// (within an it block) so you can rerun whole test suites
+describe('retries', function() {
+  // Retry all tests in this suite up to 4 times
+  this.retries(4);
+
+  beforeEach(function() {
+    browser.url('http://www.yahoo.com');
+  });
+
+  it('should succeed on the 3rd try', function() {
+    // Specify this test to only retry up to 2 times
+    this.retries(2);
+    console.log('run');
+    expect(browser.isVisible('.foo').to.eventually.be.true);
+  });
+});
+
+// - rerun single tests in Jasmine or Mocha by applying number of reruns as last parameter after test block function
+describe('my flaky app', function() {
+  // same for hooks; run 2 times: 1 actual run + 1 rerun
+  beforeEach(function() {
+
+  }, 1);
+
+  // spec that runs max 4 times (1 actual run + 3 reruns)
+  it('should rerun a test at least 3 times', function() {
+
+  }, 3);
+});
+
+// Custom Reporter
+// - create a node module that inherits from Eventemitter object so it can receive messages from the test
+var util = require('util');
+var events = require('events');
+
+var CustomReporter = function(baseReporter, config, options) {
+  // can access reporter optons via reporterOptions object against custom reporter
+  // i.e. reporterOptions: { CustomReporter: { outputDir: './custom_report' } }
+};
+
+// Inherit from EventEmitter
+util.inherits(CustomReporter, events.EventEmitter);
+
+// Expose Custom Reporter
+exports = module.exports = CustomReporter;
+
+// assign it to reporter property in config
+var CustomReporter = require('./reporter/my.custom.reporter');
+
+exports.config = {
+  reporters: [CustomReporter]
+};
+// - can register event handler for several events which get triggered during the test
+// -> will return payload with useful information like current state and progress
+// -> start/runner:start/hook:start/suite:start/test:start and end/pass/fail/pending
+// -> all event handlers should execute synchronous routines otherwise you will run into race conditions
+this.on('test:pass', function() {
+  console.log('Hurray! A test has passed');
+});
+
+// Custom Service
+// - services enable addons to be created for reusable logic to simplify tests, manage test suite, and integrate results
+// - services have access to all same before/after hooks available in wdio.conf.js
+// - NPM: services should use naming convention like wdio-*-service; use NPM keywords wdio-plugin, wdio-service, main entry should export an instance of the service
+// i.e. wdio-sauce-service
+class CustomService {
+  onPrepare(config, capabilities) {
+    // TODO: something before workers launch
+  }
+
+  onComplete(exitCode, config, capabilities) {
+    // TODO: something after workers shutdown
+  }
+}
+
+export default CustomService;
+
+// assign it to services property in config
+var CustomService = require('./service/my.custom.service');
+
+exports.config = {
+  services: [CustomService]
+};
+
+// - following recommended naming pattern allows services to be added by name
+exports.config = {
+  services: ['custom']
+};
+
+// Reporters
+// - Dot already installed
+// - others like Spec, Junit, Allure, TeamCity, Json, Concise, Tap, Mochawesome
+
+// Services
+// - Sauce Labs: automatically sets job status for you and updates all important job properties like job name, tags, availability,
+// or custom data, use Suace Connect to run tests through secure tunnel
+// - Browserstack: manages local tunnel and job metadata for Browserstack users
+// - PhantomJS: helps you run PhantomJS seamlessly whhen running tests with WDIO testrunner
+// - Webpack: build static assets through webpack before testing - wdio-webpack-service; 'webpack'
+// - webpack dev server: wdio-webpack-dev-server-service (webpackConfig: require('webpack.dev.config.js'), webpackPort: 8080)
+// - Docker: wdio-docker-service; can run test using containerized application by utilizing popular Docker service that supportds using Docker to host Selenium
+// or using Docker to run your containerized application (default Google Chrome, Firefox, and PhantomJS available when installed on host system)
+// - Others like Chromedriver, Visual Regression, Iedriver, static server, Appium, TestingBot, Firefox Profile, Selenium Standalone

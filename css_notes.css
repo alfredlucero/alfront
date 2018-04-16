@@ -332,6 +332,36 @@
   align-self: start | end | center | stretch;
 }
 
+/* 
+  Relative Font Size
+  - pixel(px): full control over text size, not scalable for different screen sizes
+  -> not related to anything
+  - em unit: scalable font size unit, related to font size of parent container
+  -> 1em = current font size i.e. if parent is 16px, 1em = 16px and 2em = 32px
+  -> be careful of nesting though as you can quickly lose sight of what it is relative to
+  - rem unit: scalable font size but related to root element HTML instead of parent element
+  -> root em = rem; can change font size of entire project by adjusting root font size
+  -> fast, easy, and avoids any nesting complications from em
+*/
+div {
+  font-size: 16px;
+}
+
+div.em {
+  font-size: 16px;
+}
+.em > p {
+  font-size: 2em;
+}
+
+html {
+  font-size: 16px;
+}
+
+.rem {
+  font-size: 1.5rem;
+}
+
 
 /*
   General Tricks and Hacks
@@ -348,10 +378,3 @@
   - use Font Loading API to load web fonts
   - service workers can boost performance a lot (offline, caching, etc)
 */
-
-
-
-
-
-
-

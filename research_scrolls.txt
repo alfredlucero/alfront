@@ -34,6 +34,9 @@ https://github.com/storybooks/storybook
 - Using React and jQuery together if you need to
 http://tech.oyster.com/using-react-and-jquery-together/
 
+- React First Steps
+https://kolosek.com/react-first-steps/
+
 - React Router Guide
 https://reacttraining.com/react-router/web/guides/philosophy
 
@@ -45,6 +48,9 @@ https://redux.js.org/docs/introduction/LearningResources.html
 
 - React-Redux Links
 https://github.com/markerikson/react-redux-links
+
+- Five Tips for Working with Redux in Large Applications
+https://techblog.appnexus.com/five-tips-for-working-with-redux-in-large-applications-89452af4fdcb
 
 - Immutable.js
 https://facebook.github.io/immutable-js/
@@ -237,6 +243,12 @@ https://pouchdb.com/2015/05/18/we-have-a-problem-with-promises.html
 
 - 4 JavaScript Design Patterns You Should Know
 https://scotch.io/bar-talk/4-javascript-design-patterns-you-should-know
+
+- Comprehensive Guide JavaScript Design Patterns
+https://www.toptal.com/javascript/comprehensive-guide-javascript-design-patterns
+
+- Essential JavaScript Design Patterns Book by Addy Osmani
+https://addyosmani.com/resources/essentialjsdesignpatterns/book/
 
 - Throttling and Debouncing in JavaScript
 https://medium.com/a-developers-perspective/throttling-and-debouncing-in-javascript-b01cad5c8edf

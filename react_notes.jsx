@@ -396,6 +396,308 @@ var GreeterMessage = React.createClass({
 
 module.exports = GreeterMessage;
 
+// Doing JSX the Right Way
+// - tips: try not to pollute render method, map through items and have helper functions, add key props
+// 1. Mapping through items
+render() {
+	return (
+		<div>
+			{movies.map((movie) => <Movie movie={movie} />)}
+		</div>
+	)
+}
+// 2. Using Object.keys for JS objects and also adding key prop to keep it unique
+// and avoid array indexes
+render() {
+	return (
+		<div>
+		{
+			Object.keys(moviesObject).map((movieKey) => {
+				const movie = moviesObject[movieKey];
+				return (
+					<Movie
+						key={movieKey}
+						movie={movie}
+					/>
+				);
+			})
+		}
+		</div>
+	);
+}
+// Using conditions
+// 1. Ternary operator
+render() {
+	return (
+		<p>
+			{
+				flight.cancelled
+					? 'Cancelled'
+					: 'Regular'
+			}
+		</p>
+	)
+}
+// 2. Bringing complicated conditions out into helper render functions
+renderButton() {
+	let handleOnPress;
+	let buttonClassName;
+	let buttonText;
+	if (flight.cancelled) {
+		buttonClassName = 'button disabled';
+		buttonText = 'Cancelled'
+	} else {
+		buttonClassName = 'button';
+		buttonText = 'Book';
+		handleOnPress = this.bookFlight;
+	}
+	return (
+		<button
+			className={buttonClassName}
+			onPress={handleOnPress}
+		>
+			{ buttonText }
+		</button>
+	)
+}
+// 3. Condition && WhatToRender
+render() {
+	return (
+		<p>
+			{ flight.cancelled && 'Cancelled' }
+		</p>
+	)
+}
+
+// Handling state updates
+class Login extends Component {
+	constructor() {
+		super();
+		this.state = {
+			email: '',
+			password: '',
+		};
+	}
+
+	// Functional way to update state; otherwise happens asynchronously
+	handleChange = (type) => (event) => {
+		this.setState(() => {
+			const stateUpdates = {};
+			stateUpdates[type] = event.target.value;
+			return stateUpdates;
+		});
+	}
+
+	render() {
+		return (
+			<InputField
+				onChange={this.handleChange("email")}
+				placeholder={"Email"}
+				type="text"
+				value={this.state.email}
+      />
+		)
+	}
+}
+// browser related global variables like window, localStorage, etc. can only be used
+// after component was mounted i.e. componentDidMount
+
+// Dealing with Props
+// - state: similar to attributes, local to a class component
+// - props: like parameters, passed to a componenet from the caller of a component (the parent) as if you called
+// a function with certain parameters
+// - refs: references to nested components (children), used for functionality like triggering of focus or an animation
+// and shouldn't be used too much 
+// 1. Standard prop passing
+// - strings don't have to be wrapped but we can wrap everything
+render() {
+	return (
+		<Child
+			propName={propValue}
+		/>
+	)
+}
+// 2. Boolean props
+render() {
+	return (
+		<Movie
+			released
+		/>
+	)
+}
+// 3. Function props i.e. event handlers
+handleChange(event) {
+	// Do something here
+}
+
+render() {
+	return (
+		<div>
+			<input
+				// everytime component is rerendered, new function will be created
+				onChange={this.handleChange.bind(this)}
+			/>
+		</div>
+	)
+}
+// -> can use arrow syntax to define a function
+handleChange = (parameter1, parameter2) => (event) => {
+	// Do something here
+}
+
+render() {
+	return (
+		<div>
+			<input
+				onChange={this.handleChange(parameter1, parameter2)}
+			/>
+		</div>
+	)
+}
+// 4. Sending props to children passed as a prop
+render() {
+	let updatedChildren = React.Children.map(this.props.children,
+		(child) => {
+			return React.cloneElement(child, { newProp: newProp });
+		});
+	return (
+		<div>
+			{ updatedChildren} 
+		</div>
+	)
+}
+// If just one child, no need to map
+render() {
+	return (
+		<div>	
+			{React.cloneElement(this.props.children, {
+				newProp: newProp
+			})}
+		</div>
+	)
+}
+// 5. Props and the '...'
+render() {
+	return (
+		<Movie
+			{...this.props}
+		/>
+	)
+}
+// - props passed in one direction: from parent to children
+// 5. child can communicate with parent via prop functions, often event triggered
+class Parent extends Component {
+	saveChange = (field) => (newValue) => {
+		// do something with field's newValue
+	}
+
+	render() {
+		return (
+			<ChildInput
+				placeholder={"Input Field"}
+				updateParent={this.saveChange("username")}
+			/>
+		)
+	}
+}
+class ChildInput extends Component {
+	handleChange = (event) => {
+		this.setState(() => {
+			const newValue = event.target.value;
+			this.props.updateParent(newValue);
+			return {
+				value: newValue,
+			};
+		});
+	}
+	render() {
+		return (
+			<input
+				onChange={this.handleChange}
+				placeholder={this.props.placeholder}
+				type="text"
+				value={this.state.value}
+			/>
+		);
+	}
+}
+// 6. direct communication between two components on same level via props is not possible
+// but they can communicate via props contained and handled in parent's state
+// -> on every change in either of two components, parent component's state should be updated with new information
+// and rerender both children components
+class Button extends Component {
+   render() {
+        return (
+            <button
+                disabled={this.props.disabled}
+            >
+                { this.props.text }
+            </button>
+        );
+    }
+}
+class Form extends Component {
+    constructor() {
+        super();
+        this.state = {
+            fieldValue: ""
+        };
+    }
+    handleInputChange = (fieldValue) => {
+        this.setState(() => {
+            return {
+                fieldValue,
+            };
+        });
+    }
+    render() {
+        return (
+            <div>
+                <ChildInput
+                    placeholder={"Form input"}
+                    updateParent={this.handleInputChange}
+                />
+                <Button
+                    disabled={!this.state.fieldValue}
+                    text={"Form button"}
+                />
+            </div>
+        );
+    }
+}
+// 7. Using built-in PropTypes to typecheck props
+class Input extends Component {
+	handleChange = (event) => {
+		const newValue = event.target.value;
+		this.props.updateParent(newValue);
+	}
+	render() {
+		return (
+			<input
+				onChange={this.handleChange}
+				placeholder={this.props.placeholder}
+				type="text"
+				value={this.props.value}
+			/>
+		)
+	}
+}
+
+// For rendering a list sent in as a prop, make sure to set as required or default value is set
+Input.propTypes = {
+	placeholder: PropTypes.string,
+	updateParent: PropTypes.func.isRequired,
+	value: PropTypes.string.isRequired,
+};
+
+Input.defaultProps = {
+	placeholder: "Default placeholder",
+};
+
+Parent.propTypes = {
+	inputChild: PropTypes.instanceOf(Input),
+	anyValue: PropTypes.any,
+};
 
 /*
 	React-router: to handle routing from page to page in SPA
@@ -4523,6 +4825,7 @@ const create = () => {
 
 	return { store, next, invoke };
 }
+
 // Using Immutable.js for immutability and performance
 // - data encapsulated is never mutated but a new copy is always returned
 // - immutable objects like maps, lists, sets, records, etc. and methods to sort/filter/group/reverse/flatter/subset
@@ -4608,6 +4911,189 @@ export default connect(mapStateToProps)(toJS(DumbComponent))
 // - "Ducks": similar to domain style but tying together actions and reducers often by defining them in same file
 // -> selected defined alongside reducers and exported and then reused elsewhere like in mapStateToProps functions
 // async action creators, sagas to colocate all the code that knows about the actual shape of state tree in reducer files
+
+// Tips for Redux in Large Applications
+// 1. Store data with an index. Access it with selectors
+// - index is JS object in which keys are ids of data objects we're storing and value is actual data objects themselves
+const indexedState = {
+ "usersById": {
+    123: {
+      id: 123,
+      name: "Jane Doe",
+      email: "jdoe@example.com",
+      phone: "555-555-5555",
+    },
+  }
+};
+const user = indexedState.usersById[userId];
+// Selector function to get list of users
+// - helps with maintainability in case state shape changes and we just alter selectors
+const getUsers = ({ usersById }) => {
+	return Object.keys(usersById).map((id) => usersById[id]);
+}
+const getSelectedusers = ({ selectedUserIds, usersById }) => {
+	return selectedUserIds.map((id) => usersById[id]);
+}
+// 2. Separate canonical state from view and edit state
+// - data returned from a service like REST API as "canonical state" from database
+// - break out canonical state into its own reducer file for better code organization and modularity
+// and allows reuse
+// - easier to keep it separate for PUT requests as edit state may be cancelled and we may have to modify state again to 
+// get certain editing attributes again
+const separatedCanonicalAndUiState = {
+ "usersById": {
+    123: {
+      id: 123,
+      name: "Jane Doe",
+      email: "jdoe@example.com",
+      phone: "555-555-5555",
+    },
+	},
+	// Now when we cancel edit state we just show canonical state instead with no further calls to REST API
+  "editingUsersById": {
+    123: {
+      id: 123,
+      name: "Jane Smith",
+      email: "jsmith@example.com",
+      phone: "555-555-5555",
+    }
+  }
+}
+// 3. Share state between views judiciously
+// - may help to create one top level reducer per page; each page and top level reducer corresponds to one view in our app
+// - help keep data behind our views decoupled and self-contained; each page keeps track of its own state and our reducer files can be 
+// colocated with our view files
+// - for state that needs to be shared between two views, consider the following questions:
+// How many views or other reducers will depend on this data? Does each page needs its own copy of the data? How frequently does the data change?
+// i.e. needs information about currently logged-in user on every page, fetch user info from API and store in our reducer
+// -> can pull out into its own top level reducer in its own file, any view connected to Redux store can view information about current logged-in user
+const splitPagesState = {
+	"usersPage": {
+    "usersById": {},
+  },
+  "domainsPage": {
+    "domainsById": {},
+  }
+}
+// 4. Reuse common reducer functions across state
+// i.e. fetching users but need to paginate through with each API request
+// - by default all reducer functions are called when a new action is dispatched
+// -> if we share a reducer function in multiple other reducer functions, then when we dispatch our action it will cause all of those reducers to fire
+// - pass a scope inside your payload in an action and actino uses the type to infer the key in state to update
+// -> helps with code repetition
+// -> can also use combineReducers to plug into different places in state
+// i.e. tracking loading state
+const initialLoadingState = {
+  usersLoading: false,
+  domainsLoading: false,
+  subDomainsLoading: false,
+  settingsLoading: false,
+};
+// Scoped loading reducer
+const loadingReducer = (state = initialLoadingState, action) => {
+  const { type, payload } = action;
+  if (type === SET_LOADING) {
+    return Object.assign({}, state, {
+      // sets the loading boolean at this scope
+      [`${payload.scope}Loading`]: payload.loading,
+    });
+  } else {
+    return state;
+  }
+}
+// Scoped loading action creator
+const setLoading = (scope, loading) => {
+  return {
+    type: SET_LOADING,
+    payload: {
+      scope,
+      loading,
+    },
+  };
+}
+// example dispatch call
+store.dispatch(setLoading('users', true));
+
+// Stand-alone pagination reducer
+const initialPaginationState = {
+  startElement: 0,
+  pageSize: 100,
+  count: 0,
+};
+const paginationReducerFor = (prefix) => {
+  const paginationReducer = (state = initialPaginationState, action) => {
+    const { type, payload } = action;
+    switch (type) {
+      case prefix + types.SET_PAGINATION:
+        const {
+          startElement,
+          pageSize,
+          count,
+        } = payload;
+        return Object.assign({}, state, {
+          startElement,
+          pageSize,
+          count,
+        });
+      default:
+        return state;
+    }
+  };
+  return paginationReducer;
+};
+// example usages
+const usersReducer = combineReducers({
+  usersData: usersDataReducer,
+  paginationData: paginationReducerFor('USERS_'),
+});
+const domainsReducer = combineReducers({
+  domainsData: domainsDataReducer,
+  paginationData: paginationReducerFor('DOMAINS_'),
+});
+// Action Creator factory for pagination
+const setPaginationFor = (prefix) => { 
+  const setPagination = (response) => {
+    const {
+      startElement,
+      pageSize,
+      count,
+    } = response;
+    return {
+      type: prefix + types.SET_PAGINATION,
+      payload: {
+        startElement,
+        pageSize,
+        count,
+      },
+    };
+  };
+  return setPagination;
+};
+// example usages
+const setUsersPagination = setPaginationFor('USERS_');
+const setDomainsPagination = setPaginationFor('DOMAINS_');
+// 5. React Integration and Wrap up
+// - react-redux library, using selectors to access data in state from our view components
+// -> use selectors in mapStateToProps, passed into call to connect function
+const ConnectedComponent = connect(
+	((state) => {
+		return {
+			users: selectors.getCurrentUsers(state),
+			editingUser: selectors.getEditingUser(state),
+		};
+	}),
+	mapDispatchToProps
+)(UsersComponent);
+// mapDispatchToProps example
+const ConnectedComponent = connect(
+  mapStateToProps,
+  (dispatch) => {
+    const actions = {
+      ...actionCreators, // other normal actions
+      setPagination: actionCreatorFactories.setPaginationFor('USERS_'),
+    };
+    return bindActionCreators(actions, dispatch);
+  }
 
 
 // Redux Saga 

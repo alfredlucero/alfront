@@ -596,3 +596,59 @@ webpack-node-externals (because we do not want Webpack to bundle our aws-sdk mod
 serverless invoke local --function create --path mocks/create-event.json
 -> if with multiple profiles for AWS SDK credentials can pick like (can configure multiple AWS profiles in Serverless):
 AWS_PROFILE=myProfile serverless invoke local --function create --path mocks/create-event.json
+- can set up CRUD endpoints with mocks to make requests to fill tables and then deploy
+
+9. Creating a Cognito Identity Pool
+- User Pool for storing users and signing in and signing up, our custom identity provider
+- S3 bucket to help users upload files as attachments
+- Amazon Cognito Federated Identities enables devs to create unique identities for users and authenticate with federated identity providers
+-> with federated identity, you can obtain temporary limited privilege AWS credentials to access other AWS services like DynamoDB, S3, API Gateway
+-> once a user is authenticated via User Pool, the Identity Pool will attach an IAM Role to the user; then we can define a policy for this IAM Role to grant access to the S3 bucket and API
+i.e. granting our logged in users access to the path private/${cognito-identity.amazonaws.com:sub/} where the folder name is the authenticated
+user's federated identity ID so a user only has access to their own folder within bucket
+- Cognito User Pool: signup and sign in functionality to web and mobile applications, identity provider to maintain a user directory, provisioning identity tokens tobucketname
+signed in users vs. Cognito Federated Identities/Identity Pool: authorizing authenticated users to use various AWS services, has its own concept of identity
+pool which could be a Cognito User Pool or even Facebook or Google, takes all identity providers and puts them together (federates them)
+
+10. Testing the APIs
+- to hit endpoints securely, we need the following:
+1. authenticate against User Pool and acquire a user token
+2. with the user token, get the temporary IAM credentials from Identity Pool
+3. use the IAM Credentials to sign our API request with Signature Version 4
+- can use aws-api-gateway-cli-test npm package to help test
+run something like this to add security headers before making basic HTTP request
+(Make sure your Cognito User Pool Auth role has proper settings to allow execute-api/lambda calls for authenticated users)
+or else 403 Forbidden errors may occur, also be wary of API_GATEWAY_URL fixes
+apig-test \
+--username='admin@example.com' \
+--password='Passw0rd!' \
+--user-pool-id='YOUR_COGNITO_USER_POOL_ID' \
+--app-client-id='YOUR_COGNITO_APP_CLIENT_ID' \
+--cognito-region='YOUR_COGNITO_REGION' \
+--identity-pool-id='YOUR_IDENTITY_POOL_ID' \
+--invoke-url='YOUR_API_GATEWAY_URL' \
+--api-gateway-region='YOUR_API_GATEWAY_REGION' \
+--path-template='/artifacts' \
+--method='POST' \
+--body='{"content":"testing apig","attachment":"apig.jpg"}'
+
+11. Setting up the frontend with React
+- for the React app to talk to AWS resources we created, we can use library called AWS Amplify
+-> provides modules such as Auth, API, and Storage to help us connect to our backend
+-> npm install aws-amplify --save
+- in order to login to AWS Cognito -> Auth.signIn(...);
+-> add session to the state of App component and pass it to routes
+-> we need to store and load login information from browser session either through Cookies or LocalStorage
+-> AWS Amplify already does this for us and we just read from it Auth.currentSession() which returns a promise that resolves
+the session object if there is one
+-> check Auth.currentSession() in componentDidMount lifecycle method
+-> make sure to clear the session on logout or else refreshing the page will still have you logged in (since we get from Local Storage)
+-> to complete login flow, redirect user to homepage after login; redirect them back to login page after logout
+-> to handle logout redirect to login page, App component needs withRouter higher-order component to have access to router props
+- handling signups with AWS Cognito
+-> sent confirmation code via email, need to authenticate new user once they've confirmed their account
+-> sign up user with Amazon Cognito using AWS Amplify and get user object in return
+-> render a form to accept confirmation code that AWS Cognito has emailed to them
+-> confirm signup by sending confirmation code to AWS Cognito
+-> authenticate newly created user
+-> update app state with session

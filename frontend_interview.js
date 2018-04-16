@@ -3662,6 +3662,85 @@ subject.notifyAllObservers();
 // Observer 3 is notified!
 // Observer 4 is notified!
 
+// Pubsub
+// - uses communciation channel as bridge between publisher and subscriber
+// - publisher fires an event and simply executes the callback function sent for that event
+// - useful when you need to do multiple operations on single event being fired
+// i.e. making multiple AJAX calls and then doing more AJAX calls depending on result
+// - "fire and forget" vs. mediator pattern handling workflow communication
+// -> mediator pattern used for wizard in registration steps, single point of failure though
+// - may be tough to test both subscriber and publishing parts
+var publisherSubscriber = {};
+
+// we send in a container object which will handle the subscriptions and publishings
+(function(container) {
+    // the id represents a unique subscription id to a topic
+    var id = 0;
+
+    // we subscribe to a specific topic by sending in
+    // a callback function to be executed on event firing
+    container.subscribe = function(topic, f) {
+        if (!(topic in container)) {
+          container[topic] = [];
+        }
+
+        container[topic].push({
+            "id": ++id,
+            "callback": f
+        });
+
+        return id;
+    }
+
+    // each subscription has its own unique ID, which we use
+    // to remove a subscriber from a certain topic
+    container.unsubscribe = function(topic, id) {
+        var subscribers = [];
+        for (var subscriber of container[topic]) {
+            if (subscriber.id !== id) {
+                subscribers.push(subscriber);
+            }
+        }
+        container[topic] = subscribers;
+    }
+
+    container.publish = function(topic, data) {
+        for (var subscriber of container[topic]) {
+            // when executing a callback, it is usually helpful to read
+            // the documentation to know which arguments will be
+            // passed to our callbacks by the object firing the event
+            subscriber.callback(data);
+        }
+    }
+
+})(publisherSubscriber);
+
+var subscriptionID1 = publisherSubscriber.subscribe("mouseClicked", function(data) {
+    console.log("I am Bob's callback function for a mouse clicked event and this is my event data: " + JSON.stringify(data));
+});
+
+var subscriptionID2 = publisherSubscriber.subscribe("mouseHovered", function(data) {
+    console.log("I am Bob's callback function for a hovered mouse event and this is my event data: " + JSON.stringify(data));
+});
+
+var subscriptionID3 = publisherSubscriber.subscribe("mouseClicked", function(data) {
+    console.log("I am Alice's callback function for a mouse clicked event and this is my event data: " + JSON.stringify(data));
+});
+
+// NOTE: after publishing an event with its data, all of the
+// subscribed callbacks will execute and will receive
+// a data object from the object firing the event
+// there are 3 console.logs executed
+publisherSubscriber.publish("mouseClicked", {"data": "data1"});
+publisherSubscriber.publish("mouseHovered", {"data": "data2"});
+
+// we unsubscribe from an event by removing the subscription ID
+publisherSubscriber.unsubscribe("mouseClicked", subscriptionID3);
+
+// there are 2 console.logs executed
+publisherSubscriber.publish("mouseClicked", {"data": "data1"});
+publisherSubscriber.publish("mouseHovered", {"data": "data2"});
+
 /*
  * Singleton Pattern
  * - great way to wrap code into a logical unit that can be accessed through a single variable
@@ -3753,6 +3832,40 @@ var printer = (function() {
     }
   }
 })();
+
+/*
+ * Command Pattern
+ * - useful when you want to decouple objects executing the commands from the object issuing commands
+ * i.e. API changes and we would have to modify all the places where we make those API calls
+ * - we can use an abstraction layer so we're only making change to object making the call itself
+ * - can save time modifying objects executing the command but possibly reduce performance with abstraction layer overhead
+ */
+// the object which knows how to execute the command
+var invoker = {
+  add: function(x, y) {
+      return x + y;
+  },
+  subtract: function(x, y) {
+      return x - y;
+  }
+}
+
+// the object which is used as an abstraction layer when
+// executing commands; it represents an interface
+// toward the invoker object
+var manager = {
+  execute: function(name, args) {
+      if (name in invoker) {
+          return invoker[name].apply(invoker, [].slice.call(arguments, 1));
+      }
+      return false;
+  }
+}
+
+// prints 8
+console.log(manager.execute("add", 3, 5));
+// prints 2
+console.log(manager.execute("subtract", 5, 3));
 
 /*
  * Decorator Pattern
