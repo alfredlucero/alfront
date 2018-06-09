@@ -648,7 +648,91 @@ the session object if there is one
 - handling signups with AWS Cognito
 -> sent confirmation code via email, need to authenticate new user once they've confirmed their account
 -> sign up user with Amazon Cognito using AWS Amplify and get user object in return
--> render a form to accept confirmation code that AWS Cognito has emailed to them
+-> render a form to accept confirmation code that AWS Cognito has emailed to them (also handle case where user refreshes page during confirmation step)
+or can just use AWS CLI to manually confirm an unauthenticated user: 
+  aws cognito-idp admin-confirm-sign-up \
+   --region YOUR_COGNITO_REGION \
+   --user-pool-id YOUR_COGNITO_USER_POOL_ID \
+   --username YOUR_USER_EMAIL
 -> confirm signup by sending confirmation code to AWS Cognito
 -> authenticate newly created user
 -> update app state with session
+- creating artifact page
+-> APIs secured using AWS IAM and Cognito User Pool for authentication provider and AWS Amplify keeps track fo the logged in user's session
+-> import { API } from "aws-amplify" - to call API Gateway endpoints
+-> upload a file attachment to S3: user selects a file, file is uploaded to S3 under the user's folder and we get a key back,
+and we create an artifact with the file key as the attachment
+-> we use the Storage module of AWS Amplify: import { Storage } from "aws-amplify"
+-> stores file privately and directly to user folder in S3 bucket
+- securing pages for only authenticated users i.e. /login, /signup, /artifacts
+-> can create another AuthenticatedRoute similar to AppliedRoute that takes in router/authenticated props
+-> AuthenticatedRoute that checks if user is authenticated before routing and UnauthenticatedRoute that ensures user is not authenticated
+-> if redirected to login, we should keep track of where the user was trying to go such that after logging in, it will attempt to go back to the
+authenticated route
+- Deploying the frontend
+1. Upload the assets of our app -> host our assets on S3
+- Create an S3 bucket to upload your assets that will be statically served out on S3
+-> buckets/folders to separate different types of files
+-> bucket can also be configured to host the assets in it as a static website and is automatically assigned a publicly accessible URL
+-> by default not publicly accessible so we need to change Bucket Policy
+i.e. {
+  "Version":"2012-10-17",
+  "Statement":[{
+	"Sid":"PublicReadForGetBucketObjects",
+        "Effect":"Allow",
+	  "Principal": "*",
+      "Action":["s3:GetObject"],
+      "Resource":["arn:aws:s3:::notes-app-client/*"]
+    }
+  ]
+}
+-> enable static web hosting; since we handle 404s, we can redirect our errors to our index.html as well
+(Index Document and Error Document should be index.html)
+-> deploy to S3 by running npm run build and outputting the dist/ webpack outputs
+by the following: 
+aws s3 sync build/ s3://YOUR_S3_DEPLOY_BUCKET_NAME
+-> sample site: http://culdevate-app.s3-website-us-west-2.amazonaws.com
+2. Use a CDN to serve out our assets -> CloudFront serves assets
+-> create a distribution, click get started in web section
+-> paste Endpoint URL (i.e. http://culdevate-app.s3-website-us-west-2.amazonaws.com) from static website host URL into Origin Domain Name
+-> set Compress Objects Automatically to Yes (Gzip compress the files that can be compressed and speed up delivery of our app)
+-> set Default Root Object to index.html
+-> Create Distribution and look up CloudFront domain name i.e. d1b2bhsfzylcc.cloudfront.net
+-> need to set up a Custom Error Response page to return 200 instead even for cases where we don't have a route in our React router because
+we handle the 404 page on our side; /index.html for Response Page Path and 200 for HTTP Response Code
+3. Point our domain to the CDN distribution -> Route53 to manage domain
+-> purchase a domain in Route53 section i.e. culdevate.io
+-> add alternate domain for CloudFront distrubtion
+-> create hosted zone in Route53 (public hosted zone) and input your domain
+-> create record set and set Alias to yes and set our CloudFront distribution there
+-> need to add IPv6 support as well since CloudFront distributions have it enabled by default so we need to create an AAAA record
+-> set up WWW domain redirect to go to our original domain because we want search engines to know that we want only one version of our domain to appear in the search results
+-> we need to create a new S3 bucket and a new CloudFront distribution to create a www version of our domain and have it redirect (S3 bucket
+will respond with a redirect to our main domain using redirection feature that S3 buckets have)
+-> for the redirect S3 bucket set Redirect Requests to Endpoint URL of main bucket; for the CloudFront distribution origin name use Endpoint URL and also set alternative name as www.culdevate.io
+-> Route54 create two new record sets with name "www" and alias target to the new CloudFront distribution redirect link
+-> takes time for DNS to propagate and if you visit www version of domain it should redirect to non-www version (can flip steps to make www. the main version)
+4. Switch to HTTPS with a SSL certificate -> Certificate Manager to handle our SSL ceritifate
+-> Provision public certificate and put www and non-www domain, select DNS validation
+-> Create Record in Route 53 and validate DNS records for both
+-> Update CloudFront distribution and edit with Custom SSL Certificate
+- Deploy updates
+1. Build our app with the changes
+2. Deploy to the main S3 Bucket
+i.e. aws s3 sync build/ s3://YOUR_S3_DEPLOY_BUCKET_NAME --delete
+-> tells S3 to delete all the files that are in the bucket that we aren’t uploading this time around
+3. Invalidate the cache in both our CloudFront Distributions (because current version is cached in edge locations)
+-> allows you to invalidate objects in the distribution by passing in the path of the object
+-> wildcard /* to invalidate entire distribution in a single command and recommended when deploying a new version of our app
+-> we need Distribution ID of both of our CloudFront Distributions
+-> can use AWS CLI to invalidate the cache of the two distributions
+-> need to run this once: aws configure set preview.cloudfront true
+-> to invalidate caches run these:
+aws cloudfront create-invalidation --distribution-id YOUR_CF_DISTRIBUTION_ID --paths "/*"
+aws cloudfront create-invalidation --distribution-id YOUR_WWW_CF_DISTRIBUTION_ID --paths "/*"
+-> can check Invalidations tab for invalidation request progress
+-> deploy commands in package.json such as these:
+"predeploy": "npm run build",
+"deploy": "aws s3 sync build/ s3://YOUR_S3_DEPLOY_BUCKET_NAME --delete",
+"postdeploy": "aws cloudfront create-invalidation --distribution-id YOUR_CF_DISTRIBUTION_ID --paths '/*' 
+&& aws cloudfront create-invalidation --distribution-id YOUR_WWW_CF_DISTRIBUTION_ID --paths '/*'",

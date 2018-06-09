@@ -1,0 +1,208 @@
+Infrastructure as Code Notes:
+
+Chef: configuration management tool that installs and manages software on a machine that already exists
+
+
+Terraform: building, changing, and versioning infrastructure safely and efficiently
+  - infrastructure as code using high-level configuration syntax so you can version your datacenter and share infrastructure
+  - execution plans: "planning" step where it generates execution plan that shows what Terraform will do when you call apply 
+  - resource graph: builds a graph of all your resources and parallelizes the creation and modification of any non-dependent resources
+  - change automation: complex changesets applied easily
+  - need Go installed on machine
+  i.e. to build terraform in a Linux-based container for macOS
+  docker run --rm -v $(pwd):/go/src/github.com/hashicorp/terraform -w /go/src/github.com/hashicorp/terraform -e XC_OS=darwin -e XC_ARCH=amd64 golang:latest bash -c "apt-get update && apt-get install -y zip && make bin"
+
+  Introduction to Terraform
+    - config files describe to Terraform the components needed to run a single application or your entire datacenter
+    -> generates an execution plan describing what it will do to reach desired state and then executes it to build the described infrastructure
+    - can manage low-level components such as compute instances, storage, and networking and high-level components such as DNS entries, SaaS features, etc.
+    - use cases: setting up Heroku application with required add-ons, setting CNAME, Cloudflare as CDN, scaling dynos;
+      multi-tier applications (N-tier, 2-tier uses pool of web servers that use a database tier, additional tiers for API servers, caching servers, routing meshes, etc. so tiers can scale independently)
+      -> each tier as collection of resources and dependencies between each tier handled automatically, scaling each tier with count configuration value
+      -> self-service clusters; bootstrapping demo on cloud providers like AWS; disposable environments i.e. staging and production
+      -> software defined networking with control layer and infrastructure layer; versioned config changes like AWS VPC
+      -> resource schedulers: static assignment of applications to machines becomes increasingly challenging i.e. Mesos, YARN, Kubernetes used to dynamically schedule Docker containers, Hadoop, Spark, etc.
+        and can use Terraform in layers to setup the physical infrastructure running the schedulers as well as provisioning onto the scheduled grid
+      -> multi-cloud deployment: spread infrastructure across multiple clouds to increase fault-tolerance as a single region/cloud provider is limited by availability of that provider
+        Terraform is cloud-agnostic and can handle multiple providers/cross-cloud dependencies
+    - Terraform vs. Chef, Puppet, etc.: using provisioners, Terraform enables any configuration management tool to be used to setup a resource once it has been created; allows existing tooling to focus on bootstrapping and initializing resources
+
+  Getting Started
+    - install and run terraform -v to verify it's working
+    - Build Infrastructure i.e. with AWS free-tier 
+      -> the set of files used to describe infrastructure in Terraform is the Terraform configuration
+      -> if you leave out AWS credentials, Terraform will automatically search for saved API credentials in ~/.aws/credentials or IAM instance profile credentials
+      -> provider block to configure named provider such as "aws" that is responsible for creating and managing resources
+      -> resource block defines a resource that exists within the infrastructure like a physical component such as EC2 instance or logical resource such as Heroku app
+        -> has two strings: resource type and resource name; prefix of type maps to provider
+      i.e. launching a single AWS EC2 instance
+      provider "aws" {
+        access_key = "ACCESS_KEY_HERE"
+        secret_key = "SECRET_KEY_HERE"
+        region = "us-east-1"
+      }
+
+      resource "aws_instance" "example" {
+        ami = "ami-2757f631"
+        instance_type = "t2.micro"
+      }
+      -> first command to run for a new configuration or after checking out an existing configuration from version control is
+      terraform init : initializes various local settings and data that will be used by subsequent commands; plugin based architecture
+      -> each "Provider" is its own encapsulated binary distributed separately from Terraform itself and will download the ones for the providers in use automatically
+      -> next command: terraform apply -> output shows execution plan (actions Terraform will take in order to change real infrastructure to match configuration)
+        -> + means Terraform will create this resource with attributes that will be set
+        -> if plan created successfully, Terraform will now pause and wait for approval before proceeding
+        -> Terraform wrote some data into terraform.tfstate file; keeps track of the IDs of created resources so Terraform knows what it is managing and must be saved and distributed for those
+        who might run Terraform
+      -> terraform show -> inspects current state
+    - Change Infrastructure i.e. modifying EC2 instance
+      -> Terraform builds execution plan and only modifies what is necessary to reach your desired state; version control your state and configs
+      i.e. resource "aws_instance" "example" {
+        ami = "ami-b374d5a5"
+        instance_type = "t2.micro"
+      }
+      -> run terraform apply again to apply change to existing resources
+        -> -/+ means Terraform will destroy and recreate the resource rather than updating it in-place
+        -> ~ means updating in-place
+      -> prompts approval of execution plan before proceeding i.e. it will destroy the existing instance and create a new one in its place
+      -> run terraform show to see new values associated with this instance
+    - Destroy Infrastructure - though rare in production environments
+      -> terraform destroy -> behaves as if all of resources have been removed from configuration
+        -> - prefix indicates instance will be destroyed
+        -> determines the order in which things must be destroyed to respect dependencies
+    - Resource Dependencies - configs can contain multiple resources, resource types and can span multiple providers
+      -> use interpolation to access another resource property ${resource_type.resource_name.attribute_from_resource}
+      i.e. "${aws_instance.example.id}"
+      -> create two resources: instance and elastic IP; variable won't show until dependent resource created at apply-time
+      and Terraform can infer a dependency and knows it must create the EC2 instance first
+      i.e. assign elastic IP to EC2 instance
+      resource "aws_eip" "ip" {
+        instance = "${aws_instance.example.id}"
+      }
+      -> by studying the resource attributes used in interpolation expressions, Terraform can automatically infer when one resource depends on another
+      i.e. ${aws_instance.example.id} creates an implicit dependency on the aws_instance named example
+      and this allows Terraform to determine the correct order in which to create the different resources
+      i.e. aws_instance must be created before aws_eip
+      -> for dependencies between resources that are not visible to Terraform, you can add depends_on argument that is accepted by any resource and 
+      accepts a list of resources to create explicit dependencies
+      i.e. application we run on EC2 instance expects to use a specific Amazon S3 bucket but that dependency is configured inside the application code and not
+      visible to Terraform
+      # New resource for S3 bucket our app will use
+      resource "aws_s3_bucket" "example" {
+        # S3 bucket names must be unique across all AWS accounts so this name must be changed before applying exapmle to avoid naming conflicts
+        bucket = "terraform-getting-started"
+        acl = "private"
+      }
+
+      # Change the aws_instance we declared earlier to now include "depends_on"
+      resource "aws_instance" "example" {
+        ami = "ami-2757f631"
+        instance_type = "t2.micro"
+
+        # Tells Terraform that this EC2 instance must be created only after S3 bucket has been created
+        depends_on = ["aws_s3_bucket.example"]
+      }
+      -> non-dependent resources can be built in parallel with other resources
+    - Provision
+      -> use provisioners to initialize instances when they're created
+      -> let you upload files, run shell scripts, or install and trigger other software like configuration management tools, etc.
+      -> to define a provisioner, modify the resource block defining the "example" EC2 instance
+      i.e. adding provisioner to EC2 "example" instance, uses local-exec provisioner to execute command locally on machine running Terraform
+      resource "aws_instance" "example" {
+        ami = "ami-b374d5a5"
+        instance_type = "t2.micro"
+
+        provisioner "local-exec" {
+          command = "echo ${aws_instance.example.public_ip} > ip_address.txt"
+        }
+      }
+      -> provisioners are only run when a resource is created; not replacements for configuration management and changing software of already-running servers
+      and meant as way to bootstrap a server; should invoke a real configuration management solution with Terraform provisioning
+      -> if a resource successfully creates but fails during provisioning, Terraform will error and mark the resource as "tainted"; it has been physically created
+      but can't be considered safe to use since provisioning failed
+        -> when you generate next execution plan, Terrafrom will not attempt to restart provisioning on same resource but will remove any tainted resources and create new ones
+        -> Terraform does not automatically roll back and destroy the resource during the apply when failure happens
+      -> provisioners can be defined that run only during destroy operation for system cleanup, extracting data, etc.; using built-in cleanup mechanisms is recommended if possible such as init scripts
+    - Input Variables: need to parameterize the configurations to become truly shareable and version controlled
+      -> one can extract access key, secret key, and region into a few variables in variables.tf (Terraform loads all files ending in .tf in a directory)
+      i.e. defining some variables within your Terraform configuration
+      variable "access_key" {}
+      variable "secret_key" {}
+      variable "region" {
+        default = "us-east-1"
+      }
+      -> if a default value is set, the variable is optional; otherwise, the variable is required; running terraform plan will prompt you for the values
+      for unset string variables
+      i.e. replacing AWS provider configuration with variables
+      provider "aws" {
+        access_key = "${var.access_key}"
+        secret_key = "${var.secret_key}"
+        region = "${var.region}"
+      }
+      -> assigning variables
+      i.e. through command-line flags (doesn't save them)
+      terraform apply \
+        -var 'access_key=foo' \
+        -var 'secret_key=bar'
+      i.e. from a file terraform.tfvars, automatically loads them to populate variables;
+      can also specify with -var-file flag and file can be JSON
+      access_key="foo"
+      secret_key="bar"
+      i.e. local secret variables file and use -var-file to load it
+      terraform apply /
+        -var-file="secret.tfvars" \
+        -var-file="production.tfvars"
+      -> will read environment variables in form of TF_VAR_name to find value for a variable
+      -> can also to UI input but not saved or recommended
+      -> lists defined explicitly or implicitly
+      variable "cidrs" { default = [] }
+      variable "cidrs" { type = "list" }
+      cidrs = [ "...", "111" ]
+      -> maps for things are specific to regions in use such as AMIs; create variables that are lookup tables
+      variable "amis" {
+        type = "map"
+        default = {
+          "us-east-1" = "ami-b374d5a5"
+          "us-west-2" = "ami-4b32be2b"
+        }
+      }
+      i.e. accessing map like this through interpolation function call which does a dynamic lookup in a map for a key
+      resource "aws_instance" "example" {
+        ami = "${lookup(var.amis, var.region)}
+        instance_type = "t2.micro"
+      }
+      # static lookup with ${var.amis["us-east-1"]}
+    - Output Variables: to organize data to be easily queried and shown back to Terraform user as it stores many atrtibutes for all resources
+      -> can tell Terraform what data is important and data is computed when apply is called and can be queried using terraform output command
+      i.e. output to show public IP address of elastic IP address
+      output "ip" {
+        value = "${aws_eip.ip.public_ip}"
+      }
+      -> run terraform apply to populate the output and can query the outputs after apply-time using terraform output
+      i.e. terraform output ip
+    - Modules: self-contained packages of Terraform configurations that are managed as a group
+      -> modules used to create reusable components, improve organization, and to treat pieces of infrastructure as a black box
+      -> Terraform registry includes directory of ready-to-use modules for various common purposes which can serve as larger building-blocks for you infrastructure
+      i.e. setting up Consul cluster using Consul Terraform module for AWS
+      provider "aws" {
+        access_key = "AWS ACCESS KEY"
+        secret_key = "AWS SECRET KEY"
+        region = "us-east-1"
+      }
+      -> source attribute is only mandatory argument for modules; tells Terraform where module can be retrieved and automatically downloads and manages modules for you
+      module "consul" {
+        source = "hashicorp/consul/aws"
+        aws_region = "us-east-1"
+        num_servers = "3"
+      }
+      -> after adding a new module to configuration, it is necessary to run or re-run terraform init and install the new module's source code
+      npm init -upgrade additionally checks for any newer versions of existing modules and providers that may be available
+      -> modules can be nested to decompose complex systems into manageable components
+      -> has input arguments and output values like id of each of resource it creates and echoing back some of the input values
+      ${module.NAME.OUTPUT}
+      i.e. output "consul_server_asg_name" {
+        value = "${module.consul.asg_name_servers}"
+      }
+    - Remote backends to allow Terraform to use a shared storage space for state data so any member of your team can use Terraform to manage the same infrastructure
+      i.e. using Consul as backend to provide state storage, locking, and environments
+

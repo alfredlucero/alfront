@@ -189,6 +189,9 @@ https://mozilladevelopers.github.io/playground/css-grid/
 - CSS Grid Free Course by Wes Bos
 https://cssgrid.io/
 
+- Grid to Flex (CSS Grid/Flexbox Sample Layouts)
+http://www.gridtoflex.com/
+
 
 
 General JS Resources/Libraries I Found Useful:
@@ -271,6 +274,9 @@ https://www.smashingmagazine.com/2017/04/using-slack-monitor-app/
 
 - Cypress: End to End Testing Framework (doesn't use Selenium)
 https://www.cypress.io/
+
+- NPM Tips
+http://corgibytes.com/blog/2017/04/18/npm-tips/
 
 Computer Network Resources I Found Useful: 
 
@@ -392,6 +398,9 @@ https://24ways.org/2014/an-overview-of-svg-sprite-creation-techniques/
 
 - Google Advanced Learning Path
 https://techdevguide.withgoogle.com/paths/advanced/how-to-read-existing-code/#!
+
+- Using Service Workers
+https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
 
 
 
