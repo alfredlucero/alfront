@@ -1,5 +1,8 @@
 React Resources I Found Useful:
 
+- React Cheatsheet
+https://devhints.io/react
+
 - Scaling React Applications
 https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/
 
@@ -43,6 +46,9 @@ https://reacttraining.com/react-router/web/guides/philosophy
 - React Router v4 Tutorial
 https://medium.com/@pshrmn/a-simple-react-router-v4-tutorial-7f23ff27adf
 
+- Reach Router
+https://reach.tech/router
+
 - React/Redux Helpful Learning Resources
 https://redux.js.org/docs/introduction/LearningResources.html
 
@@ -54,6 +60,31 @@ https://techblog.appnexus.com/five-tips-for-working-with-redux-in-large-applicat
 
 - Immutable.js
 https://facebook.github.io/immutable-js/
+
+
+
+React Testing Resources I Found Useful:
+
+- Snapshot testing React Components with Jest
+https://hackernoon.com/snapshot-testing-react-components-with-jest-744a1e980366
+
+- Testing React Components using render props
+https://blog.kentcdodds.com/testing-%EF%B8%8F-components-using-render-props-5623ab1814c
+
+- Testing React Components (Cosmos)
+https://medium.com/@skidding/testing-react-components-30516bc6a1b3
+
+- React Cosmos (Creating Fixtures for localStorage, state, props, fetch, reduxStore, etc.)
+https://github.com/react-cosmos/react-cosmos
+
+- The Right Way to Test React Components
+https://medium.freecodecamp.org/the-right-way-to-test-react-components-548a4736ab22
+
+- Difference between Shallow, Mount, Render in Enzyme
+https://github.com/airbnb/enzyme/issues/465#issuecomment-227697726
+
+- Jest Testing with Styled-Components and Enzyme
+https://fastweb.media/blog/react-styled-jest-enzyme
 
 
 
@@ -192,9 +223,15 @@ https://cssgrid.io/
 - Grid to Flex (CSS Grid/Flexbox Sample Layouts)
 http://www.gridtoflex.com/
 
+- Sass Cheatsheet
+https://devhints.io/sass
+
 
 
 General JS Resources/Libraries I Found Useful:
+
+- ES6 Cheatsheet
+https://devhints.io/es6
 
 - Shepherd - Guide your users through a tour of your app (Repo)
 https://github.com/HubSpot/shepherd
@@ -262,6 +299,12 @@ http://jstherightway.org/#getting-started
 - Idiomatic.js (How to write clean JavaScript)
 https://github.com/rwaldron/idiomatic.js
 
+- Functional Programming in JavaScript Exercises
+http://reactivex.io/learnrx/
+
+- Async Await David Walsh
+https://davidwalsh.name/async-await
+
 
 
 Building Resources I Found Useful:
@@ -295,6 +338,9 @@ https://wblinks.com/notes/aws-tips-i-wish-id-known-before-i-started/
 - AWS Open Guides
 https://github.com/open-guides/og-aws
 
+- Adding Security Headers to CDN with Lambda@Edge
+https://aws.amazon.com/blogs/networking-and-content-delivery/adding-http-security-headers-using-lambdaedge-and-amazon-cloudfront/
+
 
 
 Testing/Build Resources I Found Useful:
@@ -302,8 +348,35 @@ Testing/Build Resources I Found Useful:
 - ESLint
 https://eslint.org/
 
+- CypressIO
+https://www.cypress.io/
+
+- WebdriverIO
+http://webdriver.io/api.html
+
+- Cypress vs. Selenium
+https://automationrhapsody.com/cypress-vs-selenium-end-era/
+
+- Karma Test Runner
+http://karma-runner.github.io/2.0/index.html
+
+- Jasmine Assertions
+https://jasmine.github.io/2.0/introduction
+
+- Mocha Test Runner
+https://mochajs.org/#getting-started
+
+- Chai Assertions
+http://www.chaijs.com/api/
+
+- Jest Test Runner
+http://jestjs.io/docs/en/getting-started.html
+
 - Enzyme
 http://airbnb.io/enzyme/
+
+- Enzyme Cheatsheet
+https://devhints.io/enzyme
 
 - Webpack - A Detailed Introduction
 https://www.smashingmagazine.com/2017/02/a-detailed-introduction-to-webpack/
@@ -435,6 +508,9 @@ https://polaris.shopify.com/principles/principles
 
 - Design Systems Handbook
 https://www.designbetter.co/design-systems-handbook
+
+- Inclusive Components Design
+https://inclusive-components.design/
 
 
 Algorithms Resources:

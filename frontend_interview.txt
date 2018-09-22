@@ -1127,8 +1127,8 @@ and additional validation at server for the CSRF token to be sure attacker manip
 -> i.e. loading img with bad src and passes along authentication with the request 
 - attack that impersonates trusted user and sends a website unwanted commands like including malicious parameters in URL behind a link that purports to go 
 somewhere else
--> check standard headers to verify request is same origin
--> check CSRF token i.e. custom headers X-Requested-With: XMLHttpRequest, encyrpted token pattern, double cookie defense
+-> check standard headers to verify request is same origin (Access-Control-Allow-Origin - CORS headers)
+-> check CSRF token i.e. custom headers X-Requested-With: XMLHttpRequest, encyrpted token pattern, double cookie defense, per request CSRF tokens
 
 - Using JWT (JSON Web Tokens)
 -> open, industry standard RFC 7519 method for representing claims securely between two parties

@@ -137,6 +137,26 @@ describe('<Button />', () => {
 // npm i --save react@16 react-dom@16
 // npm i --save-dev react-test-renderer@16
 // npm i --save-dev enzyme enzyme-adapter-react-16
+// shallow rendering
+// -> real unit test, isolation, no children rendering
+// -> calls constructor, render
+// -> shallow + setProps calls componentWillReceiveProps, shouldComponentUpdate, componentWillUpdate, render
+// -> shallow + unmount calls componentWillUnmount
+// mount
+// -> requires a DOM (jsdom/domino) 
+// -> only way to test lifecycle methods like componentDidMount and componentDidUpdate
+// -> more costly in execution time
+// -> calls constructor, render, componentDidMount
+// -> mount + setProps calls componentWillReceiveProps, shouldComponentUpdate, componentWillUpdate, render, componentDidUpdate
+// -> mount + unmount calls componentWillUnmount
+// render: no lifecycles, render children, less APIs (setState, debug, ...)
+// -> only calls render but renders all children
+// -> assert on the DOM your components render
+// - rule of thumb: begin with shallow
+// -> if componentDidMount or componentDidUpdate should be tested, use mount
+// -> if you want to test component lifecycle and children behavior, use mount
+// -> if you want to test children rendering with less overhead than mount and not interested in lifecycle methods, use render
+// - if children are connected components, using mount needs you to setup a <Provider> so we can use shallow
 // Setup file
 import { configure } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
