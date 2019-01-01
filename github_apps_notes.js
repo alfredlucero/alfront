@@ -31,7 +31,7 @@
 // - generate private key in PEM format to sign access token requests
 // - authentication options for GitHub apps (to access API with integration, must provide custom media type in Accept Header for your requests)
 // -> allows you to retrieve high-level management information about Github App, can request access tokens for an installation of app
-// -> use private key to sign a JSON Web Token (JWT) and encode it using the RS256 algorithm, Github checks request 
+// -> use private key to sign a JSON Web Token (JWT) and encode it using the RS256 algorithm, Github checks request
 // authenticated by verifying the token with the app's stored public key
 // i.e. curl -i -H "Authorization: Bearer YOUR_JWT" -H "Accept: application/vnd.github.machine-man-preview+json" https://api.github.com/app
 // - authenticating as installation lets you perform actions int he API for that installation
@@ -40,7 +40,7 @@
 // -H "Authorization: Bearer YOUR_JWT" \
 // -H "Accept: application/vnd.github.machine-man-preview+json" \
 // https://api.github.com/installations/:installation_id/access_tokens
-// -> installations with permissions on contents of a repository can use their installation access token to authenticate for Git access and 
+// -> installations with permissions on contents of a repository can use their installation access token to authenticate for Git access and
 // using as HTTP password
 // - when Github app acts on behalf of user, it performs user-to-server requests that must be authorized with a user's access token
 // -> i.e. requesting data for a user like determining which repos to display to a particular user and actions triggered by user like running build
@@ -71,3 +71,17 @@
 // - pricing plans: free, flat rate, per-unit pricing plan, marketplace free trials (14-day free trials of OAuth or Github apps)
 // - receive payment for listing once revenue reaches $500USD minimum for the month and you'll get 75%
 // Can also do Works with Github app if it doesn't meet requirements and they can do their own installation and purchasing
+
+// Migrating OAuth Apps to Github Apps
+// - Github apps have fine-grained permissions, short-lived tokens vs. OAuth token not expiring until person who authorized OAuth App revokes the token
+// -> built-in, centralized webhooks receive events for all repositories and organizations the app can access vs. OAuth apps require configuring a webhook for each repository and organization accessible to the user
+// -> bot accounts don't consume a Github Enterprise seat and remain installed even when person who initially installed app leaves organization
+// -> built-in support for OAtuh still available in Github apps using user-to-server endpoints
+// -> dedicated API rate limits for bot accounts
+// -> repository owners can install Github Apps on organization repositories; org owner approves installation
+// -> open source community support with Octokit library and frameworks like Probot
+// - to convert an OAuth app to Github app, you must review available API endpoints and stay with API rate limits, register Github app, determine permissions
+// -> subscribe to webhooks, understand authentication methods, direct users to install your Github app on repositories, remove any unnecessary repo hooks, switch Marketplace listing to use new Github App
+// -> encourage users to revoke access to your OAuth app
+// -> authentication methods i.e. JSON Web token authenticates as the Github app, installation access token authenticates as specific installation of your Github App (server-to-server requests),
+// OAuth access token can authenticate as a user of your Github App (user-to-server requests)

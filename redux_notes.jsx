@@ -957,3 +957,369 @@ assert.deepEqual(
   put({ type: 'PRODUCTS_RECEIVED', products }),
   'fetchProducts should yield an Effect put({ type: "PRODUCTS_RECEIVED", products })'
 );
+
+/*
+ * RxJs 
+ * - Introduces Observables: a new push system for Javascript, a producer of multiple values (Promise is also push, functions are pull)
+ * - Observables push to Observers (Consumers)
+ * -> function is lazily evaluated computation that synchronously returns single value on invocation
+ * -> generator is lazily evaluated computation that synchronously returns zero to potentially infinite values on iteration
+ * -> Promise is computation that may or may not eventually return a single value
+ * -> Observable is lazily evaluated computation that can synchronously or asynchronously return zero to potentially infinite values from time it's invoked onwards
+ */
+import { Observable } from 'rxjs';
+
+const foo = Observable.create(function(observer) {
+  console.log("Hello");
+  observer.next(42);
+});
+
+// "calling" or "subscribing" is an isolated operation; can have multiple calls trigger separate side effects
+// Observables have no shared execution like EventEmitters that share side effects
+foo.subscribe(function(x) {
+  console.log(x);
+});
+
+// Can return multiple values over time unlike functions with a single return
+const multipleReturn = Observable.create(function(observer) {
+  console.log("Hello");
+  observer.next(42);
+  observer.next(100); // returns another value
+  /* can have async values too */
+  setTimeout(() => {
+    observer.next(300);
+  }, 1000)
+});
+multipleReturn.subscribe(function(x) {
+  console.log(x); // outputs 42,100
+});
+
+// Observables are created using Observable.create/creation operators and are subscribed to with an Observer, execute to deliver
+// next, error, complete notifications to the Observer and their execution may be disposed
+// - core concerns: creating, subscribing, executing, disposing Observables
+// - subscribe calls trigger its own independent setup for that given Observer, doesn't maintain a list of attached Observers like addEventListener
+// -> subscribe call is a sipmle way to start an Observable execution and deliver values or events to an Observer of that execution
+// - three type values of an Observable Execution
+// -> next: sends a value such as a number, string, object, etc., actual data being delivered to Observer
+// --> can have zero to infinite Next but if either and error or complete is delivered, nothing else can be delivered afterwards
+// -> error: sends a JS error or exception
+// -> complete: does not send a value
+const observable = Observable.create(function subscribe(observer) {
+  try {
+    observer.next(1);
+    observer.next(2);
+    observer.next(3);
+    observer.complete();
+  } catch(err) {
+    observer.error(err);
+  }
+});
+
+// Represents ongoing execution and has minimal API to cancel execution with .unsubscribe()
+// We use Rx to get safety like Observable Contract and composability with Operators
+const observable = Observable.from([10, 20, 30]);
+const subscription = observable.subscribe(x => console.log(x));
+subscription.unsubscribe();
+
+var observable = Rx.Observable.create(function subscribe(observer) {
+  // Keep track of the interval resource
+  var intervalID = setInterval(() => {
+    observer.next('hi');
+  }, 1000);
+
+  // Provide a way of canceling and disposing the interval resource
+  return function unsubscribe() {
+    clearInterval(intervalID);
+  };
+});
+
+// Subscription is an object that represents a disposable resource, usually the execution of an Observable
+// - unsubscribe method that takes no arguments and disposes the resource held by subscription
+// -> to release resources of cancel Observable executions
+import { interval } from 'rxjs';
+
+const observable = interval(1000);
+const subscription = observable.subscribe(x => console.log(x));
+// Later:
+// This cancels the ongoing Observable execution which
+// was started by calling subscribe with an Observer.
+subscription.unsubscribe();
+
+// Can add subscriptions together and cancel them with one unsubscribe
+const observable1 = interval(400);
+const observable2 = interval(300);
+ 
+const subscription = observable1.subscribe(x => console.log('first: ' + x));
+const childSubscription = observable2.subscribe(x => console.log('second: ' + x));
+ 
+subscription.add(childSubscription);
+ 
+setTimeout(() => {
+  // Unsubscribes BOTH subscription and childSubscription
+  subscription.unsubscribe();
+}, 1000);
+
+// Subject
+// - special type of Observable that allows values to be multicasted to many Observers
+// - plain Observables are unicast (each subscribed Observer owns an independent execution of the Observable), Subjects are multicast
+// - like EventEmitters that maintain a registry of many listeners
+// - every subject is an observable, can subscribe to it and Observer can receive values normally
+// - subscribe does not invoke a new execution that delivers values, registers given Observer in a list of Observers like addListener
+// - every subject is an Observable and an Observer - has next, error, complete methods; call next(value) to be multicasted to Observers registered to listen to Subject
+import { Subject } from 'rxjs';
+ 
+const subject = new Subject<number>();
+ 
+subject.subscribe({
+  next: (v) => console.log(`observerA: ${v}`)
+});
+subject.subscribe({
+  next: (v) => console.log(`observerB: ${v}`)
+});
+ 
+subject.next(1);
+subject.next(2);
+ 
+// Logs:
+// observerA: 1
+// observerB: 1
+// observerA: 2
+// observerB: 2
+
+// Can provide Subject as argument to subscribe of any Observable to convert a unicast Observable execution to multicast
+// through the Subject to allow it to be shared to multiple Observers
+// - multicasted Observable uses a Subject under the hood to make multiple Observers see the same Observable execution
+// - Observers subscribe to an underlying Subject and the Subject subscribes to the source Observable
+// - refCount makes the multicasted Observable automatically start executing when the first subscriber arrives, and stop executing when the last subscriber leaves.
+// -> refCount exists on ConnectableObservable and it returns an Observable
+import { Subject, from } from 'rxjs';
+ 
+const subject = new Subject<number>();
+ 
+subject.subscribe({
+  next: (v) => console.log(`observerA: ${v}`)
+});
+subject.subscribe({
+  next: (v) => console.log(`observerB: ${v}`)
+});
+ 
+const observable = from([1, 2, 3]);
+ 
+observable.subscribe(subject); // You can subscribe providing a Subject
+ 
+// Logs:
+// observerA: 1
+// observerB: 1
+// observerA: 2
+// observerB: 2
+// observerA: 3
+// observerB: 3
+
+import { from, Subject } from 'rxjs';
+import { multicast } from 'rxjs/operators';
+ 
+const source = from([1, 2, 3]);
+const subject = new Subject();
+const multicasted = source.pipe(multicast(subject));
+ 
+// These are, under the hood, `subject.subscribe({...})`:
+multicasted.subscribe({
+  next: (v) => console.log(`observerA: ${v}`)
+});
+multicasted.subscribe({
+  next: (v) => console.log(`observerB: ${v}`)
+});
+ 
+// This is, under the hood, `source.subscribe(subject)`:
+multicasted.connect();
+
+// BehaviorSubject: has a notion of "current value", stores latest value emitted to its consumers and whenever a new Observer subscribes,
+// it will immediately receive the "current value" from the BehaviorSubject
+// - good to represent "values over time"
+import { BehaviorSubject } from 'rxjs';
+const subject = new BehaviorSubject(0); // 0 is the initial value
+ 
+subject.subscribe({
+  next: (v) => console.log(`observerA: ${v}`)
+});
+ 
+subject.next(1);
+subject.next(2);
+ 
+subject.subscribe({
+  next: (v) => console.log(`observerB: ${v}`)
+});
+ 
+subject.next(3);
+ 
+// Logs
+// observerA: 0
+// observerA: 1
+// observerA: 2
+// observerB: 2
+// observerA: 3
+// observerB: 3
+
+// ReplaySubject - can send old values to new subscribers but it can also record a part of the Observable execution
+// - records multiple values from the Observable execution and replays them to new subscribers
+import { ReplaySubject } from 'rxjs';
+const subject = new ReplaySubject(3); // buffer 3 values for new subscribers; can also have a window time instead
+ 
+subject.subscribe({
+  next: (v) => console.log(`observerA: ${v}`)
+});
+ 
+subject.next(1);
+subject.next(2);
+subject.next(3);
+subject.next(4);
+ 
+subject.subscribe({
+  next: (v) => console.log(`observerB: ${v}`)
+});
+ 
+subject.next(5);
+ 
+// Logs:
+// observerA: 1
+// observerA: 2
+// observerA: 3
+// observerA: 4
+// observerB: 2
+// observerB: 3
+// observerB: 4
+// observerA: 5
+// observerB: 5
+
+// AsyncSubject
+// - variant where only the last value of the Observable execution is sent to its observers and only when the execution completes
+// - similar to last() operator in that it waits for complete notification in order to deliver a single value
+mport { AsyncSubject } from 'rxjs';
+const subject = new AsyncSubject();
+ 
+subject.subscribe({
+  next: (v) => console.log(`observerA: ${v}`)
+});
+ 
+subject.next(1);
+subject.next(2);
+subject.next(3);
+subject.next(4);
+ 
+subject.subscribe({
+  next: (v) => console.log(`observerB: ${v}`)
+});
+ 
+subject.next(5);
+subject.complete();
+ 
+// Logs:
+// observerA: 5
+// observerB: 5
+
+/*
+ * Redux Observable
+ * - requires understanding of Observables with RxJS, for complex async/side effects
+ * - epic = function which takes a stream of actions and returns a stream of actions
+ * -> anything output from the final, returned stream is an action
+ * -> epic(actions$, state$).subscribe(store.dispatch)
+ * -> epics run after the reducers have already received them so you can't swallow an incoming actions
+ * -> actions run through your reducers before your epics receive them
+ */
+// Listens for actions of type PING and then map them to new action PONG
+const pingEpic = action$ => action$.pipe(
+  filter(action => action.type === 'PING'), // ofType('PING') works too and it can take in multiple arguments
+  delay(1000), // Asynchronously wait 1000ms then continue
+  mapTo({ type: 'PONG' })
+);
+
+const pingReducer = (state = { isPinging: false }, action) => {
+  switch (action.type) {
+    case 'PING':
+      return { isPinging: true };
+    case 'PONG':
+      return { isPinging: false };
+    default:
+      return state;
+  }
+};
+
+// AJAX example
+import { ajax } from "rxjs/ajax";
+
+// action creators aka factories that return action objects
+const fetchUser = username => ({ type: FETCH_USER, payload: username });
+const fetchUserFulfilled = payload => ({ type: FETCH_USER_FULFILLED, payload });
+
+// epic
+const fetchUserEpic = action$ => action$.pipe(
+  ofType(FETCH_USER),
+  mergeMap(action => 
+    ajax.getJSON(`https://api.github.com/users/${action.payload}`).pipe(
+      map(response => fetchUserFulfilled(response))
+    )  
+  )
+);
+
+dispatch(fetchUser('testuser'));
+
+// can access store's state with state$
+// when an epic receives an action, it has already been run through your reducers and state updated
+const INCREMENT = 'INCREMENT';
+const INCREMENT_IF_ODD = 'INCREMENT_IF_ODD';
+
+const increment = () => ({ type: INCREMENT });
+const incrementIfOdd = () => ({ type: INCREMENT_IF_ODD });
+
+const incrementIfOddEpic = (action$, state$) => action$.pipe(
+  ofType(INCREMENT_IF_ODD),
+  filter(() => state$.value.counter % 2 === 1), // can also do withLatestFrom(state$)
+  map(() => increment())
+);
+
+dispatch(incrementIfOdd());
+
+// combineEpics to combine multiple Epics into a single one
+import { combineEpics } from "redux-observable";
+
+const rootEpic = combineEpics(
+  pingEpic,
+  fetchUserEpic
+);
+// same as merge
+const rootEpic = (action$, state$) => merge(
+  pingEpic(action$, state$),
+  fetchUserEpic(action$, state$)
+);
+
+// single root Epic with combineEpics
+import { combineEpics } from "redux-observable";
+import { combineReducers } from "redux";
+import ping, { pingEpic } from "./ping";
+import users, { fetchUserEpic } from "./users";
+
+export const rootEpic = combineEpics(
+  pingEpic,
+  fetchUserEpic,
+);
+
+export const rootReducer = combineReducers({
+  ping,
+  users
+});
+
+// configuring the store with middleware
+import { createEpicMiddleware } from 'redux-observable';
+
+const epicMiddleware = createEpicMiddleware();
+
+import { createStore, applyMiddleware } from "redux";
+
+const store = createStore(
+  rootReducer,
+  applyMiddlware(epicMiddleware)
+);
+
+epicMiddleware.run(rootEpic);
+
+

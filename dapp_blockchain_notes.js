@@ -12,15 +12,15 @@
 
 // - blockchain 101: decentralized system for exchange of value
 // -> shared distributed ledger, transaction immutability achieved by way of blocks and chaining
-// -> leverages consensus mechanism for validating transactions, uses cryptography 
+// -> leverages consensus mechanism for validating transactions, uses cryptography
 // -> centralized: all nodes connected to central node, single point of failure, scaling, inefficiency
 // -> decentralized: p2p network, all nodes equal
 // -> distributed ledger: peers hold copies of ledger and nodes in network and can independently validate
 // reconciliation intermediaries process
-// -> data added to ledger cannot be updated or deleted, transaction data grouped into blocks, index and 
+// -> data added to ledger cannot be updated or deleted, transaction data grouped into blocks, index and
 // timestamp and hash value for the block; previousHash value points to previous block (backwards reference chain)
 // -> distributed ledger = distributed database; consensus = protocol by which peers agree on state of ledger
-// to ensure all peers in network has exactly the same copy of ledger, guarantees chronological record of 
+// to ensure all peers in network has exactly the same copy of ledger, guarantees chronological record of
 // transactions -- validated through ways such as: proof of work, proof of stake, tendermint
 // -> participants have a public/private key pair (cryptography)
 // -> transaction signed by owner of asset with private key, anyone can validate the transaction with
@@ -37,7 +37,7 @@
 // performs negotiated actions
 // i.e. Buyer sends ethers, Solidity holds ethers in escrow, widget shipped by seller, widget received by buyer,
 // funds are then released to seller
-// -> network interactions: wallets for managing ethers and smart contracts; 
+// -> network interactions: wallets for managing ethers and smart contracts;
 // decentralized apps (DAPP): interact with contracts on network and execution is not free
 // -> can become a miner with wallet or trade other currencies, ether faucets
 
@@ -50,7 +50,7 @@
 // the fees for validation transactions and recording them in ledger
 // -> ethereum wallet to manage funds and invoke contracts
 // -> example for DAPP bidding, contract state changes when functions invoked, gives off events consumed
-// by frontend like for buyer (calls bid() function that gives off event BidReceived to seller) and seller 
+// by frontend like for buyer (calls bid() function that gives off event BidReceived to seller) and seller
 // (calls withdrawFunds() when satisfied with bid) -> then ships goods to buyer
 // -> frontend commonly implemented as SPA but can be in any language, smart contracts with Solidity, Serpent, Lisplike Language
 // and web3 libraries connects the Solidity and frontend
@@ -84,13 +84,13 @@
 // - private network: may want to use the ethereum blockchain for smart contracts that is not public
 // -> Network ID = Assigned; for data privacy, as a distributed database
 // -> form a consortium (industry verticals), permissioned, internal transactions and contracts like r3.
-// - can configure wallet to interact with any of these networks, initially connect Dapp to Test-Net 
-// for testing and developing and then point it to live network 
+// - can configure wallet to interact with any of these networks, initially connect Dapp to Test-Net
+// for testing and developing and then point it to live network
 // - developer would use block explorer to see transactions in motion or private/Test-Net network
 // -> blockchain explorers implemented as webapps that show information on transactions, blocks, accounts
 // like etherscan (etherscan.io, testnet.etherscan.io), ether.camp, etherchain.org
 // -> for private network you can use opensource etherparty
-// - live network: real transactions here and ether exchanges/contracts; test-net: developers using free testing ethers 
+// - live network: real transactions here and ether exchanges/contracts; test-net: developers using free testing ethers
 // to test out contracts like Ropsten; private network: multiple entities share a private chain or private network
 // -> wallets and dapps can connect to any network
 // -> devs can get transaction/block info using explorer apps
@@ -194,3 +194,31 @@
 // -> geth [options] command [command options] [args...], ensure it is in PATH
 // -> can set up configuration (identity, datadir - set chain data directory, keystore - keyfile directory, networkid, testnet, fast - faster syncing, dev), logging/debugging
 // -> geth --identity "MyTestNode" --datadir "./data" --testnet --fast; to start up testnet or --networkid=3, logging level 0-6
+
+// Ethereum DAPP Notes
+// - Truffle Framework for creating Ethereum dApps
+// -> has Truffle Boxes to have lots of boilerplate set up for you i.e. truffle unbox pet-shop
+// -> truffle init - creates an empty Truffle project with no example contracts included
+// -> directory structure includes
+// -- contracts/: Solidity (language for writing Ethereum smart contracts) source files, includes Migrations.sol
+// -- migrations/: migration system to handle smart contract deployments, migration is an additional special smart contract that keeps track of changes
+// -- test/: contains both JavaScript and Solidity tests for our smart contracts
+// -- truffle.js: configuration file
+// -> built-in developer console called Truffle Develop, which generates a development blockchain we can use to test deploy contracts
+// -> truffle compile - compiles Solidity contracts to EVM
+// -> migration: deployment script meant to alter the state of your application's contracts, moving it from one state to the next
+// -- Migrations.sol: observes subsequent smart contract migrations and ensures we don't double migrate unchanged contracts in future
+// -- your migrations will happen in order, followed by the blockchain address of each deployed contract
+// -> smart contract tests can be written in JavaScript or Solidity
+// -> truffle test - runs tests in test folder, smart contracts must be migrated over to Ganache blockchain first
+// -> truffle-contract library: keeps information about contract in sync with migrations so you don't need to change contract's deployed address manually
+// - Ganache - personal blockchain for Ethereum development you can use to deploy contracts, develop apps, and run tests
+// - smart contract acts as backend logic and storage
+// - Solidity - statically typed language, unique type called address -> Ethereum address stored as 20 byte values
+// -> every account and smart contract on Ethereum blockchain has an address and can send and receive Ether to and from this address
+// -> compiled language so we compile Solidity to bytecode for Ethereum Virtual Machine (EVM) to execute
+// - frontend uses web3 JavaScript library - interacts with Ethereum blockchain to retrieve user accounts, send transactions, interact with smart contracts, etc.
+// -> allows you to connect with modern dapp browsers like newer versions of MetaMask where ethereum provider is injected into window object and need to request
+// access to accounts with ethereum.enable()
+// -> older versions of dapp browsers like Mist or older version of MetaMask have web3 on window object
+// -> we can also fallback to local provider like Ganache for development purposes

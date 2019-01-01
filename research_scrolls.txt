@@ -226,6 +226,15 @@ http://www.gridtoflex.com/
 - Sass Cheatsheet
 https://devhints.io/sass
 
+- Sass Best Practices: Tips and Tools for developers
+https://www.hongkiat.com/blog/sass-tips-tools-for-developers/
+
+- Pros and Cons of Modular Sass
+https://blog.planetargon.com/entries/the-pros-and-cons-of-modular-sass
+
+- CSS Modules Welcome to the Future
+https://glenmaddern.com/articles/css-modules
+
 
 
 General JS Resources/Libraries I Found Useful:
@@ -384,6 +393,9 @@ https://www.smashingmagazine.com/2017/02/a-detailed-introduction-to-webpack/
 - (PAID) Webpack 2: The Complete Developer's Guide
 https://www.udemy.com/webpack-2-the-complete-developers-guide/learn/v4/
 
+- A Tale of Webpack 4 and how to finally configure it in the right way
+https://hackernoon.com/a-tale-of-webpack-4-and-how-to-finally-configure-it-in-the-right-way-4e94c8e7e5c1
+
 - CommonJS: Why and How
 https://0fps.net/2013/01/22/commonjs-why-and-how/
 
@@ -520,3 +532,17 @@ https://www.hackerearth.com/practice/basic-programming/recursion/recursion-and-b
 
 - Coding Interviews For Dummies
 https://medium.freecodecamp.org/coding-interviews-for-dummies-5e048933b82b
+
+Dapp Resources:
+
+- The Ultimate Ethereum Dapp Tutorial
+http://www.dappuniversity.com/articles/the-ultimate-ethereum-dapp-tutorial
+
+- Truffle Ethereum Overview
+https://truffleframework.com/tutorials/ethereum-overview
+
+- Truffle Pet Shop Basics Tutorial
+https://truffleframework.com/tutorials/pet-shop
+
+- Truffle Drizzle React Tutorial
+https://truffleframework.com/tutorials/getting-started-with-drizzle-and-react
