@@ -85,3 +85,89 @@
 // -> encourage users to revoke access to your OAuth app
 // -> authentication methods i.e. JSON Web token authenticates as the Github app, installation access token authenticates as specific installation of your Github App (server-to-server requests),
 // OAuth access token can authenticate as a user of your Github App (user-to-server requests)
+
+// Setting up development environment
+// - registering a Github App and setting up a web server to receive webhook events with Smee to capture webhook payloads and forward to local dev environment
+// - steps: start Smee channel, register a new Github App, save private key and app ID, prepare runtime environment, review Github App template code, start server, install app on your account
+
+// Creating Github App
+// - need to update app permissions, add event handling by listening to webhook payloads as POST requests from Github, hit Github REST API
+// -> every event that Github sends includes a request header called HTTP_X_GITHUB_EVENT, which indicates type of event in POST request
+// -> each event has additional action field i.e. issues event with assigned, unassigned, labeled actions
+// - When GitHub Apps take actions via the API, such as adding labels, GitHub shows these actions as being performed by bot accounts
+
+// Creating CI tests with the Checks API
+// - creating a continuous integration server that runs tests
+// - a CI server hosts code that runs CI tests like code linters, security checks, code coverage, etc.
+// -> can build and deploy code to staging or production servers
+// - Checks API allows you to set up CI tests automatically run against each code commit in a repository
+// -> gives detailed information about each check on Github in pull request's Checks tab, can create annotations
+// -> check suite: group of check runs (individual CI tests), statuses visible on pull request
+// -> sends check_suite webhook event to all Github Apps installed on a repository each time new code is pushed to repository
+// -> app must have checks:write permission, GitHub automatically creates check_suite events for new code commits in a repo in default flow
+// -> when someone pushes code to repo, Github sends check_suite event with an action of request to all Github Apps installed on repo that have checks:write permission
+// -> when app receives this event, it can add check runs to that suite
+// -> check runs can include annotations displayed on specific lines of code
+// 1. Set up framework for CI server using Checks API
+// -> configure GitHub App as server that receives Checks API events
+// -> create new check runs for CI tests when a repo receives newly pushed commits
+// -> re-run check runs when a user requests that action on GitHub
+// 2. Build on CI server framework you created by adding a linter CI test
+// -> update check run with a status, conclusion, and output details
+// -> create annotations on lines of code that GitHub displays in the Checks and Files Changed tab of PR
+// -> automatically fix linter recommendations by exposing a "Fix this" button in the Checks tab of a PR
+// - check_suite event with action field -> requested, rerequested, completed
+// -> requested/rerequested - create a check run
+// - creates a check run for a specific commit SHA (head_sha), status to queued
+// -> receive check_run webhook event with created action which is signal to begin running the check
+// -> for rerequested action we'll create another check run
+// -> GitHub sends all events for created check runs to every app installed on a repository that has the necessary check permissions
+// which means your app will receive check runs created by other apps
+// -> filter by app ID to exclude check runs for other apps on repository
+// - need to update status of check run from queued to in_progress (kick off CI test) to completed
+// -> update check run status to in_progress and set started_at to current time
+// -> run CI test: i.e. cloning repository and checking out certain commit and running linter on it
+// -> update status of check run to completed with conclusion (success, failure, neutral, cancelled, timed_out, action_required) and completed_at parameters
+// i.e. conclusion: success, completed_at to current time, status to completed
+// - can get statuses, annotation for specific lines of code, take requested actions
+// -> clicking on button sends a requested_action check_run event to GitHub App
+// - be careful about verifying webhook signatureå
+// -> need to validate webhook payloads that stuff passed through does not include arbitrary malicious commands
+// - limit of 50 annotations per API request; otherwise, you'll need to make multiple requests to the update a check run endpoint
+// -> annotation object with path, start_line, end_line, annotation_level, message
+// - each check run contains an output object that includes a title, summary, text, annotations, and images
+// - when someone clicks a button, the app receives the check_run event with requested_action action
+// -> has an identifier that app uses to determine which button was clicked
+// -> can set username and email to associate with commit in .env file
+
+// Probot
+// - framework for building GitHub Apps in Node.js
+// - helps with receiving and validating webhooks and doing authentication
+// - app is a Node.js module that exports a function
+// app is an instance of an Application
+module.exports = app => {
+  // code here
+};
+
+// app.on listen for any webhook events triggered by GitHub
+// context includes everything about event that was triggered
+module.exports = app => {
+  app.on("issues.opened", async context => {
+    // A new issue was opened what should we do with it?
+    context.log(context.payload);
+  });
+};
+// context.github is an authenticated GitHub client that can be used to make API calls
+// i.e. autoresponder app that comments on opened issues
+module.exports = app => {
+  app.on("issues.opened", async context => {
+    // `context` extracts information from the event, which can be passed to GitHub API calls
+    // returns { owner: 'yourname', repo: 'yourrepo', number: 123, body: 'Hello World!' }
+    const params = context.issue({ body: "Hello World!" });
+
+    // Post a comment on the issue
+    return context.github.issues.createComment(params);
+  });
+};
+
+// create-probot-app to start building an app with templates like basic-js, checks-js, git-data-js, deploy-js, basic-ts

@@ -61,6 +61,24 @@ https://techblog.appnexus.com/five-tips-for-working-with-redux-in-large-applicat
 - Immutable.js
 https://facebook.github.io/immutable-js/
 
+- Defining Component APIs in React
+http://jxnblk.com/writing/posts/defining-component-apis-in-react/
+
+- Markdown for the Component Era (MDX)
+https://mdxjs.com/
+
+- MDX Slide Decks
+https://github.com/jxnblk/mdx-deck
+
+- Docz - MDX plus React Component documentation
+https://www.docz.site/introduction/getting-started
+
+- React Lifecycle Methods: How and When to Use Them
+https://engineering.musefind.com/react-lifecycle-methods-how-and-when-to-use-them-2111a1b692b1
+
+- React 16 Lifecycle Methods: How and When to Use Them
+https://blog.bitsrc.io/react-16-lifecycle-methods-how-and-when-to-use-them-f4ad31fb2282
+
 
 
 React Testing Resources I Found Useful:
@@ -235,6 +253,15 @@ https://blog.planetargon.com/entries/the-pros-and-cons-of-modular-sass
 - CSS Modules Welcome to the Future
 https://glenmaddern.com/articles/css-modules
 
+- CSS and Network Performance
+https://csswizardry.com/2018/11/css-and-network-performance/
+
+- Sass Style Guide
+https://css-tricks.com/sass-style-guide/
+
+- More opinionated Sass Guidelines
+https://sass-guidelin.es/
+
 
 
 General JS Resources/Libraries I Found Useful:
@@ -314,6 +341,27 @@ http://reactivex.io/learnrx/
 - Async Await David Walsh
 https://davidwalsh.name/async-await
 
+- Essential JS Design Patterns by Addi Osmani
+https://addyosmani.com/resources/essentialjsdesignpatterns/book
+
+
+GraphQL Resources I Found Useful:
+
+- How to GraphQL
+https://www.howtographql.com/
+
+
+
+TypeScript Resources I Found Useful:
+
+The Definitive Typescript Guide
+https://www.sitepen.com/blog/update-the-definitive-typescript-guide/
+
+Typescript Deep Dive
+https://basarat.gitbooks.io/typescript/
+
+Ultimate React Component Patterns with TypeScript 2.8
+https://levelup.gitconnected.com/ultimate-react-component-patterns-with-typescript-2-8-82990c516935
 
 
 Building Resources I Found Useful:
@@ -532,6 +580,20 @@ https://www.hackerearth.com/practice/basic-programming/recursion/recursion-and-b
 
 - Coding Interviews For Dummies
 https://medium.freecodecamp.org/coding-interviews-for-dummies-5e048933b82b
+
+- Competitive Programming Book
+https://cses.fi/book/book.pdf
+
+- Solid Principles Every Developer Should Know
+https://blog.bitsrc.io/solid-principles-every-developer-should-know-b3bfa96bb688
+
+
+Infrastructure Resources:
+
+- Introduction to Microservices
+https://www.nginx.com/blog/introduction-to-microservices/
+
+
 
 Dapp Resources:
 

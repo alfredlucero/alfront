@@ -41,3 +41,9 @@
 - Terraforming your AWS S3/CloudFront with cross-region replication, Cloudwatch alarms, etc.
 
 - Our Buildkite CICD steps
+
+# Reacty Shtuff
+
+- Using useReducer + useContext with TypeScript, organized actions/reducers
+
+- Setting up Apollo GraphQL with apollo-link-rest, apollo-link-debounce and TS patterns
