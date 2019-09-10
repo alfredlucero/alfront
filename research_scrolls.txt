@@ -79,6 +79,29 @@ https://engineering.musefind.com/react-lifecycle-methods-how-and-when-to-use-the
 - React 16 Lifecycle Methods: How and When to Use Them
 https://blog.bitsrc.io/react-16-lifecycle-methods-how-and-when-to-use-them-f4ad31fb2282
 
+- How to Fetch Data in React
+https://www.robinwieruch.de/react-fetching-data/
+
+- React Hooks Data Fetching
+https://www.robinwieruch.de/react-hooks-fetch-data/
+
+- A Complete Guide to useEffect
+https://overreacted.io/a-complete-guide-to-useeffect/
+
+- The Complete Guide to Forms in React
+https://medium.com/@agoiabeladeyemi/the-complete-guide-to-forms-in-react-d2ba93f32825
+
+- Fetch data with React Hooks and Typescript
+https://dev.to/camilomejia/fetch-data-with-react-hooks-and-typescript-390c
+
+- UseTypescript: A Complete Guide to Hooks and Typescript
+https://levelup.gitconnected.com/usetypescript-a-complete-guide-to-react-hooks-and-typescript-db1858d1fb9c
+
+- useHooks: examples of hooks
+https://usehooks.com/
+
+- Creating a Command-Line app in Node.js with Typescript
+https://codeburst.io/how-to-build-a-command-line-app-in-node-js-using-typescript-google-cloud-functions-and-firebase-4c13b1699a27
 
 
 React Testing Resources I Found Useful:
@@ -103,6 +126,12 @@ https://github.com/airbnb/enzyme/issues/465#issuecomment-227697726
 
 - Jest Testing with Styled-Components and Enzyme
 https://fastweb.media/blog/react-styled-jest-enzyme
+
+- Unit Testing Custom React Hooks
+https://medium.com/@nitinpatel_20236/unit-testing-custom-react-hooks-caa86f58510
+
+- React Hooks: Test Custom Hooks with Enzyme
+https://dev.to/flexdinesh/react-hooks-test-custom-hooks-with-enzyme-40ib
 
 
 
@@ -262,6 +291,9 @@ https://css-tricks.com/sass-style-guide/
 - More opinionated Sass Guidelines
 https://sass-guidelin.es/
 
+- The CSS Handbook: A Handy Guide to CSS for Developers
+https://www.freecodecamp.org/news/the-css-handbook-a-handy-guide-to-css-for-developers-b56695917d11/
+
 
 
 General JS Resources/Libraries I Found Useful:
@@ -343,6 +375,9 @@ https://davidwalsh.name/async-await
 
 - Essential JS Design Patterns by Addi Osmani
 https://addyosmani.com/resources/essentialjsdesignpatterns/book
+
+- How we Built the Figma Plugin System
+https://www.figma.com/blog/how-we-built-the-figma-plugin-system/
 
 
 GraphQL Resources I Found Useful:
