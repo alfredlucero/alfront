@@ -497,7 +497,11 @@ https://docs.cypress.io/examples/examples/recipes.html
 - Building Serverless Stack Application Tutorial
 https://serverless-stack.com
 
+- Setting up Typescript + Eslint + Prettier
+https://dev.to/robertcoopercode/using-eslint-and-prettier-in-a-typescript-project-53jb
 
+- Express React Monorepo Setup with Lerna
+https://benoithubert.net/2019/08/express-react-monorepo-setup-with-lerna.html
 
 General Frontend Web Resources I Found Useful:
 
