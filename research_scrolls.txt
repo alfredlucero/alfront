@@ -658,3 +658,6 @@ https://medium.com/preply-engineering/lambda-edge-and-where-to-find-it-92b7c9c37
 
 How to use Lambda@Edge with Terraform
 https://advancedweb.hu/2019/10/01/lambda_edge_terraform/
+
+A Comprehensive Guide To Terraform
+https://blog.gruntwork.io/a-comprehensive-guide-to-terraform-b3d32832baca
