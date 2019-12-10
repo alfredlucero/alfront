@@ -587,6 +587,9 @@ https://www.dynamodbguide.com/what-is-dynamo-db/
 - Common Rest Design Patterns
 https://dzone.com/articles/common-rest-design-pattern
 
+- Restful API Design Best Practices
+https://phauer.com/2015/restful-api-design-best-practices/
+
 
 Cheatsheets I Found Useful:
 
@@ -647,3 +650,11 @@ https://truffleframework.com/tutorials/pet-shop
 
 - Truffle Drizzle React Tutorial
 https://truffleframework.com/tutorials/getting-started-with-drizzle-and-react
+
+Terraform Resources:
+
+Lambda@Edge: run your code at CloudFront
+https://medium.com/preply-engineering/lambda-edge-and-where-to-find-it-92b7c9c37f22
+
+How to use Lambda@Edge with Terraform
+https://advancedweb.hu/2019/10/01/lambda_edge_terraform/
