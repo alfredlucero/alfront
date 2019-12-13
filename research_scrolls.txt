@@ -590,6 +590,12 @@ https://dzone.com/articles/common-rest-design-pattern
 - Restful API Design Best Practices
 https://phauer.com/2015/restful-api-design-best-practices/
 
+- Things I Wish I Knew Before I Started Working With MongoDB
+https://codeburst.io/things-i-wish-i-new-before-i-started-working-with-mongodb-c089d4b593db
+
+- Fast Paging with MongoDB
+https://scalegrid.io/blog/fast-paging-with-mongodb/
+
 
 Cheatsheets I Found Useful:
 
