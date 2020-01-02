@@ -667,3 +667,11 @@ https://advancedweb.hu/2019/10/01/lambda_edge_terraform/
 
 A Comprehensive Guide To Terraform
 https://blog.gruntwork.io/a-comprehensive-guide-to-terraform-b3d32832baca
+
+React Native Resources:
+
+- React Native Express Tutorial
+http://www.reactnativeexpress.com/
+
+- React Navigation Next Docs (Router)
+https://reactnavigation.org/docs/en/next/getting-started.html
