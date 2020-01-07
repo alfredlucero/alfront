@@ -575,6 +575,12 @@ https://techdevguide.withgoogle.com/paths/advanced/how-to-read-existing-code/#!
 https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
 
 
+Electron Resources I Found Useful:
+
+- How to Build an Electron App Using Create-React-App and Electron-Builder
+https://www.codementor.io/@randyfindley/how-to-build-an-electron-app-using-create-react-app-and-electron-builder-ss1k0sfer
+
+
 
 Backend Resources I Found Useful:
 
@@ -595,6 +601,9 @@ https://codeburst.io/things-i-wish-i-new-before-i-started-working-with-mongodb-c
 
 - Fast Paging with MongoDB
 https://scalegrid.io/blog/fast-paging-with-mongodb/
+
+- The Correct Way to Use Mongoose
+https://twm.me/correct-way-to-use-mongoose/
 
 
 Cheatsheets I Found Useful:
