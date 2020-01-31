@@ -103,6 +103,9 @@ https://usehooks.com/
 - Creating a Command-Line app in Node.js with Typescript
 https://codeburst.io/how-to-build-a-command-line-app-in-node-js-using-typescript-google-cloud-functions-and-firebase-4c13b1699a27
 
+- Creating Modal Component with React Portals and Hooks
+https://upmostly.com/tutorials/modal-components-react-custom-hooks
+
 
 React Testing Resources I Found Useful:
 
