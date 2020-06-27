@@ -119,3 +119,61 @@ INSERT INTO photo_tags(photo_id, tag_id) VALUES
 (1,1),
 (1,2),
 (2,1);
+
+-- Database Triggers
+-- SQL Statements that are automatically run when a specific table is changed
+-- CREATE TRIGGER trigger_name
+--  trigger_time trigger-event ON table_name FOR EACH ROW BEGIN ... END
+--  trigger_time - BEFORE/AFTER, trigger_event - INSERT, UPDATE, DELETE, table_name - i.e. photos/users
+-- Sample trigger to prevent self-follows
+-- Triggers can make debugging hard i.e. not expecting more rows to be affected than expected after certain SQL queries
+-- Not best practice to use so many triggers
+DELIMITER $$
+
+CREATE TRIGGER prevent_self_follows
+  BEFORE INSERT ON follows FOR EACH ROW
+  BEGIN
+    IF NEW.follower_id = NEW.followee_id
+    THEN
+      SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'You cannot follow yourself!';
+    END IF;
+  END;
+$$
+
+DELIMITER ;
+
+-- Sample trigger to capture unfollows and add it to another table
+CREATE TABLE unfollows(
+  follower_id INTEGER NOT NULL,
+  followee_id INTEGER NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  FOREIGN KEY (follower_id) REFERENCES users(id),
+  FOREIGN KEY (followee_id) REFERENCES users(id),
+  PRIMARY KEY (follower_id, followee_id),
+);
+
+DELIMITER $$
+
+CREATE TRIGGER capture_unfollows
+  AFTER DELETE ON follows FOR EACH ROW
+  BEGIN
+    -- INSERT INTO unfollows(follower_id, followee_id)
+    -- VALUES(OLD.follower_id, OLD.followee_id);
+    INSERT INTO unfollows
+    SET follower_id = OLD.follower_id,
+        followee_id = OLD.followee_id;
+  END;
+
+$$
+
+DELIMITER;
+
+DELETE FROM follows WHERE follower_id=3;
+
+SHOW TRIGGERS;
+
+DROP TRIGGER prevent_self_follows;
+
+-- Use INDEX to improve performance of SELECT operations
+-- In MySQL, the Primary Key and any Foreign Key you create on a table is always an index automatically
