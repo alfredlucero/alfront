@@ -1,0 +1,125 @@
+Redis:
+
+- In-memory database (NoSQL); key-value store
+- Used for session caches, pub-sub, transactions, etc.
+- brew install redis
+- brew services start redis
+- brew services stop redis
+- redis-cli to connect to server; ping to see if we get pong back
+
+Data Types:
+
+Strings (both text and binary allowed, 512mb max)
+- Use cases: images, html fragment, json
+
+set key1 value
+get key1
+
+incr decr
+
+append
+
+setrange
+
+strlen
+
+mget mset
+
+Lists (linked lists, allows duplicates, indexes, ordered)
+- Use cases: logging, monitoring
+
+rpush key value1 value2
+
+Hashes (like objects, key and value are strings)
+- Use cases: session info
+
+hset key field value
+
+Sets (unordered, no duplicates, unique members)
+- Use cases: user data, logins
+
+sadd key element1 element2 element3
+
+Sorted Sets (ordered, score associated for every element, no duplicates, unique members)
+- Use cases: voting, counts
+
+zadd key score element
+
+Commands:
+
+Set a key-value pair
+
+set key value
+
+Get a value given a key
+
+get key
+
+Multiple set
+
+mset key1 value1 key2 value2
+
+Read out all the keys
+
+KEYS pattern
+
+Delete a key
+
+DEL key
+
+Dealing with Strings:
+
+set prog_lang javascript
+get prog_lang (javascript)
+
+mset db_name mongodb server_name apache ide vscode
+mget db_name server_name ide (mongodb apache vscode)
+
+strlen db_name (7)
+
+set num_visits 1000
+incr num_visits (1001)
+decr num_visits (1000)
+incrby num_visits 10 (1010)
+decrby num_visits 10 (1000)
+
+getset num_visits 1010 (1000 prev value)
+get num_visits (1010)
+
+set name Alfred
+get name Alfred
+append name Lucero
+get name (AlfredLucero)
+
+setrange name 3 blah
+get name (Alfblahucero)
+
+exists name (1)
+
+expire name 2 (expire after 2 seconds)
+get name (nil)
+
+set name alfred
+type name (string)
+
+Dealing with Lists:
+
+simple list of strings maintaining insertion order, supports more than 4 billion elements in a single list
+
+lpush rpush can add elements to head and tail of the list
+
+lpush lpop
+llen lrange
+lset lrem
+lrange
+lindex
+
+lpush fruits apple orange
+
+lrange fruits 0 1 (apple orange)
+
+lpop fruits (orange)
+
+lindex fruits 0 (apple)
+
+lrem fruits 1 apple (removes 1 apple from list)
