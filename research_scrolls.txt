@@ -112,6 +112,9 @@ https://itnext.io/how-to-build-a-dynamic-controlled-form-with-react-hooks-2019-b
 - How to make your own drag and drop with React with 0 dependencies
 https://medium.com/free-code-camp/how-to-make-and-test-your-own-react-drag-and-drop-list-with-0-dependencies-6fb461603780
 
+- Complete Guide to React User Authentication with Auth0
+https://auth0.com/blog/complete-guide-to-react-user-authentication/
+
 React Testing Resources I Found Useful:
 
 - Snapshot testing React Components with Jest
