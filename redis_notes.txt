@@ -123,3 +123,161 @@ lpop fruits (orange)
 lindex fruits 0 (apple)
 
 lrem fruits 1 apple (removes 1 apple from list)
+
+Dealing with Hashes:
+
+hset session_info user1 pwd1 (1)
+
+hmset session_info user2 pwd2 user3 pwd3 
+
+hget session_info user1
+
+hexists session_info user1
+
+hgetall session_info
+
+hkeys session_info
+
+hvals session_info
+
+hlen session_info
+
+hdel session_info user3
+
+Dealing with Sets:
+
+Every member is unique. Every set can store more than 4 billion members
+Can find union, intersection, differences
+
+sadd dbs oracle sqlserver mysql
+
+smembers dbs (list them out)
+
+sismember dbs mysql (1)
+
+srem dbs mysql (1) - removes mysql
+
+spop dbs 
+
+sadd dbs2 mongodb redis cassandra
+
+sinter dbs dbs2 (intersection)
+
+sunion dbs dbs2 (union)
+
+Dealing with Sorted Sets:
+
+Score associated, every member unique, scores can repeat
+
+zadd prog-langs 0 javascript
+zadd prog-langs 1 python
+zadd prog-langs 4 C#
+zadd prog-langs 7 ruby
+
+zcard prog-langs (number of scores)
+
+zrange prog-langs 0 2
+
+zrangebyscore prog-langs 0 3
+
+zcount prog-langs 0 10
+
+zrem prog-langs C#
+
+zincrby prog-langs 30 python 
+
+
+Redis Transactions:
+
+Multi
+Exec
+Discard
+Watch
+
+After issuing MULTI command, all the next commands will be queued
+Commit transaction using EXEC command - similar to COMMIT in SQL
+Uncommit transaction using DISCARD command - similar to ROLLBACK in SQL, aborts Transaction from happening
+Conditional Transaction using WATCH command
+- if any watched key is modified outside the transaction, command will prevent entire transaction from committing
+
+Multi -> Commands -> Exec
+
+multi
+
+set username user001 (queued)
+set loggedin 1 (queued)
+
+set items_in_cart 10 (queued)
+
+incr items_in_cart (queued)
+
+exec (OK...11)
+
+get items_in_cart (11)
+
+--
+
+multi
+
+set username user002 (queued)
+
+set loggedin 1 (queued)
+
+discard (OK - transaction aborted)
+
+get username (user001)
+
+--
+
+set year_released 2000
+
+watch year_released (OK)
+
+multi
+
+set year_released 2019 (queued)
+
+// Separate terminal
+
+incr year_released (2001)
+
+// Back to main terminal
+exec (nil) since watch key changed outside transaction
+
+get year_released (2001)
+
+Redis as a messaging system:
+
+- pub sub for event-driven software
+- no exchanges in redis like rabbitmq
+- pattern based subscription/unsubscription
+
+subscribe and psubscribe for subscribing to a channel
+p for pattern based subscribing
+unsubscribe and punsubscribe
+
+publish newschannel test0001News
+
+subscribe newschannel (receives new messages that are published to channel)
+
+publish newschannel test0002News
+
+publish latestnewschannel testnews001_news
+
+psubscribe *news* (subscribes to both news channels)
+
+publish latestnewschannel testnews002_news
+
+Redis Batch Operation:
+
+redis-cli < commands.txt
+
+cat commands.txt | redis-cli --pipe
+
+Using node_redis:
+
+npm install redis
+
+client.set("somekey", "somevalue");
+
+// more redis type commands
