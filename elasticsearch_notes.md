@@ -149,3 +149,81 @@ Basic Architecture
 - Nodes store the data we add to Elasticsearch; cluster is a collection of nodes
 
 Sharding and Scalability
+
+- Sharding: way to divide indices into smaller pieces where each piece is called a shard
+
+  - shard is done at the index level
+
+  - main purpose is to horizontally scale the data volume
+
+  - i.e. index of 600gb spread out into node A with max 500GB and node B with max 500GB -> 300GB per node
+
+  - each shard is an Apache Lucene index; elasticsearch index consists of one or more Lucene indices
+
+  - shard has no predefined size; may store up to about 2 billion documents
+
+  - want to store more documents; to fix large indices onto nodes; improved performance; parallelization of queries increases throughput of an index
+
+  - an index contains a single shard by default
+
+  - want to avoid over-sharding for small amounts of data
+
+  - increase number of shards with Split API; reduce number of shards with Shrink API
+
+  - how many shards are optimal? depends on number of nodes, capacity of nodes, number of indices an their sizes, number of queries
+
+    - anticipating millions of documents? consider adding couple of shards i.e. 5; thousands of documents can stick to default 1 shard
+
+- Replication: what happens if a node's hard drive fails? data may be lost if there is no copy of it
+
+  - For fault tolerance, enabled by default
+
+  - Configured at the index level
+
+  - Creating copies of shards aka replica shards
+
+  - A shard that has been replicated is known as a primary shard
+
+  - Primary shard and replica shards (complete copy of shard) known as replication group
+
+  - Replica shard can serve search requests, exactly like its primary shard
+
+  - number of shards can be configured at index creation
+
+  - i.e. Node A has primary shard A, replica B1, replica B2; Node B has primary shard B, replica A1, replica A2
+
+  - Only makes sense to have replication for clusters with multiple nodes
+
+  - Typically 1/2 replicas are okay if 1/2 nodes go down; is data okay to be unavailable while you restore it? is data store elsewhere like rdbms?
+
+  - Replicate shards once if data loss is not a disaster; for critical systems, data should be replicated at least twice
+
+  - Increase throughput of a given index with more replicas on another node cause both replica shards can be queried at the same time and help to prevent data loss
+
+    - routes requests to the best shard, cpu parallelization improves performance if multiple replica shards are stored on the same nodes
+
+  - increase availability and throughput
+
+  - replica shard is never stored on the same node as its primary shard
+
+- Snapshots:
+
+  - use for backups to restore to a given point in time; can be taken at index level or for entire cluster
+
+  - use snapshots for backups/rollbacks before applying changes to data in case something goes wrong and replication for high availability and performance
+
+Node Roles:
+
+- master node responsible for creating/deleting indices; master-eligible role; useful for large clusters i.e. node.master: true | false
+
+- data role; enables a node to store data; performing queries related to data such as search i.e. node.data: true | false
+
+- ingest role to run ingest pipelines -> series of steps/processors performend when indexing documents; may manipulate documents i.e. node.ingest; simplified Logstash directly within Elasticsearch
+
+- machine learning roles like node.ml; xpack.ml.enabled
+
+- coordination referring to distribution of queries and aggregation of results; node.master, node.data, node.ingest, node.ml, etc. all false; for coordination only nodes for large clusters and disable all other roles -> for load balancer
+
+- voting-only role i.e. node.voting_only; rarely used; participates in voting for a new master node and cannot be elected as master node itself and only for large clusters
+
+- changing roles when optimizing the cluster to scale number of requests but that is done after changing number of nodes, shards, replica shards, etc.
