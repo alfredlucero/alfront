@@ -135,3 +135,17 @@ Given task to implement a dashboard
   - Ships with modules for common log file formats
 
 - Logstash to centralize event processing; what about data from Metricbeat or Filebeat? we can optionally send the data to Logstash
+
+Basic Architecture
+
+- Separate nodes/instances of Elasticsearch (could be on the same machine) to hold large amounts of data
+
+- Each node belongs to a cluster, containing portion of the data; can have multiple clusters for different purposes
+
+- Documents aka JSON objects to hold data in \_source and metadata
+
+  - Documents stored within an index to group them and with options for availability and scalability; index = way to group logically related documents
+
+- Nodes store the data we add to Elasticsearch; cluster is a collection of nodes
+
+Sharding and Scalability

@@ -83,3 +83,58 @@ keep it <= 55 chars, make sure other webpages have distinct titles too
 -> Optimizing descriptions underneath title tag: include keywords, show value proposition, start with a verb, can see them in search results, focus, <= 156 characters,
 have unique descriptions for every page
 -> heading tag and copy optmization: 
+
+Security Headers Notes:
+
+Strict-Transport-Security aka HSTS
+-> lets a website tell browsers that it should only be accessed using HTTPS instead of HTTP
+-> Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+Content-Security-Policy
+-> allows website admins to control resources the user agent is allowed to load for a given page
+-> policies involve specifying server origins and script endpoints to help guard against XSS attacks
+-> Content-Security-Policy: <policy-directive>; <policy-directive> (<directive> <value>)
+-> fetch directives control locations from which certain resources types may be loaded
+  -> i.e. object-src 'none'
+-> document directives govern the properties of a document or worker environment to which a policy applies
+-> navigation directives govern which locations a user can navigate or submit a from
+-> reporting directives control the reporting process of CSP violations; Content-Security-Policy-Report-Only
+-> headers['content-security-policy'] = [{key: 'Content-Security-Policy', value: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"}]; 
+
+X-Content-Type-Options
+-> marker used by the server to indicate the MIME types advertised in the Content-Type headers should not be changed and be followed
+-> this is a way to opt out of MIME type sniffing; to say that MIME types are deliberately configured
+-> i.e. 'nosniff'; enables cross-origin read blocking protection for the MIME types
+
+X-Frame-Options
+-> indicate whether or not a browser should be allowed to render a page in a <frame>, <iframe>, <embed>, or <object>
+-> to avoid click-jacking attacks by ensuring their content is not embedded into other sites
+-> X-Frame-Options: DENY; attempts to load page in a frame will fail when loaded from other sites and when loaded from same site
+-> X-Frame-Options: SAMEORIGIN; can still use page in a frame as long as the site including it in the frame is the same as the one serving the page
+-> i.e. app.use(helmet.frameguard({ action: 'SAMEORIGIN' })); // Or DENY
+
+X-XSS-Protection
+-> feature of IE, Chrome, Safari that stops pages from loading when they detect reflecting cross-site scripting attacks
+-> Firefox have not and will not implement X-XSS-Protection; Edge retired XSS filter, Chrome removed XSS Auditor
+  -> if no need to support legacy browsers, use Content-Security-Policy without allowing unsafe-inline scripts instead
+-> strong Content-Security-Policy which disables use of inline JS with 'unsafe-inline', this can add protections for users with older web browsers not supporting CSP
+-> 1; mode=block => enable XSS filtering; rather than sanitizing the page, browser will prevent rendering of the page if an attack is detected
+
+Referrer-Policy
+-> controls how much referrer information sent via the Referer header should be included with requests
+-> i.e. same-origin; referrer sent for same-site origins but cross-origin requests will send no referrer information
+
+Feature-Policy
+-> provides mechanism to allow and deny the use of browser features in its own frame and in content within any <iframe> elements in the document
+-> i.e. accelerometer, autoplay, battery, camera, fullscreen, geolocation, gyroscope
+-> Feature-Policy: microphone 'none'; geolocation 'none'
+
+When using S3, CloudFront, and Lambda@Edge, you can modify the origin response with a Lambda to attach the security headers
+https://aws.amazon.com/blogs/networking-and-content-delivery/adding-http-security-headers-using-lambdaedge-and-amazon-cloudfront/
+headers['strict-transport-security'] = [{key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubdomains; preload'}]; 
+headers['content-security-policy'] = [{key: 'Content-Security-Policy', value: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"}]; 
+headers['x-content-type-options'] = [{key: 'X-Content-Type-Options', value: 'nosniff'}]; 
+headers['x-frame-options'] = [{key: 'X-Frame-Options', value: 'DENY'}]; 
+headers['x-xss-protection'] = [{key: 'X-XSS-Protection', value: '1; mode=block'}]; 
+headers['referrer-policy'] = [{key: 'Referrer-Policy', value: 'same-origin'}]; 
+headers["feature-policy"] = [{key: "feature-policy", value: "accelerometer 'none'; camera 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; payment 'none'; usb 'none'"}];
