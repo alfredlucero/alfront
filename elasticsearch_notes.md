@@ -227,3 +227,32 @@ Node Roles:
 - voting-only role i.e. node.voting_only; rarely used; participates in voting for a new master node and cannot be elected as master node itself and only for large clusters
 
 - changing roles when optimizing the cluster to scale number of requests but that is done after changing number of nodes, shards, replica shards, etc.
+
+## Managing Documents
+
+- Can perform CRUD on documents/indices
+  i.e. GET /products/\_doc/100, PUT /products/\_doc/100, DELETE /products/\_doc/100 POST /products/\_doc
+
+- Routing maps document to a shard, makes sure docs distributed evenly
+
+- Used to use version number for optimistic concurrency control but new approach is primary terms/sequence numbers
+
+- Can update multiple documents by query i.e. POST /products/\_update_by_query {...} -> takes snapshots and use primary terms/sequence numbers
+
+- Can do batch processing with bulkapi
+
+## Mapping and Analysis
+
+- Text analysis; text values analyzed when indexing documents (\_source is the exact value but not used for searching)
+
+- Analyzer with these parts: character filters (add/remove characters like punctuation/special characters), tokenizer (splits text into words/tokens), token filters (i.e. lowercase)
+
+- Analyze API i.e. POST /\_analyze with { text, analyzer }
+
+- Inverted indices - mapping between terms and which documents contain them; also can have relevance scoring
+
+- 1 inverted index per text field in a document i.e. name and description; other data types use BKD trees such as numbers, dates, geospatial data
+
+- terms sorted alphabetically for performance
+
+- mapping defines the structure of the documents
