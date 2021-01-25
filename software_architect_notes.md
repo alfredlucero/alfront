@@ -33,6 +33,27 @@ Types of Architects
 
 Architect's Mindset
 
+- Understand the business
+  - Weaknesses
+  - Strengths
+  - Competition
+  - Growth Strategy
+- System's Goals
+  - Not "what the system should do" or requirements
+  - Goals describe the effect on the organization (bottom line, big picture)
+  - Usually described by client but exceptions
+  - Example 1: Product-oriented company wants to streamline recruitment process in its HR system
+  - Example 2: Improve police's response time, attract new residents for reporting and mapping criminal incidents system for large city
+  - Example 3: Mobile flash sales for young and small startup, wants to generate quick revenue stream and attract investors
+- Your Client's Clients (end users)
+  - Possibly show errors or have backend caching if systems go down to provide best experience to users
+- Always keep in mind what is the thing that really matters to the person you are talking to
+  - Project manager cares primarily on project success (be careful with how you speak about new technology)
+  - Team leader cares about programming (can use technical language)
+  - CEO cares about the financial bottom line, can avoid technical buzzwords
+  - Show how your work contributes to the other person's primary interests
+
+Architecture Process
 
 ## Object-Oriented Programming SOLID Principles
 
