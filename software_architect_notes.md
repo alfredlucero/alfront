@@ -80,6 +80,61 @@ Architecture Process
   - Not done until system in production and need to maintain after
 - Important to learn about unknown scenarios early
 - Built together with development team and helps to grow ambassadors to convince others that architecture is right approach
+  
+Understanding Requirements
+
+- Two types of requirements
+  - What system should do = Functional Requirements
+    - Business flows i.e. login, managing photos, telemetry
+    - Business services i.e. auth, telemetry
+    - User Interfaces
+  - What should system deal with = non-functional requirements
+    - Performance
+    - Load
+    - Data volume
+    - Concurrent Users
+    - SLA
+  - Non-functional requirements
+    - Performance
+      - Always talk in numbers and work with client
+      - What is fast? Typically less than sec for end user, for B2B usually less than 100ms
+      - Latency: How much time does it take to perform a single task?
+        - How much time will it take for the API to save the user data in the database?
+        - How much time will it take to read a single file from the file system?
+      - Throughput: How many tasks can be performed in a given time unit?
+        - How many users can be saved in the database in a minute?
+        - How many files can be read in a second?
+      - Example case for saving user data
+        - Latency less than 1 second
+        - Throughput greater than 1000 in 1 minute for well designed app, less than 60 in 1 minute for badly designed app
+    - Load
+      - Quantity of work without crashing i.e. in web API how many concurrent requests without crashing
+      - Defines availability of system
+      - Example case: throughput of 100 requests/sec and load of 500 requests without crashing
+        - Always plan for extreme cases
+    - Data Volume
+      - How much data the system will accumulate over time i.e. TB/GB
+      - Helps with deciding
+        - Database type
+        - Designing queries (thousands of rows to millions of rows)
+        - Storage planning
+      - Two aspects
+        - Data required on "Day One"
+        - Data growth
+      - Example day one 500 MB and annual growth of 2 TB
+    - Concurrent users
+      - How many users will be using the system simultaneously
+      - Concurrent users includes "dead times" vs. actual requests with load
+      - Concurrent users = Load x 10 for rule of thumb
+    - SLA (Service level agreement)
+      - Required uptime for the system (used by public providers)
+      - 99.99% = less than 1 hour of downtime in a year (0.88 hrs downtime / year)
+      - Manage client's expectations; 99.999% uptime is not a realistic goal (needs automatic failover, multi-region, etc)
+    - Never start working before setting these non-functional requirements
+    - Architect's roles
+      - Framing the requirements' boundaries (100% uptime is not realistic, What is the required response time for API? 10ms); clients won't be able to define them
+      - Discuss numbers
+
 
 ## Object-Oriented Programming SOLID Principles
 
