@@ -55,6 +55,32 @@ Architect's Mindset
 
 Architecture Process
 
+- Understand the system's requirements after setting the goals
+  - Requirements = what the system should do i.e. provide telemetry dashboard to customers
+  - Usually defined by system analyst
+- Understand the non-functional requirements
+  - Define technical and service level attributes i.e. # of users, loads, volumes of data, performance
+  - Not always know to client or analyst
+- Map the Components
+  - Represent the tasks of the system
+  - Two goals
+    - helps to understand system functionality
+    - communicate your understanding to the client
+  - Non-technical (demonstrates capabilities of system only)
+- Select the Technology Stack
+  - Usually for backend, frontend, data stores
+  - A lot of factors come into play so choose wisely
+- Design the architecture
+- Write the architecture document
+  - Describes process and architecture i.e. blueprint
+  - Must be relevant for all participants
+- Support the team
+  - Architecture will change a lot
+  - Make sure it will stay relevant
+  - Not done until system in production and need to maintain after
+- Important to learn about unknown scenarios early
+- Built together with development team and helps to grow ambassadors to convince others that architecture is right approach
+
 ## Object-Oriented Programming SOLID Principles
 
 `S - Single-Responsibility Principle`
