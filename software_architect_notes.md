@@ -190,6 +190,11 @@ Application Types
   - Best suited for
     - User centric actions i.e. word processing
     - Gaming
+- Function as a service
+  - AWS Lambda
+  - Azure functions
+  - Short focused code segments and not worry about servers/SLAs
+- Application type should be set early, can be more than one i.e. Web App + Service, Web App + Mobile
 
 
 ## Object-Oriented Programming SOLID Principles
