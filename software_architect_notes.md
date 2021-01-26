@@ -135,6 +135,62 @@ Understanding Requirements
       - Framing the requirements' boundaries (100% uptime is not realistic, What is the required response time for API? 10ms); clients won't be able to define them
       - Discuss numbers
 
+Application Types
+
+- Web Apps
+  - Websites, Web server, web browser, communicate via HTTP protocol
+  - Browser sends HTTP request to server asking for resource i.e. HTML page, renders to end user with JS for implementation and CSS for visual design
+  - Best suited for
+    - User interface
+    - User initiated actions
+    - Large scale
+    - Short, focused actions (not good fit to crunch billions of numbers)
+  - Request-response based
+- Web API
+  - Clients are other applications/servers
+  - Exposes an API for other programs to execute various actions
+  - Usually REST API
+    - Returns data (usually as JSON), not HTML
+    - Accessible
+  - Combination of
+    - URL i.e. https://myapi.com/orders
+    - Parameters i.e. date=10/10/2021
+    - HTTP Verb i.e. GET
+  - Best suited for systems that require
+    - Data retrieval and store
+    - Client initiated actions
+    - Large scale
+    - Short, focused actions (not long running processes)
+  - Request-response based
+- Mobile
+  - Smartphones/mobile phones - Android or Apple
+  - Usually works with Web API
+  - Best suited for
+    - User interation (games, social apps)
+    - Frontend for Web API (news)
+    - Location-sensitive for GPS
+- Console
+  - Command-line applications aka CLI in the terminal
+  - No fancy UI
+  - Require Technical Knowledge
+  - Limited interaction
+  - Long- or short-running processes
+  - Best suited for systems that require
+    - Long-running processes
+    - Short actions by trained power-users
+- Service
+  - Like Console but no UI at all, managed by Service Manager in operating system i.e. Windows, Linux (monitors activity)
+  - Config files
+  - Best suited for systems that require
+    - Long-running processes (i.e. monitoring folders and processing files)
+- Desktop
+  - Has all its resources on the PC
+  - Might connect to the web
+  - Has UI
+  - Best suited for
+    - User centric actions i.e. word processing
+    - Gaming
+
 
 ## Object-Oriented Programming SOLID Principles
 
