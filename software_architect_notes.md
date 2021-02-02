@@ -221,3 +221,36 @@ Entities depend on abstractions, not on concretions
 High-level modules must not depend on low-level module but on abstractions
 Promote decoupling, dependency injection may help
 Invert the arrows of dependencies
+
+## Become an Awesome Software Architect Book 1 Foundation 
+
+`What is software architecture?`
+
+Series of decisions intended to reduce cost of building and changing your software
+
+`Software Architect Hit List`
+
+- Programming languages, features, readability, and interoperation
+- Code reuse across platforms (server vs. web. vs. mobile)
+- Early error detection (compile-time vs. runtime error detection, breadth of validation)
+- Availability and cost of hiring the right talent; learning curve for new hires
+- Readability and refactorability of code
+- Approach to code composition, embracing the change
+- Datastore and general approach to data modeling
+- Application-specific data model, and blast radius from changing it
+- Performance and latency in all tiers and platforms
+- Scalability and redundancy
+- Spiky traffic patterns, autoscaling, capacity planning
+- Error recovery
+- Logging, telemetry, and other instrumentation
+- Reducing complexity
+- User interfaces and their maintainability
+- External APIs
+- User identity and security
+- Hardware and human costs of infrastructure and its maintenance
+- Enabling multiple concurrent development workstreams
+- Enabling testability
+- Fast-tracking development by adopting third-party frameworks
+- Personal: Deployment i.e. CICD
+- Personal: Automating commands, steps, deployment, etc. 
+- Personal: Alerting when things go wrong
