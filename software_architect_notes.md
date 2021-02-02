@@ -196,6 +196,145 @@ Application Types
   - Short focused code segments and not worry about servers/SLAs
 - Application type should be set early, can be more than one i.e. Web App + Service, Web App + Mobile
 
+Selecting Technology Stack
+
+- Important because often irreversible, emotional
+- Decision must be made with clear mind, heavily documented, group effort
+- Considerations
+  - Can perform the task
+  - Community (large, active, support) - can see stackoverflow posts/tags
+  - Popularity (google trends search terms, github library repos)
+- Backend and service technology
+  - Web apps, web API, console, service
+  - Focus on pros/cons
+  - Candidates
+    - .NET Classic (Microsoft)
+      - Founded in 2001 by Microsoft
+      - General purpose
+      - Object oriented
+      - Statically typed
+      - IDE - Visual Studio
+      - Windows only
+      - Performance okay
+      - Mature
+      - Blurred roadmap
+    - .NET Core
+      - .NET vNext
+      - Cross Platform
+      - Great performance
+      - Mature enough
+      - IDE - Visual Studio, VS Code
+      - Vocal, growing community
+    - Java
+      - Founded in 1995 by Sun Microsystems
+      - Popular
+      - General purpose
+      - Object oriented
+      - Statically typed
+      - Huge community
+    - node.js
+      - Founded in 2009 by Ryan Dahl
+      - Optimized for highly-concurrent web apps
+      - Javascript-based
+      - Dynamically typed
+      - Large community
+      - Great performance
+    - PHP
+      - Founded in 1994 by Rasmus Lerdorf
+      - Little messy
+      - Easy to learn
+      - Not polished
+      - Large community
+      - Focused on web apps and web API
+    - Python
+      - Founded in 1989 by Guido van Rossum
+      - Scripting language
+      - Popular
+      - Easy to learn
+      - Huge, supportive community
+      - Supports any type of application
+    - Go
+- Frontend technologies
+  - App types
+    - Web apps
+      - HTML, CSS, and JavaScript
+      - Which JavaScript framework?
+        - React
+          - UI-Centric library focusing on view/components
+          - Short learning curve
+        - Vue
+        - Angular
+          - Full-blown framework
+          - Data binding, state management, routing
+          - Long learning curve
+    - Mobile
+      - Native
+        - iOS - Objective C or Swift with X-Code and iOS SDK
+        - Android - Java with Android Studio and Android SDK
+        - Full control, no limits with phone's features
+        - Exceptional user experience
+      - Hybrid
+        - Thin wrapper around HTML, JavaScript, CSS
+        - Very limited phone capabilities
+        - Inferior user experience, graphics performance limited
+        - PWA - progressive web apps can behave more like native apps
+      - Cross-platform
+        - Xamarin (C#, Visual Studio)
+        - React Native (JavaScript)
+        - Compile app to native forms, write code once
+        - Catch-up with latest versions for phone features
+        - Good with limitations on user experience
+        - May still use native programming for some features
+      - Tradeoffs between dev time and capabilities
+    - Desktop
+      - WinForms
+        - Founded in 2001
+        - Limited UI Flexibility
+        - Short learning curve
+        - Runs on PCs
+      - WPF
+        - Founded in 2006
+        - Unlimited UI Flexibility
+        - Long learning curve
+        - Runs on PCs
+      - UWP
+        - Founded in 2015
+        - Unlimited, but runs in sandbox
+        - Long learning curve, less mature than WPF
+        - Runs on PCs, XBOX, IoT
+      - Electron
+        - Built with JS
+        - Slower performance
+        - Can compile to be compatible with Windows or Mac
+  - Data Store Technology
+    - SQL
+      - MySQL, Oracle, Microsoft SQL Server, PostgreSQL
+      - Stores data in tables
+      - Tables have concrete set of columns
+      - Relationships aka relation i.e. Order and OrderItem tables
+      - Transactions - atomic set of actions (all or nothing)
+        - ACID:
+          - Atomicity
+          - Consistency
+          - Isolation
+          - Durability
+      - Querying using SQL (Structured Query Language)
+        - Mature for querying and modifying data
+      - If data is not huge and you have structured data; data consistency important - can go SQL
+    - NoSQL
+      - Emphasis on scale and performance
+      - Often distributed on many servers and can be large
+      - MongoDB (has ACID transaction support though compared to others)
+      - Schema-less
+      - Data usually stored in JSON format/documents
+      - Transactions
+        - Eventual Consistency - guarantees action will be performed but doesn't guarantee when
+        - Data can be temporarily inconsistent
+        - Varies based on database
+      - Querying
+        - No standard for accessing data (has own language/driver), can be frustrating
+    - If huge, un/semi-structured data, can use NoSQL
+
 
 ## Object-Oriented Programming SOLID Principles
 
