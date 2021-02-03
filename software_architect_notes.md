@@ -335,6 +335,56 @@ Selecting Technology Stack
         - No standard for accessing data (has own language/driver), can be frustrating
     - If huge, un/semi-structured data, can use NoSQL
 
+Introduction to the *-ilities
+
+- Quality attributes defining application's capabilities
+- Technical capabilities that should be used in order to fulfill the non-functional requirements
+- Example non-functional requirement: The system must work under heavy load but should not waste money on unused resources
+  - Required quality attribute: scalability
+- Non-functional requirements (what the system should deal with) map to quality attributes designed in the architecture
+- *ilities such as Scalability, Manageability, Modularity, Extensibility, Testability
+- Scalability
+  - Adding computing resources without any interruption
+  - Non-scalable system
+    - Non-scalable code
+    - Rewrite non-scalable code
+    - Reinforce VM for more CPU and memory
+    - Long, cumbersome process to address these issues
+  - Scalable system
+    - Add VM for more CPU/memory
+    - Notify the load balancer about new VM
+    - Minimal to no changes to code
+  - Scalability Types
+    - Scale up = more CPU/memory on one VM, limits for one server
+    - Scale out = more servers, redundancy, no limits
+    - Opt for scaling out with a load balancer to distribute load across VMs
+- Manageability
+  - Know what's going on and take actions accordingly
+  - VM provides report status to monitoring agent when load is high, goes to management console for decision to be made by human
+  - Is your system manageable?
+    - Who reports the problems?
+      - Engineers = not manageable
+      - System itself reports problems = much better, amount of requests seen and if performance degrades - can add more VMs to address issue
+  - Modularity
+    - A system that is built from building blocks that can be changed or replaced without affecting the whole system
+    - External system with API, Our system gets the data and saves the data and talks to database
+      - Everything coupled together and would require deploy across all dependent systems
+    - If modular, code that accesses API and gets data is in its own piece; can deploy that part on its own and be more maintainable
+  - Extensibility
+    - A system that its functionality can be extended without modifying its existing code
+    - API to query data with query parameter like format=XML|JSON; can add new format like CSV easily; can use factory method for getting formatter rather than switch statements to modify the code less
+  - Testability
+    - How easy it is to test the application
+    - Types of testing
+      - Manual
+      - Unit Testing
+        - Arrange, act, assert
+        - Smallest unit/method we are testing
+      - Integration Testing
+        - Testing a module
+    - Easy to test using unit and integration testing
+    - Independent modules and methods
+    - Single responsibility
 
 ## Object-Oriented Programming SOLID Principles
 
