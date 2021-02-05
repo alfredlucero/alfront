@@ -386,6 +386,134 @@ Introduction to the *-ilities
     - Independent modules and methods
     - Single responsibility
 
+Software Components Architecture
+
+- Component/Service: Piece of code that runs in a single process
+- Distributed systems:
+  - Composed of independent software components
+  - Deployed on separate processes or containers or servers
+- Two Levels of Software Architecture
+  - Component's Architecture
+    - Inner components
+    - Interaction between them
+    - Make code fast and easy to maintain
+  - System Architecture
+    - Bigger picture
+    - Scalable, reliable, fast, easy to maintain
+- Layers
+  - Represent horizontal functionality
+  - Component Layers
+    - UI or Service Interface (SI): expose functionality through user interface or API
+      - Expose API
+      - JSON Handling
+      - Auth
+    - Business Logic (BL): execute logic on data received from user
+      - Validation
+      - Enrichment
+      - Computations
+    - Data Access Layer (DAL): save and retrieve data
+      - Connection handling
+      - Querying / saving data
+      - Transaction handling
+  - Purpose of layers
+    - Forces well formed and focused code
+    - Modular
+  - Concepts of Layers
+    - Code Flow
+      - A layer can only call one layer underneath i.e. UI/SI to BL but not to DAL
+      - DAL layer can't call layer above like BL
+    - Loose coupling
+      - Want minimum impact when there is a change
+      - Using dependency injection can help with this communication
+    - Exception handling
+      - DAL receives MySQLException from MySQL database so its inner workings should not bubble up to Business Logic layer
+      - DAL should analyze exception, write to log, and throw generic exception such as DataException so Business Logic doesn't have to know exact MySQLException
+    - Layers vs. Tiers
+      - Layers in component/service: UI/SI - Business Logic - Data Access Layer, share computing resource
+      - Tiers - deployed independently and talk to other tiers through network such as HTTP; 3 tiers = 3 independent components and talk to each other over the network 
+- Interface
+  - Contract that declares signatures of an implementation
+  - Allows us to make our code loosely coupled, not tying one class to another; prefer interfaces to direct references to classes
+  - "New is Glue" often leads to closed tie and less flexible/modular
+    - Using interface to define what a thing should do but doesn't show the implementation i.e. doing ICalculator calc = GetInstance();
+- Dependency Injection
+  - Technique whereby one object supplies the dependencies of another object
+  - Implementation #1 factory method returning one class always
+  - Implementation #2 switch case returning different classes
+  - Implementation #3 using config value to return certain class
+  - Constructor injection - receives instantiated interface objects and assign to this
+    - helps with testing and can pass in mock object matching interface
+- SOLID
+  - Coined by Bob Martin in 2000
+  - Single responsibility principle
+    - Each class, module, or method should have one and only one responsibility; single well-defined functionality
+    - Logging engine
+      - What should be written? XML/JSON - composes message
+      - Where should it be written? Often sent to a file database or event log - sending message over
+    - Changes affect only a well defined module with the right encapsulation
+  - Open/Closed principle
+    - Software entity open for extension and closed for modification
+    - Can be implemented using
+      - Class inheritance
+      - Plug-in mechanism
+    - Make our code as flexible as possible
+  - Liskov Substitution principle
+    - If S is a subtype of T, then objects of type T may be replaced with objects of type S without altering any of the desired properties of the program
+    - Behavioral subtyping and behavior should not change when changing class subtypes (looks similar to polymorphism)
+    - Avoid unmaintainable code
+  - Interface Segregation principle
+    - many client-specific interfaces are better than one general-purpose interface
+  - Dependency inversion principle
+    - Dependency injection 
+- Naming Conventions
+  - Define naming rules of code elements
+    - Classes, Methods, Variables, Constants, etc.
+    - Make the code more readable and easy to understand
+    - Not enforced by compilers
+    - Two types:
+      - Structure (casing, underscores, etc.)
+      - Content (what kind of words to be used in the name)
+  - camelCase
+    - first letter of second word onward will be capitalized
+    - popular in Java, C#, JavaScript, Swift
+    - recommended for class names in Python, Ruby
+  - lowercase_separated_by_underscore (snake_case)
+    - name contains only lowercase letters
+    - words separated by underscore
+    - popular in Python/Ruby for naming variables
+  - CAPITALIZED_WITH_UNDERSCORE
+    - popular in Java, Python, and Ruby for naming constants
+  - Hungarian Notation
+    - type information is part of the name i.e. string strFirstName
+    - not popular and should be avoided (older strategy)
+  - Class names should be nouns i.e. DataRetriever, Car, Network
+  - Method names should be imperative verbs i.e. retrieveData, drive, sendPacket
+  - Always decide on convention and stick to a standard, do it ASAP, folow it
+- Exception Handling
+  - Catch exception only if you have something to do with it
+    - Logging does not count
+    - Examples of when to catch:
+      - Rolling back a transaction
+      - Retry
+      - Wrap the exception
+  - Catch only specific exceptions
+    - Example: SQLException when working with databases
+    - Make sure you handle the right exception
+  - Use try...catch on the smallest code fragments possible
+    - Locate code fragments that may raise exceptions and try...catch on them (don't do it over large chunks of code)
+- Logging
+  - Two purposes
+    - Track errors and exceptions, write them out to logs with relevant details like stack trace, user information, etc.
+    - Gather data
+      - Find out which module is most visited and which is less popular
+      - Performance
+      - User's flow
+  - Log storage
+    - Files
+    - Database
+    - Event log
+    - Example: Kibana
+
 ## Object-Oriented Programming SOLID Principles
 
 `S - Single-Responsibility Principle`
