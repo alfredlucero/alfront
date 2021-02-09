@@ -513,6 +513,58 @@ Software Components Architecture
     - Database
     - Event log
     - Example: Kibana
+  
+Introduction to Design Patterns
+
+- Collection of general, reusable solutions to common problems in software design
+  - Examples include
+    - How to communicate between classes
+    - How to initialize interface implementations
+    - How to access data stores
+  - Tested and used by other developers
+  - Makes code more readable and easy to modify
+  - Introduced in 1987, popularized in Design Patterns Gang of Four book
+  - Patterns are micro-architecture, should always be familiar with code
+  - Some patterns
+    - Factory 
+    - Repository
+    - Facade
+    - Command
+- Factory Pattern
+  - Creating objects without specifying the exact class of the object
+  - Avoid strong coupling between classes
+  - Example: Weather application needing to replace new instantiations (new is glue)
+    - Can create an interface with same function signatures; have classes implement the interfaces
+    - Create factory method that returns provider implementation of the interface
+    - No longer using new directly for a specific class, code doesn't know which concrete class it's using
+    - Can easily change the code in factory method
+    - Can expand to multiple continents and switch cases to return an instance based on continent
+  - Popular and base for other patterns, use it to avoid strong coupling
+- Repository Pattern
+  - Modules not handling the actual work with the datastore should be oblivious to the datastore type
+  - Describes data abstraction technique to achieve isolation
+  - Share similarities with data access layers (DAL is for architects)
+  - Repository pattern for developers
+  - Example: human resources application accessing datastore for CRUD operations
+    - Read by ID and by department name
+    - Before adding sql queries directly in functions but is error-prone for changes
+    - Calls a factory method and gets an instance of the repository (represents data store) and exposes actions to talk with datastore (not accesssing datastore directly)
+    - GetEmployeeById, GetEmployeesByDepartment, UpdateEmployee, CreateEmployee, DeleteEmployee in Repository; calling code doesn't know how it's implemented but makes it more flexible and easier to maintain
+  - Helps with data store change if we move away from MySQL to some other database
+    - Create new class implementing repository interface and switch them out i.e. SQLServerRepository to MongoDBRepository
+  - Advanced forms include generic classes, inheritance, extension frameworks
+- Facade Pattern
+  - Creating a layer of abstraction to mask complex actions 
+  - Example: banking application which allows user to transfer money, make sure accounts exist, make sure frist account has enough money, withdraw money from first account, deposity money in second account, add event in account log -> bundle into one transfermoney function
+  - Packages existing functionality into an easy to use method; makes code more readable and easier to use
+- Command Pattern
+  - All the action's information is encapsulated within an object
+  - Example: undo mechanism in google docs; bad to have one large Undo class for each function you want to be able to undo
+    - Each command can have execute function in ICommand interface
+    - Define command classes i.e. DeleteWord, ChangeFont which implement the interface
+    - Get reference to relevant objects
+    - Implement the interface i.e. Execute() involves Command Object and Receiver i.e. the document 
+    - Undo mechanism involves queue of commands (Invoker) to enqueue to add to undo queue or dequeue and execute to perform undo
 
 ## Object-Oriented Programming SOLID Principles
 
