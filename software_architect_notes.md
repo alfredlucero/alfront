@@ -80,7 +80,7 @@ Architecture Process
   - Not done until system in production and need to maintain after
 - Important to learn about unknown scenarios early
 - Built together with development team and helps to grow ambassadors to convince others that architecture is right approach
-  
+
 Understanding Requirements
 
 - Two types of requirements
@@ -335,14 +335,14 @@ Selecting Technology Stack
         - No standard for accessing data (has own language/driver), can be frustrating
     - If huge, un/semi-structured data, can use NoSQL
 
-Introduction to the *-ilities
+Introduction to the \*-ilities
 
 - Quality attributes defining application's capabilities
 - Technical capabilities that should be used in order to fulfill the non-functional requirements
 - Example non-functional requirement: The system must work under heavy load but should not waste money on unused resources
   - Required quality attribute: scalability
 - Non-functional requirements (what the system should deal with) map to quality attributes designed in the architecture
-- *ilities such as Scalability, Manageability, Modularity, Extensibility, Testability
+- \*ilities such as Scalability, Manageability, Modularity, Extensibility, Testability
 - Scalability
   - Adding computing resources without any interruption
   - Non-scalable system
@@ -430,7 +430,7 @@ Software Components Architecture
       - DAL should analyze exception, write to log, and throw generic exception such as DataException so Business Logic doesn't have to know exact MySQLException
     - Layers vs. Tiers
       - Layers in component/service: UI/SI - Business Logic - Data Access Layer, share computing resource
-      - Tiers - deployed independently and talk to other tiers through network such as HTTP; 3 tiers = 3 independent components and talk to each other over the network 
+      - Tiers - deployed independently and talk to other tiers through network such as HTTP; 3 tiers = 3 independent components and talk to each other over the network
 - Interface
   - Contract that declares signatures of an implementation
   - Allows us to make our code loosely coupled, not tying one class to another; prefer interfaces to direct references to classes
@@ -464,7 +464,7 @@ Software Components Architecture
   - Interface Segregation principle
     - many client-specific interfaces are better than one general-purpose interface
   - Dependency inversion principle
-    - Dependency injection 
+    - Dependency injection
 - Naming Conventions
   - Define naming rules of code elements
     - Classes, Methods, Variables, Constants, etc.
@@ -513,7 +513,7 @@ Software Components Architecture
     - Database
     - Event log
     - Example: Kibana
-  
+
 Introduction to Design Patterns
 
 - Collection of general, reusable solutions to common problems in software design
@@ -526,7 +526,7 @@ Introduction to Design Patterns
   - Introduced in 1987, popularized in Design Patterns Gang of Four book
   - Patterns are micro-architecture, should always be familiar with code
   - Some patterns
-    - Factory 
+    - Factory
     - Repository
     - Facade
     - Command
@@ -554,7 +554,7 @@ Introduction to Design Patterns
     - Create new class implementing repository interface and switch them out i.e. SQLServerRepository to MongoDBRepository
   - Advanced forms include generic classes, inheritance, extension frameworks
 - Facade Pattern
-  - Creating a layer of abstraction to mask complex actions 
+  - Creating a layer of abstraction to mask complex actions
   - Example: banking application which allows user to transfer money, make sure accounts exist, make sure frist account has enough money, withdraw money from first account, deposity money in second account, add event in account log -> bundle into one transfermoney function
   - Packages existing functionality into an easy to use method; makes code more readable and easier to use
 - Command Pattern
@@ -563,7 +563,7 @@ Introduction to Design Patterns
     - Each command can have execute function in ICommand interface
     - Define command classes i.e. DeleteWord, ChangeFont which implement the interface
     - Get reference to relevant objects
-    - Implement the interface i.e. Execute() involves Command Object and Receiver i.e. the document 
+    - Implement the interface i.e. Execute() involves Command Object and Receiver i.e. the document
     - Undo mechanism involves queue of commands (Invoker) to enqueue to add to undo queue or dequeue and execute to perform undo
 
 Introduction to System Architecture
@@ -581,7 +581,7 @@ Introduction to System Architecture
   - Making sure the services are not strongly tied to other services
   - When service A changes, it affects other services using/communicating with them
   - Want to be able to modify service A and make it flexible, easy to maintain
-  - Prevents platform coupling 
+  - Prevents platform coupling
   - Prevents URL coupling i.e. changes in API endpoint path
   - Example: Portfolio service queries Stock Quotes Service (Java) exposed as Java RMI; Portfolio service needs to be implemented in Java to talk to Java RMI
     - Better one: Stock Quotes Service written in Java exposes a REST API and the recommendation service built in Python queries the stock service through REST API calls but if URL/REST API server changes, it'll lead to breaking changes
@@ -591,10 +591,134 @@ Introduction to System Architecture
     - Can also build a middle man or `Gateway` - maps tasks to URLs of the proper services
       - Calling service doesn't know the underlying services but it asks the gateway; services only need to know the gateway's URL
 - Stateless
-  - 
+  - application's state is stored in only two places - the data store and the user interface; no state stored in application code
+    - state = application's data
+  - Example: User interface interacts with login service which checks database if user exists and retrieves user details
+    - Data stored in code = stateful if stores user details in the login service and is bad
+  - Scalability = ability to grow and shrink as needed
+    - Scale up vs. scale out; scale out is usually preferred
+  - Redundancy = allows system to function properly when resource is not working
+    - System with more than one server
+    - When server goes down, the other continues working
+  - Scalable and redundant architecture
+    - User interface talks to load balancer to distribute load between 3 login services which all talk to the database
+      - Routes to live services only
+      - Load balancer pings is alive/healthchecks to the servers
+    - Best practice to use at least 3 instances
+  - Stateful system has problems with scalability and redundancy
+    - If server store details but load balancer routes to other server without the stored details, user would get errors
+    - Should rely on the database for stored user details rather than the server storing data in a stateful way
+    - If a server goes down, subsequent requests go to a different server and things should still work if it refers to the database always
+  - Always use stateless architecture to support scalability and redundancy
 - Caching
+  - bring data closer to its consumer so that its retrieval will be faster
+  - Example: browser cache serving page from browser's memory to display the page faster
+    - Service needs data from database, has a data access layer to issue SQL statements to retrieve data
+    - Database compiles the SQL, retrieves the data
+    - Service DAL serializes to objects
+    - Can use cache in between data store and data access layer, stores data in memory such as Redis
+    - Tradeoff
+      - Database (single source of truth) has high reliability as data is saved to disk and good performance as data is retrieved from disk, then serialized
+      - Cache has poor reliability as data is stored in memory (lost in case of server crash) and excellent performance as data is retrieved from memory
+  - What to cache?
+    - Cache should hold data that is frequently accessed and rarely modified
+      - retrieval should be fast and easy for optimal user experience and minimum load
+      - using cache retrieval is fast since in-memory and UX is optimal
+      - Syncing cache and database is a challenge; when not in sync, leads to data corruption and bad user experience
+    - Examples: stock quotes service has cache in between database
+      - Stock data changes frequently though
+      - 3 servers with load balancer in front of them; each server with its own cache between database
+      - Cache on one server updated but other server caches have stale data = bad
+      - if we use in-memory, in-process cache, we'll need to develop sync mechanism and hammer the database - adding more load
+      - if we use distributed cache, data immediately synced with all nodes and all servers have the same data
+    - Cache types
+      - in-memory, in-process cache; part of service's code and uses service's memory as part of process
+        - Existing libraries
+        - Can be easily implemented using static concurrent collection
+        - Great performance
+        - Size is limited to process's memory ~ few GBs
+        - can store anything
+      - distributed cache
+        - external product
+        - data is stored in separate process
+        - provides interface for accessing data
+        - size virtually unlimited
+        - auto nodes syncing
+        - 1 server updates cache and distributed to all other nodes so all in sync when other services talk to the distributed cache
+        - not the best performance
+        - stores only primitive types i.e. strings, numbers - needs more serializing/deserializing
+  - Choosing Cache Type
+    - Distributed Cache when
+      - Distribution among servers
+      - Failover capabilities
+      - Large cache storage
+      - Requires training and setup
+    - In-memory, in-process cache
+      - Best performance possible
+      - Store complex objects
+      - Easy to use
 - Messaging
+  - Means of communication between the various services (remember the spiderweb between services)
+  - Not just REST API for communication between services
+  - Not exclusive
+  - Messaging Criteria
+    - Performance - fast
+    - Message Size - large/small
+    - Execution Model - request response model or long running processes
+    - Feedback and reliability - ability to determine if message failed and to perform corrective action
+    - Complexity
+  - REST API
+    - de-facto standard for HTTP-based systems
+    - service exposes HTTP API i.e. GET endpoint, POST endpoint
+    - performance - very fast
+    - message size - same as HTTP protocol limitations (usually get -> 8KB, post and put -> dozens MB)
+    - execution model - request/response; great for quick, short actions but not suitable for long processes
+    - feedback and reliability - immediate feedback via response codes i.e. 500 error, 400 error, 200 success
+    - complexity - extremely easy to implement, serializing JSON, converting to objects (Java Spring, Python Flask, Node Express)
+    - useful for - traditional web apps
+  - HTTP Push notifications
+    - Publish subscribe; client subscribes to service and service notifies client
+    - Real-time communication: SignalR or Socket.io
+    - Uses advanced web techniques like Web Sockets to allow bi-directional communication and keeping connection open between client and service
+    - Popular in chats
+    - Performance - excellent, fast with huge scale
+    - Message Size - limited, usually no more than a few KB
+    - Execution Model - Web socket connection / long polling (subscribed to event for long time, message executed on client)
+    - Feedback and reliability - None (fire and forget), can be implemented, quite complex; if message not received due to network problems or bug, server would not know about it; not great for high reliability but mainly for client/server applications like chat app if message was missed
+    - Complexity - extremely easy to implement
+    - Useful for - chat, monitoring
+  - Queue
+    - Service places message in queue engine like RabbitMQ or MQSeries, Kafka; another service pulls message from queue
+    - Messages will be handled once and only once
+    - Messages will be handled in order (not always case for REST API)
+    - Performance - not so good, push/poll, DB persistence
+    - Message Size - technically almost not limited but use small messages
+    - Execution model - polling (periodically polly queue for a new message to retrieve and handle)
+    - Feedback and reliability - very reliable
+    - Complexity - requires training and setup for queue engine, difficult to maintain
+    - Useful for - complex system with lots of data, when order and reliability are top priority over performance
+  - File-based and database-based
+    - Place message as file in folder or record in database
+    - Other service pulls message from folder or database
+    - Performance - not so good, push/poll, db persistence
+    - Message size - unlimited
+    - Execution Model - polling
+    - Feedback and reliability - very reliable
+    - Complexity - requires training and setup
+    - Useful for - complex systems with lots of data, better use queues
+    - No guarantee of handling things once and in the right order
+    - Problems with file locked and duplicate processing if we have multiple service instances
 - Logging and Monitoring
+  - Central logging service better than each service with its own log engine and with its own formats i.e. files, MySQL, NoSQL
+  - All services can write logs to central logging service backed by a database for easier querying in one place
+  - Implementation
+    - Expose API to write logs to
+    - Watch folders for log files and collects them i.e. LogStash
+  - Logs of entire system in same format and accessible in one place
+  - Correlation ID
+    - Business flows may involve more than one service; need to find out which log record belongs to which flow when things fail
+    - Identifier passed along the flow to track from start to finish i.e. guuid, created from beginning of flow and included in every log record to understand where and why
+- Make right choices as early as possible and use these concepts to design a fast, secure, reliable, and easy to maintain system; not exclusive
 
 ## Object-Oriented Programming SOLID Principles
 
@@ -621,7 +745,7 @@ High-level modules must not depend on low-level module but on abstractions
 Promote decoupling, dependency injection may help
 Invert the arrows of dependencies
 
-## Become an Awesome Software Architect Book 1 Foundation 
+## Become an Awesome Software Architect Book 1 Foundation
 
 `What is software architecture?`
 
@@ -651,5 +775,5 @@ Series of decisions intended to reduce cost of building and changing your softwa
 - Enabling testability
 - Fast-tracking development by adopting third-party frameworks
 - Personal: Deployment i.e. CICD
-- Personal: Automating commands, steps, deployment, etc. 
+- Personal: Automating commands, steps, deployment, etc.
 - Personal: Alerting when things go wrong
