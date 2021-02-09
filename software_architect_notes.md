@@ -566,6 +566,36 @@ Introduction to Design Patterns
     - Implement the interface i.e. Execute() involves Command Object and Receiver i.e. the document 
     - Undo mechanism involves queue of commands (Invoker) to enqueue to add to undo queue or dequeue and execute to perform undo
 
+Introduction to System Architecture
+
+- Take a look at the big picture
+- Answers the questions
+  - How will the system work under heavy load?
+  - What will happen if the system will crash at this exact moment in the business flow?
+  - How complicated can be the update process?
+- Includes
+  - Defining the software components (services)
+  - Defining the way these components communicate
+  - Designing the system's capabilities (scalability, redundancy, performance, etc)
+- Loose Coupling
+  - Making sure the services are not strongly tied to other services
+  - When service A changes, it affects other services using/communicating with them
+  - Want to be able to modify service A and make it flexible, easy to maintain
+  - Prevents platform coupling 
+  - Prevents URL coupling i.e. changes in API endpoint path
+  - Example: Portfolio service queries Stock Quotes Service (Java) exposed as Java RMI; Portfolio service needs to be implemented in Java to talk to Java RMI
+    - Better one: Stock Quotes Service written in Java exposes a REST API and the recommendation service built in Python queries the stock service through REST API calls but if URL/REST API server changes, it'll lead to breaking changes
+    - What happens if a single service changes its URL? Look at the spiderweb to see if your services are strongly coupled
+    - Can build a `Yellow Pages` service that other services can query for the URL in case a service's URL changes
+      - Services only need to know the Directory's URL such as Consul
+    - Can also build a middle man or `Gateway` - maps tasks to URLs of the proper services
+      - Calling service doesn't know the underlying services but it asks the gateway; services only need to know the gateway's URL
+- Stateless
+  - 
+- Caching
+- Messaging
+- Logging and Monitoring
+
 ## Object-Oriented Programming SOLID Principles
 
 `S - Single-Responsibility Principle`
