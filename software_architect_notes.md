@@ -777,3 +777,17 @@ Series of decisions intended to reduce cost of building and changing your softwa
 - Personal: Deployment i.e. CICD
 - Personal: Automating commands, steps, deployment, etc.
 - Personal: Alerting when things go wrong
+
+`Programming Languages`
+
+- Can have favorite programming language but keep it personal only
+- Logic/tradeoffs considered for tooling
+- Characteristics of importance
+  - Strong static typing
+    - Languages generally divided by strong vs. weak typing and static vs. dynamic checking
+    - Imposes strict restrictions on intermixing values of different data types to catch/prevent bugs
+    - Static type checking checks at compile time without running the code (TypeScript) vs. dynamic checking for errors at runtime (JavaScript and Python)
+    - Reliable code with strong typing and static type checking
+  - Support for explicitly defined data structures
+    - Ability to define data structure and validate compliance of objects you create against the declaration at compile time
+    - Takes shape of interfaces or classes and better to check objects at compile time
