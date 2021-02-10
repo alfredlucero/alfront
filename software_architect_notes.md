@@ -790,5 +790,9 @@ Series of decisions intended to reduce cost of building and changing your softwa
     - Reliable code with strong typing and static type checking
   - Support for explicitly defined data structures
     - Ability to define data structure and validate compliance of objects you create against the declaration at compile time
+<<<<<<< HEAD
     - Takes shape of interfaces or classes and better to check objects at compile time
     - In statically typed languages increases velocity and reliability; improved even more by IDE
+=======
+    - Takes shape of interfaces or classes and better to check objects at compile time
+>>>>>>> 93801fc2b25b25de181ff2158af352af4984bfa6
