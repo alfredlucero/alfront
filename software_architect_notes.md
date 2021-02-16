@@ -720,6 +720,26 @@ Introduction to System Architecture
     - Identifier passed along the flow to track from start to finish i.e. guuid, created from beginning of flow and included in every log record to understand where and why
 - Make right choices as early as possible and use these concepts to design a fast, secure, reliable, and easy to maintain system; not exclusive
 
+Additional Considerations
+
+- Deadline - be aware of impact on project's schedule
+  - Example: Choosing Queue vs REST API for messaging
+  - Consult with team leader regarding developers' capabilities
+- Developers' Skillset - selecting unknown technologies might result in
+  - Delay
+  - Low Quality
+- Migrations
+  - .NET to Java = Not too difficult
+  - Windows Desktop to Python Backend = very complicated
+- IT Support
+  - Queue engines, business flow managers, NoSQL databases need support (shouldn't require so much developer support)
+  - Analyze effort needed to support, someone who is not a developer can take care of it
+- Cost
+  - Must be considered for buy vs. build
+    - Rule of thumb: use an existing tool
+    - but always estimate cost vs. value
+  - Cost management can make or break a project
+
 ## Object-Oriented Programming SOLID Principles
 
 `S - Single-Responsibility Principle`
