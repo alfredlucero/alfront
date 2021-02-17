@@ -740,6 +740,100 @@ Additional Considerations
     - but always estimate cost vs. value
   - Cost management can make or break a project
 
+Architecture Document
+
+- Contains the architecture, functional and non-functional requirements, technology stack
+- No development before document
+- Goal of architecture document
+  - Describe what should be developed and how
+  - Lay out the requirements (functional and non-functional)
+- Audience
+  - Almost everyone involved - project manager, CTO, QA leader, developers
+  - Development team
+    - Concerned about technology stack, components, services, communication, etc.
+  - Management
+    - Project manager, CTO, CEO to ensure "project is in good hands", requirements reflect the essence of the system
+    - Executive summary describes best practices and modern patterns
+    - Architecture geared towards business goals
+  - QA lead
+    - Prepare testing infrastructure i.e integration and load testing
+    - Servers, testing tools configured, coding involved
+- Contents/format of the document
+  - Standards such as UML aka modeling language
+    - Visualizes system's design
+    - Consists of concepts and diagrams
+    - Audience is usually not familiar with it and requires a lot of time for explaining
+  - Recommended format
+    - As simple as possible with plain English, get into the minds of the readers
+    - Visualize using software you're comfortable with i.e. powerpoint, images, charting tools, etc.
+  - Structure
+    - Background
+      - Less than 1 page
+      - Audience = team and management
+      - Describes system from business point of view
+        - System's role
+        - Reasons for replacing old system
+        - Expected business impact
+      - Validates your point of view and boosts confidence in you from others
+    - Requirements
+      - Less than one page
+      - Audience = team and management
+      - Functional requirements = what the system should do
+      - Non-functional requirements = what should the system deal with i.e. performance, load, data volume, SLA, and more
+      - Brief, bulleted list 
+      - Validate your understanding of requirements
+      - Requirements dictate architecture
+      - Structure
+        - First - outline functional requirements
+        - Second - outline non-functional requirements and be accurate and specific
+    - Executive Summary 
+      - Less than 3 pages
+      - Audience = management (project managers, qas, non-developers, ctos, etc.) 
+      - Goal: High level overview of solution since management is busy and non-technical and boost confidence in your work; get into your readers' mind
+      - Tips: use charts and diagrams, write it after writing the rest of the document, use well known technical terms sparsely, don't repeat yourself
+    - Architecture Overview
+      - Less than 10 pages
+      - Audience = development team and QA lead
+      - Provides high-level view of the architecture and presents it to the team
+      - No deep-dive to specific components
+      - General description of design
+        - Type i.e. web-based, micro services, REST API
+        - Major NF-Requirements i.e. 50 Reqs/Sec
+      - High-level diagram
+        - No formal visualization standard i.e. datastores as cylinders, arrows for communication, boxes for services; logic diagram displaying components
+      - Diagram walkthrough
+        - Describe various parts and their role
+        - Uses simple words
+        - Includes all relevant details
+      - Technology Stack
+        - Is it a single stack? If yes put it here; if no, put it in each component's drilldown
+    - Components Drill-down
+      - Length is unlimited, longest section
+      - Audience = development team and qa lead
+      - For each component
+        - Component's role
+          - Recap of component's description from architecture overview section
+        - Technology Stack
+          - Technologies used to develop component
+          - Lay out datastore, backend, frontend
+          - Be extremely detailed and include rationale behind choice
+          - Sample table comparision: NoSQL
+            - Working schema-less
+            - Developers have experience
+            - Easy to implement
+            - Performance
+          - SQL Relational
+          -   Better support for complex querying
+          -   IT has experience supporting it
+      - Component's architecture
+        - Inner architecture of the component
+        - Describe the API
+          - Include method names i.e. for REST API - include URL, role, response code, comments
+        - Describe the layers and include important considerations (dependency injection, etc.), be as detailed as possible
+      - Development Instructions
+        - Specific development guidelines
+    - Center of architect's work and must include all insights
+
 ## Object-Oriented Programming SOLID Principles
 
 `S - Single-Responsibility Principle`
