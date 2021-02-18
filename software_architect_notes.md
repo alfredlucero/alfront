@@ -833,6 +833,167 @@ Architecture Document
       - Development Instructions
         - Specific development guidelines
     - Center of architect's work and must include all insights
+  
+Case Study of Real World Application
+
+- IOToo - IOT Controlled for Internet of things, small connected devices we use everyday like connected thermostats
+- Dashboard that reports status of devices client is using i.e. smart thermostat, fridge, router, cameras, light bulbs; unified view of all devices on the scren
+- Collects status information from registered devices and displays metrics on dashboard; queries about devices as well
+  - Phase 1: Read only and data is presented to customer
+    - Customers pre-registered by Sales through intensive verification process; devices already registered manually
+- Defining the Requirements
+  - Functional (what system should do)
+    - Receive status updates from IOT devices
+    - Store the updates for future use
+    - Query the updates
+  - Non-Functional (what system should deal with)
+    - Messages received from IOT devices and should expect a lot of messages as it affects the load (how many concurrent messages expected) and data volume (datastore issues)
+    - How many concurrent messages should the system expect in peak time? 500 messages
+    - What is the total number of messages per month? 15,000,000
+    - What is the average size of a message? 300 bytes
+    - 15,000,000 messages/month * 300 bytes = 4500mb per month * 12 months = 54gb => expected data volume is 54gb annually; assume data retention policy is infinite for this application and data won't expire
+    - Load: 500 concurrent messages
+    - Message Loss: how tolerant are we to losing data due to network problems or errors
+      - When single message is lost, not as big a deal since a new update will provide new message anyways, not big customer impact - can do 99% accuracy; 100% is not as realistic and harder to achieve when things do down
+    - Users
+      - How many users will the system have? Expect more devices than users - 2,000,000 users
+      - How many concurrent users should we expect? 40 concurrent users
+        - Number of users actively accessing the server at the same time
+    - Load: 540 concurrent requests since 500 concurrent messages and 40 concurrent users
+    - SLA
+      - What is the maximum downtime allowed? 100% uptime is not realistic as hardware, virtualization, network, database servers may have unexpected issues
+      - SLA Software Level
+        - Platinum = fully stateless, easily scaled out, logging and monitoring, reliable and redundant
+        - Gold
+        - Silver
+    - Recap of Non-functional requirements
+      - Data Volume: 54GB annually
+      - Load: 540 concurrent requests
+      - 1% Message Loss
+      - 2,000,000 Users
+      - SLA: Platinum
+- Mapping the Components
+  - Look back at functional requirements - status updates from IOT devices, store updates for future use, query updates
+  - Look back at non-functional requirements - 540 concurrent requests
+  - Receiver Component
+    - Heavy load of 540 concurrent requests, needs to be as fast as possible in processing messages and don't want thread starvation (not enough resources to handle waiting request and throwing exceptions)
+    - Immediately insert to data store? Quite rare to do
+    - Validate, process, store? Depends
+    - Client says: 4 types of devices and formats, 3 use JSON, 1 uses fixed-format, validation is a must
+    - Overall Tasks
+      - Receive
+      - Validate
+      - Parse
+        - Data is independent from source
+        - Fully accessible
+        - Extremely important when data is received from multiple sources to be able to query things in same way
+      - Save
+    - Since we have a heavy load and want to process message as fast as possible, Receiver will only receive the message
+  - Handler Component
+    - Handles validation, parsing, and storing
+    - Talks to data store
+  - Info Component - handles user's requests
+    - Querying the data
+    - Talks to data store
+  - Logging Component
+    - All logs sent to central logging service
+  - Choosing Messaging Methods
+    - Receiver receives messages from IOT devices - depends on how they send their data
+      - Devices communicate via HTTP using POST verb to send update
+      - REST API/HTTP
+    - Handler
+      - Handler talks to receiver through a queue for order and reliability
+        - If we used REST API, it will cause a lot of work for the receiver as it'll have to wait for requests to finish
+        - Queues are more fire and forget; receiver puts message into queue and forgets about it
+    - Info
+      - Accessed by end users who use web browsers which access servers using HTTP/REST API
+    - Logging
+      - Logs can be massive and can produce a lot of logs every hour
+      - Using REST API? hurts performance badly
+      - Files? Can aggregate its contents but not compatible with cloud, highly uncontrolled and can be deleted
+      - Database? Can store there and query this
+      - Queue? All services place logs in queue that logging component will interact with
+      - Ensure IT supports/can maintain queue
+- Logging Service
+  - Read log records from queue (always on and running)
+  - Validate records
+  - Save in data store
+  - Application Type = Service
+    - Web app and web api - not appropriate since always online and can initiate things on its own
+    - Mobile app - nope since not tied to mobile device
+    - Console - long-running processes, potential
+    - Service - No UI at all and managed by service manager, potential
+    - Desktop app - nope
+  - Technology Stack
+    - Component's Code
+      - Access queue's API
+      - Store data in data store
+      - Dev team is familiar with Microsoft stack like .NET and SQL Server - should use .NET Core more current and SQL Server database
+      - Java/MySQL and Python/PostgreSQL also valid combos
+      - Doesn't need a UI and doesn't expose API
+    - Data Store - SQL Server
+    - Polling layer (replaces UI/SI) for accessing queue and retrieving log records to be accessed by business logic and then data access layer to data store
+      - Polls queue every few seconds for log records
+    - Business logic layer
+      - Validates records
+    - Data Access layer
+      - Saves records in data store
+      - Can use Entity framework for ORM capabilities; representing database records as objects
+    - Can do dependency injection using Microsoft.Extensions.DependencyInjection
+- Receiver Service
+  - Receives messages from IOT devices and sends messages to queue
+  - Application type = Web API since exposes HTTP RESTAPI for devices to make POST calls to
+  - Technology Stack
+    - .Net Core has great support for Web API apps
+  - Architecture
+    - Service Interface
+    - Business Logic
+    - Data Access not required since we don't care about data store in this service -> replaced by Queue handler
+    - Logging layer to log everything that happens during the receiving of the message: more vertical, cross-cutting concern, available to all layers to log what is going on
+  - Non-functional requirements
+    - Message loss: 1%
+      - Yes, REST API is quite reliable, very low chance of errors in such a simple service
+    - Load: 500 concurrent messages from devices
+      - Yes, architecture is stateless
+      - Easily scaled out as it adds message to a queue
+      - Service is simple
+- Handler Service
+  - Validates, parses, and stores messages in data store
+  - Messages wait in queue after being placed in there by the receiver
+  - Application Type = Service (always active and busy polling the queue)
+  - Technology Stack
+    - .NET Core and SQL Server
+  - Architecture
+    - No UI/API layer exposed -> replaced by Polling
+    - Business logic -> validating and parsing messages, plug-in mechanism is good idea for dynamically loading parses/validators based on message type
+    - Data access -> save handled messages into the data store
+    - Logging layer is vertical and accessible by all the layers
+- Info Service
+  - Allows end users to query the data; it doesn't display the data as the client can choose to display it custom
+  - Application Type = Web App and Web API
+  - Technology Stack
+    - .NET Core
+  - Architecture
+    - Service Interface - need to define the REST API
+      - Get current status of devices for specific device and entire house
+      - Get past events devices
+      - Required functionality
+        - Get all the updates for a specific house's devices for a given time range
+          - GET /api/houses/houseId/devices/updates?from=from&to=to -> 200 with house device updates; 404 if no matching house id
+          - URL contains references to specific entities so that's why from/to go to query string paremeters (not entities)
+        - Get updates for a specific device for a given time range
+          - GET /api/devices/deviceId/updates?from=from&to=to -> 200/404
+        - Get current status of all devices in a specific house
+          - GET /api/houses/houseId/devices/status/current -> 200/404
+        - Get current status of a specific device
+          - GET /api/devices/deviceId/status/current -> 200/404
+      - Two factors for API design:
+        - API Path
+        - Return code and contents
+      - Retrieve device #17 = GET /api/devices/17 -> 200 with JSON response
+    - Business logic
+    - Data access to access database and retrieve data
+    - Vertical logging layer
 
 ## Object-Oriented Programming SOLID Principles
 
