@@ -1133,3 +1133,28 @@ Series of decisions intended to reduce cost of building and changing your softwa
     - Ability to define data structure and validate compliance of objects you create against the declaration at compile time
     - Takes shape of interfaces or classes and better to check objects at compile time
     - In statically typed languages increases velocity and reliability; improved even more by IDE
+  - Support for interfaces 
+    - Way to create an abstraction or contract for a data structure or class
+    - Enable Dependency Injection design pattern or dependency inversion principle
+    - If no interfaces supported, can use abstract classes to define contracts i.e. Python
+  - Isomorphism
+    - Language's ability to run across multiple platforms that underpin your solution i.e. running on client platform like browser or mobile device and on the server
+    - Native isomorphism - works on all target platforms natively i.e. JavaScript in browser and on server
+    - Transpiled isomorphism - not supported across all platforms natively but can be transpiled (cross-compiled) into another language which is natively isomorphic i.e. TypeScript transpiles into JavaScript used for browser, Node.js server or mobile apps with React Native or Apache Cordova; can use same third-party libraries across all platforms 
+    - Generated isomorphism - language is not supportred across all platforms natively but there exists a tool that generates platform-specifc code in another language, independently for each platform i.e. Kotlin which can run natively on server in Java Virtual Machine or on Android devices but can generate JavaScript equivalent to run in browser
+      - Weakest kind of isomorphism because code is portable but can't port third-party libraries you may need unless written in same language and supplied with source code
+    - Native/transpiled isomorphism is usually good enough for cross-platform development projects for code sharing and third-party libraries across platforms; most popular native one is JavaScript
+  - Availability of third-party libaries
+    - i.e. NPM for JavaScript/TypeScript, Java, Python; don't have to write things yourself if module exists
+  - Ease of refactoring
+    - Refactoring means restructuring of existing code without changing its external behavior
+      - Renaming data types, variables and members, moving members from one class to another, adding or removing parameter functions, converting methods to top-level functions, converting static members to global variables or constants, converting inner classes to top-level calsses, moving declarations and implementations between modules
+    - Easier refactoring with compiled languages and strong static type checking; great IDE support like Eclipse
+  - Functional vs. Object-oriented
+    - Object-oriented programming (OOP) works with objects
+      - Usually stateful, promotes encapsulation in objects (treat as black boxes)
+      - Inheritance; implementing objects with similarities; interfaces with contracts for dependency injection pattern
+    - Functional programming (FP)
+      - Data and behaviors distinct and kept separate for clarity
+      - Behaviors as black box and data as white box
+      - Pure functions causing no side effects, stateless implementations of behaviors
