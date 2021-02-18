@@ -995,6 +995,72 @@ Case Study of Real World Application
     - Data access to access database and retrieve data
     - Vertical logging layer
 
+Advanced Architecture Patterns
+
+- Microservices
+  - An architecture in which various functionalities are implemented as separate, loosely coupled services that interact with each other using standard, lightweight protocol
+  - Before applications would be built as a monolith with 3 layer architecture within a single process i.e. Service Interface, Business logic, data access -> data store
+    - Example: Employees, Salary, Vacation stuff all intertwined for HR application
+    - Problems
+      - Single exception may crash the whole process
+      - Updates impact all the components
+      - Limited to one dev platform
+      - Unoptimized compute resources
+  - Each service runs in its own process and does not impact other services in case of exceptions
+  - Each service can be updated separately and not coupled; can be updated more frequently
+  - Each service can be implemented using different platform
+  - Each service can be optimized separately i.e. one service on 4 VMs with 16 cores each vs. 2 VMs with 8 cores on another service
+  - Split out HR service into 3 services: Employees, Salary, Vacation services
+    - Layered architecture of service interface, business logic, data access -> data store
+  - Drawbacks
+    - Complex monitoring and can have lots of services; Netflix developed Eureka for monitoring
+    - Complex architecture with distributed systems and can take time to design
+    - Complex testing with multiple services to talk to; services depending on other services
+- Event Sourcing
+  - Entities stored in traditional database with attributes; instead we add events that happen to entity
+  - Example: bank account statement; list of events happening to entity and we don't see entity itself
+  - Use cases
+    - Use when history matters; when you care how entity changed from creation to now
+  - Pros
+    - Tracing
+    - Simple data model
+    - Performance (Small record inserted to data store)
+    - Reporting
+  - Cons
+    - No unified view of entity; tough to build current state of entity
+    - Storage usage related to entities with large histories
+- CQRS
+  - Command Query Responsibility Segregation
+  - Data Storage database and Data Retrieval database
+  - Some service syncs them
+  - Helps to solve the unified view problem with event sourcing
+    - Events storage for quick update performance in database A, entities'current state retrieval in database B, sync service in between the two
+  - Cons
+    - Not as simple with 2 databases, sync service between storage and retrieval databases, event sourcing for storage database
+  - Useful with high frequency updates that require near real-time query capabilities i.e. telemetry
+
+Soft Skills
+
+- Architect can't be arrogant/righteous and doesn't have as much authority; must be able to influence without authority
+- Listening: collective wisdom is better; assume you aren't the smartest person in the room
+- Dealing with criticism: don't attack back, be professional with facts and logic behind genuine questioning
+  - Don't be afraid to say I'll check it again and review if you haven't considered something
+  - Mocking you: don't get offended or attack back; be professional and provide facts/logic
+  - Be smart, not right; goal: approve the architecture; what kind of response will help get the approval? show consideration and how you thought about the other perspective and ask to discuss offline to show respect; avoid a long technical discussion in the meeting
+- Organizational politics: don't be part of the politics
+- Public speaking
+  - Define a clear goal
+  - Know your audience
+  - Be confident
+  - Don't read
+  - Maintain eye contact
+- Learning
+  - jQuery/AngularJS, hadoop, grunt more outdated; adapt/continue learning
+  - Blogs: DZone, O'Reilly
+  - Articles: InfoQ
+  - Conferences: O'Reilly Software Architecture, build, QCon, NDC Conferences
+
+
 ## Object-Oriented Programming SOLID Principles
 
 `S - Single-Responsibility Principle`
