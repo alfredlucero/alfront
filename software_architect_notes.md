@@ -1150,11 +1150,25 @@ Series of decisions intended to reduce cost of building and changing your softwa
     - Refactoring means restructuring of existing code without changing its external behavior
       - Renaming data types, variables and members, moving members from one class to another, adding or removing parameter functions, converting methods to top-level functions, converting static members to global variables or constants, converting inner classes to top-level calsses, moving declarations and implementations between modules
     - Easier refactoring with compiled languages and strong static type checking; great IDE support like Eclipse
-  - Functional vs. Object-oriented
+  - Functional vs. Object-oriented - Understand both and take best of both worlds
     - Object-oriented programming (OOP) works with objects
       - Usually stateful, promotes encapsulation in objects (treat as black boxes)
       - Inheritance; implementing objects with similarities; interfaces with contracts for dependency injection pattern
+      - Works better to model real-life objects with behaviors defined on data stored within those objects and require little interaction with rest of environment
+      - Inheritance is also a downfall when hierarchy is no longer stable; changing inheritance based model takes a lot of work down the road; using polymorphic behavior and code reuse through inheritance is-a) instead of composition (has-a) can be bad
+      - Can use interfaces and interface inheritance to decouple things better in OOP
     - Functional programming (FP)
       - Data and behaviors distinct and kept separate for clarity
       - Behaviors as black box and data as white box
       - Pure functions causing no side effects, stateless implementations of behaviors
+      - Rarely enforced by programming languages unless it's like Haskell
+      - Java added lambda functions but it's limited/verbose, Stream API; JavaScript has prototypal inheritance and classes which is different from OOP inheritance
+      - Lisk, Haskell, or Clojure are not as readable
+  - Ease and cost of hiring
+    - Consider job market for languages
+  - Learning curve
+    - Python has one of the easiest learning curves while Forth and Prolog are extremely hard to wrap one's head around; make sure you can quickly train junior engineers in the language of your choice
+  - Readability
+    - See if developers who haven't coded in a language can easily discern the business logic of what is going on
+    - COBOL though verbose was considered more readable; how close is the language modeled after human language i.e. Java more readable than Assembly or Forth
+  
