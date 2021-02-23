@@ -166,3 +166,78 @@ Working with Docker Images
         - Avoid using latest tag and version it well instead
       - `docker login --username=[username]` to log into Docker Hub account 
       - `docker push [repositoryname]:1.01` and can check repository and image details to see what happened with tags
+
+Create Containerized Web Applications
+
+- Dockerizing Python Flask server app
+- `docker run -d -p 5000:5000 [imageId]`
+- `docker-machine ls` and copy IP address to browser URL with port 5000 (or put localhost)
+- `docker exec` allows you to run a command in a running container
+  - `docker exec it [containerId] bash` -> can do `pwd` and `cd` around
+  - `ps axu` to see all the running processes in container
+
+```
+FROM python:3.5
+RUN pip install Flask==0.11.1
+RUN useradd -ms /bin/bash admin
+USER admin
+WORKDIR /app
+COPY app /app
+CMD ["python", "app.py"]
+```
+
+- Implement a simple key-value lookup service with Redis for an in-memory data structure such as database, cache, message broker; built-in replication and different levels of on-disk persistence
+- `docker ps` command to find name of running container
+- `docker stop [containerName]` to stop running container
+- Use a python redis client to interact with redis
+- Using Docker Container links
+  - Recipient container (app) can access select data about the source container (redis); uses container names
+  - `docker run -d --name redis redis:3.2.0`
+  - `docker ps` to verify redis is up and running
+  - `docker build -t dockerapp:v0.3 .` and `docker run -d -p 5000:5000 --link redis dockerapp:v0.3`
+  - How container links work?
+    - `docker exec it [containerId] bash`
+    - `more /etc/hosts` to see entry for redis container name and container id and associated IP address
+    - `docker inspect [containerId] | grep IP` to confirm IPs match
+    - `docker exec -it [containerId] bash` and `ping redis` to see where the requests are hitting for IP address
+  - Benefits
+    - Able to run many independent components in different containers
+    - Creates a secure tunnel between the containers that doesn't need to expose any ports externally on the container (don't need the -p flag)
+
+```
+FROM python:3.5
+RUN pip install Flask==0.11.1 redis==2.10.5
+RUN useradd -ms /bin/bash admin
+USER admin
+WORKDIR /app
+COPY app /app
+CMD ["python", "app.py"]
+```
+
+- Docker Compose
+  - Manual linking containers and configuring services becomes impractical when the number of containers grow
+  - Set up a `docker-compose.yml` file with configuration
+  - `docker-compose version` to display current version
+  - `docker stop [containerId]`
+  - `docker-compose up` to build images for all services defined in the yml file and runs containers
+  - `docker-compose ps` to see all containers managed by compose
+  - `docker-compose logs -f` to see colored logs for host managed containers or `docker-compose logs [containerName]`
+  - `docker-compose stop` to stop all running containers without removing them and can be restarted with `docker-compose up` command
+  - `docker-compose rm` to remove containers
+  - Upon making changes to the code i.e. Dockerfile, we need to rebuild the Docker image; `docker-compose up -d` will only rebuild the image if the image doesn't exist and `docker exec -it [containerId] bash`
+  - `docker-compose build` command to rebuild and update the image and `docker-compose up -d` to recreate the container since it found a new image (see created information)
+
+```
+version: '3' # won't need linking anymore if you are using Docker compose version 2 or above, only need to refer to other services by name due to Docker network
+services:
+  # client of redis
+  dockerapp:
+    build: . # Defines path to Dockerfile used to build dockerapp image (sitting in same directory as yml file)
+    ports: # to expose to external network
+      - "5000:5000" # host port: container port
+    depends_on: # starts redis container first before dockerapp
+      - redis
+  redis:
+    image: redis:3.2.0
+```
+
