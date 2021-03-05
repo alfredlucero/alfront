@@ -312,3 +312,100 @@ networks:
   my_net:
     driver: bridge
 ```
+
+Create a Continuous Integration Pipeline
+
+- Running unit tests in containers and spin up in seconds; using unittest framework; great to incorporate unit test into docker images
+- `docker-compose run dockerapp python test.py`
+- Single image used through development, testing, and production to ensure reliability of tests
+  - Cons: increases size of image
+- Continuous Integration - isolated changes are immediately tested and reported when they are added to a larger code base; provide rapid feedback so that if a defect is introduced into codebase it can be identified and corrected as soon as possible
+- Continuous integration server such as Circle CI checks out source code, builds, runs unit tests, packages, archives
+- Builds docker image, pushes image to Docker registry, pull Docker image, and run application within container i.e. staging/production
+
+```yml
+version: 2
+jobs:
+  build:
+    working_directory: /dockerapp
+    docker:
+      - image: docker:17.0.5.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --no-cache py-pip=9.0.0-r1
+            pip install docker-comopse=1.15.0
+      - run:
+          name: Run tests
+          command: |
+            docker-compose up -d
+            docker-compose run dockerapp python test.py
+      - deploy:
+          name: Push application Docker image
+          command: |
+            docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
+            docker tag dockerapp_dockerapp $DOCKER_HUB_USER_ID/dockerapp:$CIRCLE_SHA1
+            docker tag dockerapp_dockerapp $DOCKER_HUB_USER_ID/dockerapp:latest
+            docker push dockerapp_dockerapp $DOCKER_HUB_USER_ID/dockerapp:$CIRCLE_SHA1
+            docker push dockerapp_dockerapp $DOCKER_HUB_USER_ID/dockerapp:latest
+```
+
+Deploy Docker containers in production
+
+- Many believe it's good for distributed applications in production
+- Some missing pieces about Docker around data persistence, networking, security, identity management
+- Ecosystem of supporting Dockerized applications in production such as tools for monitoring and logging are still not fully ready yet
+- Why running Docker containers in VMs?
+  - To address security concerns
+  - Hardware level isolation 
+  - Google Container Enginer or AWS EC2 use VMs internally
+  - Use Docker Machine to provision new VMs, install Docker Enginer, configure Docker client -> VirtualBox to provision Linux VMs; various Docker Machine drivers for AWS, DigitalOcean, Google App Engine, VirtualBox
+- Deploy Docker app to cloud using Docker Machine
+  - `docker-machine ls`
+  - `docker-machine create --driver digitalocean --digitalocean-access-token <token> docker-app-machine`
+  - `docker info`
+- Introduction to Docker Swarm and set up Swarm cluster
+  - `docker swarm`; Docker swarm manager, can group multiple hosts into a cluster and distribute Docker containers
+  - Multiple users can share same swarm cluster
+  - Worker node, Manager node
+  - TO deploy your application to a swarm, you submit your service to a manager node
+  - Manager node dispatches units of work called tasks to worker nodes
+  - Manager nodes also perform orchestration and cluster management functions required to maintain the desired state of the swam
+  - Worker nodes receive and execute tasks dispatched from manager nodes
+  - Agent runs on each worker node and reports on tasks assigned to it. The worker node notifies the manager node of the current state of its assigned tasks so that the manager can maintain the desired state of each worker
+  - Step 1: Deploy two VMs, one for Swarm manager node and other will be used as worker node `docker-machine create` both nodes
+  - Step 2: Appoint the first VM as Swarm manager node and initialize a Swarm cluster `docker swarm init --advertise-addr <IP>`
+  - Step 3: Let second VM join the Swarm cluster as worker node `docker swarm join --token <token> IP` (may need to `docker-machine ssh swarm-node`)
+  - `docker swarm leave`
+  - For Docker-compose 3.x, you can set `deploy` key with replicas: X
+    - Options can be used to load balance and optimize performance for each service
+  - Can connect to nginx service through a node which does not have nginx replicas
+  - Ingress load balancing
+    - All nodes listen for connections to published service ports
+    - When that service is called by the external systems, the receiving node will accept the traffic and internally load balance it using an internal DNS service that Docker maintains
+  - Docker stack
+    - Group of interrelated services that share dependencies and can be orchestrated and scaled together
+    - Live collection of all the services defined in your Docker compose file
+    - `docker stack deploy`
+    - In Swarm mode, Docker compose files can be used for service definitions
+    - Commands can't be reused and can only schedule containers to a single node
+
+```yml
+version: "3.3"
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    deploy:
+      replicas: 3 # Swarm manager and 3 nginx replicas
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 50M
+        restart_policy:
+          condition: on-failure
+```
