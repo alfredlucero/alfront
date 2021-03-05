@@ -241,3 +241,74 @@ services:
     image: redis:3.2.0
 ```
 
+Docker Networking
+
+- Bridge network interface docker0 provisioned on host to bridge traffic from outside network to internal containers hosted on host machine
+- Containers can connect to each other and the outside world through bridge
+- Network Types
+  - Closed/None
+    - No access to outside world
+    - Adds container to container specific network stack and lacks container interface; isolated/closed
+    - `docker run -d --net none busybox sleep 1000`
+    - `docker exec -it <containerId> /bin/ash` to log in container
+      - `ping 8.8.8.8` inside closed container shouldn't be able to reach google's public dns
+      - `ifconfig` to list network interfaces and you should see only one called loopback 127.0.0.1
+    - Provides maximum level of network protection; not good choice if network or Internet connection is required
+  - Bridge
+    - `docker network inspect bridge` 
+    - `docker run -d --name container_1 busybox sleep 1000`
+    - Default network with access to outside world; 172.17.0.0 - 172.17.255.255; can access containers in the same bridge network
+    - `docker exec -it container_1 ifconfig`
+    - `docker run -d --name container_2 busybox sleep 1000` -> IP Address 172.17.0.3
+    - Can ping outside world from within
+    - Containers within one bridge network can access containers in another bridge network
+    - `docker network create --drive bridge my_bridge_network`
+      - `docker network ls` shows newly created docker network and `docker network inspect my_bridge_network`
+      - `docker run -d --name container_3 --net my_bridge_network busybox sleep 1000` to use the created bridge network and IP will fall under that network
+    - `docker network connect bridge container_3` to connect container to another bridge
+    - `docker network disconnect bridge container_3` to disconnect from bridge network
+    - Containers have access to two network interfaces
+      - loopback interface without network access to outside
+      - private interface connected to bridge network of host
+      - All containers within same bridge network can communicate with each other; those from other networks can't connect with each other by default
+      - Reduces level of network isolation in favor of better outside connectivity
+      - Most suitable where you want to set up a relatively small network on a single host
+  - Host
+    - The least protected network model as it adds a container on the host's network stack
+    - Containers deployed on the host stack have full access to the host's interface
+    - Commonly called open containers
+    - `docker run -d --name container_4 --net host busybox sleep 100`
+    - `docker exec -it container_4 ifconfig` - see host ips
+    - minimum network security level; no isolation and containers widely unprotected
+    - Containers running in host network stack should see higher level of performance than those traversing docker0 bridge and iptables port mappings
+  - Overlay
+    - Supports multi-host networking out of the box; common in multi-host production types
+    - Requires pre-existing conditions before it can be created
+      - Running Docker engine in Swarm mode
+      - Require a key-value store such as consul
+- `docker network ls` - should show bridge, host, none
+- Define container networks with Docker Compose
+  - `docker-compose up -d` -> network driver bridge i.e. "dockerapp_default"; verify with `docker network ls`
+  - `docker-compose down` and network shouldn't be there anymore
+  - Sample below creates "dockerapp_my_net" as "bridge"
+  - Can have multiple networks i.e. for frontend and backend with different custom drivers; popular for multi-tier services
+
+```yml
+version: '3'
+services:
+  dockerapp:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+    networks:
+      - my_net
+  redis:
+    image: redis:3.2.0
+    networks:
+      - my_net
+networks:
+  my_net:
+    driver: bridge
+```
