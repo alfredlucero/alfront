@@ -720,6 +720,347 @@ Introduction to System Architecture
     - Identifier passed along the flow to track from start to finish i.e. guuid, created from beginning of flow and included in every log record to understand where and why
 - Make right choices as early as possible and use these concepts to design a fast, secure, reliable, and easy to maintain system; not exclusive
 
+Additional Considerations
+
+- Deadline - be aware of impact on project's schedule
+  - Example: Choosing Queue vs REST API for messaging
+  - Consult with team leader regarding developers' capabilities
+- Developers' Skillset - selecting unknown technologies might result in
+  - Delay
+  - Low Quality
+- Migrations
+  - .NET to Java = Not too difficult
+  - Windows Desktop to Python Backend = very complicated
+- IT Support
+  - Queue engines, business flow managers, NoSQL databases need support (shouldn't require so much developer support)
+  - Analyze effort needed to support, someone who is not a developer can take care of it
+- Cost
+  - Must be considered for buy vs. build
+    - Rule of thumb: use an existing tool
+    - but always estimate cost vs. value
+  - Cost management can make or break a project
+
+Architecture Document
+
+- Contains the architecture, functional and non-functional requirements, technology stack
+- No development before document
+- Goal of architecture document
+  - Describe what should be developed and how
+  - Lay out the requirements (functional and non-functional)
+- Audience
+  - Almost everyone involved - project manager, CTO, QA leader, developers
+  - Development team
+    - Concerned about technology stack, components, services, communication, etc.
+  - Management
+    - Project manager, CTO, CEO to ensure "project is in good hands", requirements reflect the essence of the system
+    - Executive summary describes best practices and modern patterns
+    - Architecture geared towards business goals
+  - QA lead
+    - Prepare testing infrastructure i.e integration and load testing
+    - Servers, testing tools configured, coding involved
+- Contents/format of the document
+  - Standards such as UML aka modeling language
+    - Visualizes system's design
+    - Consists of concepts and diagrams
+    - Audience is usually not familiar with it and requires a lot of time for explaining
+  - Recommended format
+    - As simple as possible with plain English, get into the minds of the readers
+    - Visualize using software you're comfortable with i.e. powerpoint, images, charting tools, etc.
+  - Structure
+    - Background
+      - Less than 1 page
+      - Audience = team and management
+      - Describes system from business point of view
+        - System's role
+        - Reasons for replacing old system
+        - Expected business impact
+      - Validates your point of view and boosts confidence in you from others
+    - Requirements
+      - Less than one page
+      - Audience = team and management
+      - Functional requirements = what the system should do
+      - Non-functional requirements = what should the system deal with i.e. performance, load, data volume, SLA, and more
+      - Brief, bulleted list 
+      - Validate your understanding of requirements
+      - Requirements dictate architecture
+      - Structure
+        - First - outline functional requirements
+        - Second - outline non-functional requirements and be accurate and specific
+    - Executive Summary 
+      - Less than 3 pages
+      - Audience = management (project managers, qas, non-developers, ctos, etc.) 
+      - Goal: High level overview of solution since management is busy and non-technical and boost confidence in your work; get into your readers' mind
+      - Tips: use charts and diagrams, write it after writing the rest of the document, use well known technical terms sparsely, don't repeat yourself
+    - Architecture Overview
+      - Less than 10 pages
+      - Audience = development team and QA lead
+      - Provides high-level view of the architecture and presents it to the team
+      - No deep-dive to specific components
+      - General description of design
+        - Type i.e. web-based, micro services, REST API
+        - Major NF-Requirements i.e. 50 Reqs/Sec
+      - High-level diagram
+        - No formal visualization standard i.e. datastores as cylinders, arrows for communication, boxes for services; logic diagram displaying components
+      - Diagram walkthrough
+        - Describe various parts and their role
+        - Uses simple words
+        - Includes all relevant details
+      - Technology Stack
+        - Is it a single stack? If yes put it here; if no, put it in each component's drilldown
+    - Components Drill-down
+      - Length is unlimited, longest section
+      - Audience = development team and qa lead
+      - For each component
+        - Component's role
+          - Recap of component's description from architecture overview section
+        - Technology Stack
+          - Technologies used to develop component
+          - Lay out datastore, backend, frontend
+          - Be extremely detailed and include rationale behind choice
+          - Sample table comparision: NoSQL
+            - Working schema-less
+            - Developers have experience
+            - Easy to implement
+            - Performance
+          - SQL Relational
+          -   Better support for complex querying
+          -   IT has experience supporting it
+      - Component's architecture
+        - Inner architecture of the component
+        - Describe the API
+          - Include method names i.e. for REST API - include URL, role, response code, comments
+        - Describe the layers and include important considerations (dependency injection, etc.), be as detailed as possible
+      - Development Instructions
+        - Specific development guidelines
+    - Center of architect's work and must include all insights
+  
+Case Study of Real World Application
+
+- IOToo - IOT Controlled for Internet of things, small connected devices we use everyday like connected thermostats
+- Dashboard that reports status of devices client is using i.e. smart thermostat, fridge, router, cameras, light bulbs; unified view of all devices on the scren
+- Collects status information from registered devices and displays metrics on dashboard; queries about devices as well
+  - Phase 1: Read only and data is presented to customer
+    - Customers pre-registered by Sales through intensive verification process; devices already registered manually
+- Defining the Requirements
+  - Functional (what system should do)
+    - Receive status updates from IOT devices
+    - Store the updates for future use
+    - Query the updates
+  - Non-Functional (what system should deal with)
+    - Messages received from IOT devices and should expect a lot of messages as it affects the load (how many concurrent messages expected) and data volume (datastore issues)
+    - How many concurrent messages should the system expect in peak time? 500 messages
+    - What is the total number of messages per month? 15,000,000
+    - What is the average size of a message? 300 bytes
+    - 15,000,000 messages/month * 300 bytes = 4500mb per month * 12 months = 54gb => expected data volume is 54gb annually; assume data retention policy is infinite for this application and data won't expire
+    - Load: 500 concurrent messages
+    - Message Loss: how tolerant are we to losing data due to network problems or errors
+      - When single message is lost, not as big a deal since a new update will provide new message anyways, not big customer impact - can do 99% accuracy; 100% is not as realistic and harder to achieve when things do down
+    - Users
+      - How many users will the system have? Expect more devices than users - 2,000,000 users
+      - How many concurrent users should we expect? 40 concurrent users
+        - Number of users actively accessing the server at the same time
+    - Load: 540 concurrent requests since 500 concurrent messages and 40 concurrent users
+    - SLA
+      - What is the maximum downtime allowed? 100% uptime is not realistic as hardware, virtualization, network, database servers may have unexpected issues
+      - SLA Software Level
+        - Platinum = fully stateless, easily scaled out, logging and monitoring, reliable and redundant
+        - Gold
+        - Silver
+    - Recap of Non-functional requirements
+      - Data Volume: 54GB annually
+      - Load: 540 concurrent requests
+      - 1% Message Loss
+      - 2,000,000 Users
+      - SLA: Platinum
+- Mapping the Components
+  - Look back at functional requirements - status updates from IOT devices, store updates for future use, query updates
+  - Look back at non-functional requirements - 540 concurrent requests
+  - Receiver Component
+    - Heavy load of 540 concurrent requests, needs to be as fast as possible in processing messages and don't want thread starvation (not enough resources to handle waiting request and throwing exceptions)
+    - Immediately insert to data store? Quite rare to do
+    - Validate, process, store? Depends
+    - Client says: 4 types of devices and formats, 3 use JSON, 1 uses fixed-format, validation is a must
+    - Overall Tasks
+      - Receive
+      - Validate
+      - Parse
+        - Data is independent from source
+        - Fully accessible
+        - Extremely important when data is received from multiple sources to be able to query things in same way
+      - Save
+    - Since we have a heavy load and want to process message as fast as possible, Receiver will only receive the message
+  - Handler Component
+    - Handles validation, parsing, and storing
+    - Talks to data store
+  - Info Component - handles user's requests
+    - Querying the data
+    - Talks to data store
+  - Logging Component
+    - All logs sent to central logging service
+  - Choosing Messaging Methods
+    - Receiver receives messages from IOT devices - depends on how they send their data
+      - Devices communicate via HTTP using POST verb to send update
+      - REST API/HTTP
+    - Handler
+      - Handler talks to receiver through a queue for order and reliability
+        - If we used REST API, it will cause a lot of work for the receiver as it'll have to wait for requests to finish
+        - Queues are more fire and forget; receiver puts message into queue and forgets about it
+    - Info
+      - Accessed by end users who use web browsers which access servers using HTTP/REST API
+    - Logging
+      - Logs can be massive and can produce a lot of logs every hour
+      - Using REST API? hurts performance badly
+      - Files? Can aggregate its contents but not compatible with cloud, highly uncontrolled and can be deleted
+      - Database? Can store there and query this
+      - Queue? All services place logs in queue that logging component will interact with
+      - Ensure IT supports/can maintain queue
+- Logging Service
+  - Read log records from queue (always on and running)
+  - Validate records
+  - Save in data store
+  - Application Type = Service
+    - Web app and web api - not appropriate since always online and can initiate things on its own
+    - Mobile app - nope since not tied to mobile device
+    - Console - long-running processes, potential
+    - Service - No UI at all and managed by service manager, potential
+    - Desktop app - nope
+  - Technology Stack
+    - Component's Code
+      - Access queue's API
+      - Store data in data store
+      - Dev team is familiar with Microsoft stack like .NET and SQL Server - should use .NET Core more current and SQL Server database
+      - Java/MySQL and Python/PostgreSQL also valid combos
+      - Doesn't need a UI and doesn't expose API
+    - Data Store - SQL Server
+    - Polling layer (replaces UI/SI) for accessing queue and retrieving log records to be accessed by business logic and then data access layer to data store
+      - Polls queue every few seconds for log records
+    - Business logic layer
+      - Validates records
+    - Data Access layer
+      - Saves records in data store
+      - Can use Entity framework for ORM capabilities; representing database records as objects
+    - Can do dependency injection using Microsoft.Extensions.DependencyInjection
+- Receiver Service
+  - Receives messages from IOT devices and sends messages to queue
+  - Application type = Web API since exposes HTTP RESTAPI for devices to make POST calls to
+  - Technology Stack
+    - .Net Core has great support for Web API apps
+  - Architecture
+    - Service Interface
+    - Business Logic
+    - Data Access not required since we don't care about data store in this service -> replaced by Queue handler
+    - Logging layer to log everything that happens during the receiving of the message: more vertical, cross-cutting concern, available to all layers to log what is going on
+  - Non-functional requirements
+    - Message loss: 1%
+      - Yes, REST API is quite reliable, very low chance of errors in such a simple service
+    - Load: 500 concurrent messages from devices
+      - Yes, architecture is stateless
+      - Easily scaled out as it adds message to a queue
+      - Service is simple
+- Handler Service
+  - Validates, parses, and stores messages in data store
+  - Messages wait in queue after being placed in there by the receiver
+  - Application Type = Service (always active and busy polling the queue)
+  - Technology Stack
+    - .NET Core and SQL Server
+  - Architecture
+    - No UI/API layer exposed -> replaced by Polling
+    - Business logic -> validating and parsing messages, plug-in mechanism is good idea for dynamically loading parses/validators based on message type
+    - Data access -> save handled messages into the data store
+    - Logging layer is vertical and accessible by all the layers
+- Info Service
+  - Allows end users to query the data; it doesn't display the data as the client can choose to display it custom
+  - Application Type = Web App and Web API
+  - Technology Stack
+    - .NET Core
+  - Architecture
+    - Service Interface - need to define the REST API
+      - Get current status of devices for specific device and entire house
+      - Get past events devices
+      - Required functionality
+        - Get all the updates for a specific house's devices for a given time range
+          - GET /api/houses/houseId/devices/updates?from=from&to=to -> 200 with house device updates; 404 if no matching house id
+          - URL contains references to specific entities so that's why from/to go to query string paremeters (not entities)
+        - Get updates for a specific device for a given time range
+          - GET /api/devices/deviceId/updates?from=from&to=to -> 200/404
+        - Get current status of all devices in a specific house
+          - GET /api/houses/houseId/devices/status/current -> 200/404
+        - Get current status of a specific device
+          - GET /api/devices/deviceId/status/current -> 200/404
+      - Two factors for API design:
+        - API Path
+        - Return code and contents
+      - Retrieve device #17 = GET /api/devices/17 -> 200 with JSON response
+    - Business logic
+    - Data access to access database and retrieve data
+    - Vertical logging layer
+
+Advanced Architecture Patterns
+
+- Microservices
+  - An architecture in which various functionalities are implemented as separate, loosely coupled services that interact with each other using standard, lightweight protocol
+  - Before applications would be built as a monolith with 3 layer architecture within a single process i.e. Service Interface, Business logic, data access -> data store
+    - Example: Employees, Salary, Vacation stuff all intertwined for HR application
+    - Problems
+      - Single exception may crash the whole process
+      - Updates impact all the components
+      - Limited to one dev platform
+      - Unoptimized compute resources
+  - Each service runs in its own process and does not impact other services in case of exceptions
+  - Each service can be updated separately and not coupled; can be updated more frequently
+  - Each service can be implemented using different platform
+  - Each service can be optimized separately i.e. one service on 4 VMs with 16 cores each vs. 2 VMs with 8 cores on another service
+  - Split out HR service into 3 services: Employees, Salary, Vacation services
+    - Layered architecture of service interface, business logic, data access -> data store
+  - Drawbacks
+    - Complex monitoring and can have lots of services; Netflix developed Eureka for monitoring
+    - Complex architecture with distributed systems and can take time to design
+    - Complex testing with multiple services to talk to; services depending on other services
+- Event Sourcing
+  - Entities stored in traditional database with attributes; instead we add events that happen to entity
+  - Example: bank account statement; list of events happening to entity and we don't see entity itself
+  - Use cases
+    - Use when history matters; when you care how entity changed from creation to now
+  - Pros
+    - Tracing
+    - Simple data model
+    - Performance (Small record inserted to data store)
+    - Reporting
+  - Cons
+    - No unified view of entity; tough to build current state of entity
+    - Storage usage related to entities with large histories
+- CQRS
+  - Command Query Responsibility Segregation
+  - Data Storage database and Data Retrieval database
+  - Some service syncs them
+  - Helps to solve the unified view problem with event sourcing
+    - Events storage for quick update performance in database A, entities'current state retrieval in database B, sync service in between the two
+  - Cons
+    - Not as simple with 2 databases, sync service between storage and retrieval databases, event sourcing for storage database
+  - Useful with high frequency updates that require near real-time query capabilities i.e. telemetry
+
+Soft Skills
+
+- Architect can't be arrogant/righteous and doesn't have as much authority; must be able to influence without authority
+- Listening: collective wisdom is better; assume you aren't the smartest person in the room
+- Dealing with criticism: don't attack back, be professional with facts and logic behind genuine questioning
+  - Don't be afraid to say I'll check it again and review if you haven't considered something
+  - Mocking you: don't get offended or attack back; be professional and provide facts/logic
+  - Be smart, not right; goal: approve the architecture; what kind of response will help get the approval? show consideration and how you thought about the other perspective and ask to discuss offline to show respect; avoid a long technical discussion in the meeting
+- Organizational politics: don't be part of the politics
+- Public speaking
+  - Define a clear goal
+  - Know your audience
+  - Be confident
+  - Don't read
+  - Maintain eye contact
+- Learning
+  - jQuery/AngularJS, hadoop, grunt more outdated; adapt/continue learning
+  - Blogs: DZone, O'Reilly
+  - Articles: InfoQ
+  - Conferences: O'Reilly Software Architecture, build, QCon, NDC Conferences
+
+
 ## Object-Oriented Programming SOLID Principles
 
 `S - Single-Responsibility Principle`
@@ -777,3 +1118,57 @@ Series of decisions intended to reduce cost of building and changing your softwa
 - Personal: Deployment i.e. CICD
 - Personal: Automating commands, steps, deployment, etc.
 - Personal: Alerting when things go wrong
+
+`Programming Languages`
+
+- Can have favorite programming language but keep it personal only
+- Logic/tradeoffs considered for tooling
+- Characteristics of importance
+  - Strong static typing
+    - Languages generally divided by strong vs. weak typing and static vs. dynamic checking
+    - Imposes strict restrictions on intermixing values of different data types to catch/prevent bugs
+    - Static type checking checks at compile time without running the code (TypeScript) vs. dynamic checking for errors at runtime (JavaScript and Python)
+    - Reliable code with strong typing and static type checking
+  - Support for explicitly defined data structures
+    - Ability to define data structure and validate compliance of objects you create against the declaration at compile time
+    - Takes shape of interfaces or classes and better to check objects at compile time
+    - In statically typed languages increases velocity and reliability; improved even more by IDE
+  - Support for interfaces 
+    - Way to create an abstraction or contract for a data structure or class
+    - Enable Dependency Injection design pattern or dependency inversion principle
+    - If no interfaces supported, can use abstract classes to define contracts i.e. Python
+  - Isomorphism
+    - Language's ability to run across multiple platforms that underpin your solution i.e. running on client platform like browser or mobile device and on the server
+    - Native isomorphism - works on all target platforms natively i.e. JavaScript in browser and on server
+    - Transpiled isomorphism - not supported across all platforms natively but can be transpiled (cross-compiled) into another language which is natively isomorphic i.e. TypeScript transpiles into JavaScript used for browser, Node.js server or mobile apps with React Native or Apache Cordova; can use same third-party libraries across all platforms 
+    - Generated isomorphism - language is not supportred across all platforms natively but there exists a tool that generates platform-specifc code in another language, independently for each platform i.e. Kotlin which can run natively on server in Java Virtual Machine or on Android devices but can generate JavaScript equivalent to run in browser
+      - Weakest kind of isomorphism because code is portable but can't port third-party libraries you may need unless written in same language and supplied with source code
+    - Native/transpiled isomorphism is usually good enough for cross-platform development projects for code sharing and third-party libraries across platforms; most popular native one is JavaScript
+  - Availability of third-party libaries
+    - i.e. NPM for JavaScript/TypeScript, Java, Python; don't have to write things yourself if module exists
+  - Ease of refactoring
+    - Refactoring means restructuring of existing code without changing its external behavior
+      - Renaming data types, variables and members, moving members from one class to another, adding or removing parameter functions, converting methods to top-level functions, converting static members to global variables or constants, converting inner classes to top-level calsses, moving declarations and implementations between modules
+    - Easier refactoring with compiled languages and strong static type checking; great IDE support like Eclipse
+  - Functional vs. Object-oriented - Understand both and take best of both worlds
+    - Object-oriented programming (OOP) works with objects
+      - Usually stateful, promotes encapsulation in objects (treat as black boxes)
+      - Inheritance; implementing objects with similarities; interfaces with contracts for dependency injection pattern
+      - Works better to model real-life objects with behaviors defined on data stored within those objects and require little interaction with rest of environment
+      - Inheritance is also a downfall when hierarchy is no longer stable; changing inheritance based model takes a lot of work down the road; using polymorphic behavior and code reuse through inheritance is-a) instead of composition (has-a) can be bad
+      - Can use interfaces and interface inheritance to decouple things better in OOP
+    - Functional programming (FP)
+      - Data and behaviors distinct and kept separate for clarity
+      - Behaviors as black box and data as white box
+      - Pure functions causing no side effects, stateless implementations of behaviors
+      - Rarely enforced by programming languages unless it's like Haskell
+      - Java added lambda functions but it's limited/verbose, Stream API; JavaScript has prototypal inheritance and classes which is different from OOP inheritance
+      - Lisk, Haskell, or Clojure are not as readable
+  - Ease and cost of hiring
+    - Consider job market for languages
+  - Learning curve
+    - Python has one of the easiest learning curves while Forth and Prolog are extremely hard to wrap one's head around; make sure you can quickly train junior engineers in the language of your choice
+  - Readability
+    - See if developers who haven't coded in a language can easily discern the business logic of what is going on
+    - COBOL though verbose was considered more readable; how close is the language modeled after human language i.e. Java more readable than Assembly or Forth
+  
