@@ -62,3 +62,27 @@ kubectl (CLI)
 - `kubectl run hello-minikube`; used to deploy and manage applications in cluster
 - `kubectl cluster-info`
 - `kubectl get nodes`
+
+## Setup Kubernetes
+
+Minikube, MicroK8s, Kubeadm (multi-node K8s cluster) for local environment
+
+Cloud Services like Google Cloud Platform, AWS, Microsoft Azure to deploy k8s cluster
+
+kodecloud.com for labs related to kubernetes
+
+Minikube
+
+- Bundles all the master/worker components into a single image and can set up a k8s cluser
+- Single node k8s cluster we can install into like VirtualBox or KVM
+- Need kubectl command line tool installed in your machine
+- `kubectl get nodes`
+- `minikube start` or `minikube start --driver=<driver_name>`
+- `minikube status`
+- `kubectl create deployment hello-minikube --image=k8s.gcr.io/...`
+- `kubectl get deployments`
+- `kubectl expose deployment hello-minikube --type=NodePort --port=8080`
+- `kubectl get pods`
+- `minikube service hello-minikube --url http://192.168.99.100:31391`
+- `kubectl delete services hello-minikube`
+- `kubectl delete deployment hello-minikube`
