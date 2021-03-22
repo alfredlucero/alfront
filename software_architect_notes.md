@@ -1171,4 +1171,41 @@ Series of decisions intended to reduce cost of building and changing your softwa
   - Readability
     - See if developers who haven't coded in a language can easily discern the business logic of what is going on
     - COBOL though verbose was considered more readable; how close is the language modeled after human language i.e. Java more readable than Assembly or Forth
+
+`Datastore`
+
+- UI and Datastore depends on business logic; dependencies usually expressed as import statements
+  - Business logic shouldn't import method/data structure defined by datastore; rather use dependency inversion
+  - Datastore should import from business logic
+- NoSQL/schema-less databases often makes it easier to deal with changes
+- Organization of your data persistence
+  - CRUD (Create, read, update, delete)
+    - To maintain current state of application in datastore
+    - Comes from days of scarce computing resources, limited disk space, and slow databases
+    - i.e. modeling shopping cart with records in a relational database
+      - Two Tables for Cart and CartItem
+        - Can compute total price rather than keep it in Cart, cartItemId can be auto-calculated
+  - CQRS (Command Query Responsibility Segregation)
+    - Query Model for retrieving data (read action from CRUD)
+    - Command Model for manipulating data by processsing commands like create, update, delete but you can define as many commands/kinds as you want
+    - In shopping cart example, totalPrice/price available from Query Model to be automatically calculated
+      - commands take in data relevant to each command like cartItemId, quantity, productId for more clarity to the interface
+    - Can store all the commands through Command Model in an Event Store or Command Store or Immutable Store
+      - Current state of application not recorded only events/commands recorded
+      - Query Model represents current state of application by reconstructing state by replaying the recorded sequence of events
+      - Events never updated or deleted, database in append-only mode
+      - Append-only usually scales better, have less locking and transaction isolation challenges, more variety of storage engines
+      - i.e. Banking of credit/debit events relates to immutability principle: once something is recorded into the datastore, it never changes; entire history of transactions available for inspection
+      - Query Model doesn't have to consider entire history of all events but only consider the events which affect the requested portion of application state
+        - i.e. querying content of shopping cart for one particular user since last order was placed by that user = way less data to receive and process
+        - Can create different views of application state
+        - Need to deal with performance in rebuilding applicaion state every time or when events come in often and in large numbers
+          - Can maintain an application state snapshot - asynchronous snapshot builder executed periodically to create persistent state and to save it in snapshot store
+            - Computes latest application state like the query model; query model can read latest snapshot, update it with events which arrived after snapshot was built and then serve final current state to the business logic so query model doesn't have to process too many events (only those after snapshot was created)
+          - Snapshot store can be rebuilt at any time if your data model changes; can  maintain multiple Snapshot Stores for different purposes or for backward compatibility with components
+          - Can integrate with third-party tools for reporting/analytics if storing snapshots in relational database
+      - Event Store has some flexibility for changes to model without restructuring stored data
+  - Both approaches describe interfaces you use to represent your data and the operations on it and don't dictate how data is actually stored in database
+
+`Datamodel`
   
