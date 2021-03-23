@@ -1208,7 +1208,6 @@ Series of decisions intended to reduce cost of building and changing your softwa
   - Both approaches describe interfaces you use to represent your data and the operations on it and don't dictate how data is actually stored in database
 
 `Datamodel`
-<<<<<<< HEAD
 
 - Designing a representation of your application's state for coding
 - Collection of classes or functions encapsulating retrieval and manipulation of data
@@ -1231,6 +1230,4 @@ Series of decisions intended to reduce cost of building and changing your softwa
 - If event store incorporated, should be no changes to contract of the data model at all and business logic should remain intact; contracts stay the same, internals change
   - Query Model would retrieve data from latest persistent state snapshot and combines it with more recent events
   - Command Model used to create persistent state snapshot
-=======
->>>>>>> cee3ecb7ead1a3fc3e7460b0c3e72336b8b881ce
   
