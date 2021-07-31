@@ -76,3 +76,7 @@
 - Setting up Node/Express server with http-proxy-middleware to proxy the rest of the routes to Ruby server
 
 - Setting up a TS/MongoDB/Mongoose/Passport RESTful API with user authentication series
+
+# Accessibility Testing
+
+- A11y tests with Cypress-axe and axe-core; Storybook a11y addon
