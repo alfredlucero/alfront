@@ -820,5 +820,3 @@ promise
 	- If a service worker is broken, browsers will skip the code and fall back to the network.
 	- Service workers use only asynchronous APIs e.g. they can't work with localStorage (synchronous)
 */
-
-
