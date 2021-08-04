@@ -296,3 +296,93 @@ DESCRIBE TABLE;
 -- SHOW CREATE TABLE;
 -- SHOW INDEX FROM TABLE;
 
+-- Examples of Common Queries
+
+-- MAX value for column
+SELECT MAX(article) AS article FROM shop;
+
+-- Row holding maximum of certain column using subquery
+SELECT article, dealer, price
+FROM shop
+WHERE price=(SELECT MAX(price) FROM shop);
+-- Using LEFT JOIN
+SELECT s1.article, s1.dealer, s1.price
+FROM shop s1
+LEFT JOIN shop s2 ON s1.price < s2.price
+WHERE s2.article IS NULL;
+-- DESC Sorting
+SELECT article, dealer, price,
+FROM shop
+ORDER BY price DESC
+LIMIT 1;
+
+-- Maximum of Column per Group
+-- Find highest price per article
+SELECT article, MAX(price) as price
+FROM shop
+GROUP BY article
+ORDER BY article;
+
+-- Rows holding the group-wise maximum of certain problem
+-- For each article, find dealer or dealers with the most expensive price
+-- With correlated subquery like this but can be inefficient
+SELECT article, dealer, price
+FROM shop s1
+WHERE price=(SELECT MAX(s2.price) FROM shop s2 WHERE s1.article = s2.article)
+ORDER BY article
+-- Uncorrelated subquery
+SELECT s1.article, dealer, s1.price
+FROM shop s1
+JOIN (
+  SELECT article, MAX(price) as price
+  FROM shop
+  GROUP BY article) AS s2
+  ON s1.article = s2.article AND s1.price = s2.price
+ORDER BY article;
+-- Left join way
+SELECT s1.article, s1.dealer, s1.price
+FROM shop s1
+LEFT JOIN shop s2 ON s1.article = s2.article AND s1.price < s2.price
+WHERE s2.article is NULL -- no s2.article when s1.price is greatest
+ORDER BY s1.article;
+
+-- User-defined variables
+SELECT @min_price:=MIN(price), @max_price:=MAX(price) FROM shop;
+SELECT * FROM shop WHERE price=@min_price OR price=@max_price;
+-- Can also store database object such as table or column in variable but requires use of prepared statement
+
+-- Using foreign keys
+-- Foreign key constraint REFERENCES table(column)
+CREATE TABLE person (
+    id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name CHAR(60) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE shirt (
+    id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    style ENUM('t-shirt', 'polo', 'dress') NOT NULL,
+    color ENUM('red', 'blue', 'orange', 'white', 'black') NOT NULL,
+    owner SMALLINT UNSIGNED NOT NULL REFERENCES person(id),
+    PRIMARY KEY (id)
+);
+
+-- Using AUTO_INCREMENT
+-- Generate unique identity for rows
+-- Can retrieve most recent automatically generated value with LAST_INSERT_ID()
+-- Use UNSIGNED whenever possible for greater range
+-- max range for TINYINT is 127 but TINYINT UNSIGNE is 255 
+-- Can start with AUTO_INCREMENT value other than 1 with CREATE TABLE or ALTER TABLE 
+CREATE TABLE animals (
+     id MEDIUMINT NOT NULL AUTO_INCREMENT,
+     name CHAR(30) NOT NULL,
+     PRIMARY KEY (id)
+);
+
+INSERT INTO animals (name) VALUES
+    ('dog'),('cat'),('penguin'),
+    ('lax'),('whale'),('ostrich');
+
+SELECT * FROM animals;
+
+ALTER TABLE animals AUTO_INCREMENT = 100;
